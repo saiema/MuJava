@@ -78,7 +78,7 @@ public class EAM extends mujava.op.util.Mutator
 				  {
 					 if ( (i != method_index) && (m[i].getName().indexOf("get") == 0)
 						  && sameReturnType(m[i],m[method_index])
-						  && sameParameterType(m[i],m[method_index])) 
+						  && compatibleMethods(m[i],m[method_index])) 
 					 {
 				        find_flag[i] = true;
 				        set_num++;
