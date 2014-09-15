@@ -1,106 +1,74 @@
-////////////////////////////////////////////////////////////////////////////
-// Module : IOD_Writer.java
-// Author : Ma, Yu-Seung
-// COPYRIGHT 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED.
-////////////////////////////////////////////////////////////////////////////
-
 package mujava.op;
 
-import java.io.*;
-import openjava.ptree.*;
+import java.io.PrintWriter;
+
+import openjava.ptree.MethodDeclaration;
+import openjava.ptree.Parameter;
+import openjava.ptree.ParameterList;
+import openjava.ptree.ParseTreeException;
+import openjava.ptree.TypeName;
+
+import mujava.api.Mutation;
 import mujava.op.util.MutantCodeWriter;
 
-/**
- * <p>Output and log IOD mutants</p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
- * @author Yu-Seung Ma
- * @version 1.0
-  */
+public class IOD_Writer extends MutantCodeWriter {
+	private MethodDeclaration mutant;
 
-public class IOD_Writer extends MutantCodeWriter
-{
-   MethodDeclaration mutant = null;
+	public IOD_Writer(String mutant_dir, PrintWriter out, Mutation mi) {
+		super(mutant_dir, out, mi);
+		setMutant(this.mi.getMutant());
+	}
+	
+	private void setMutant(Object mutant) {
+		this.mutant = (MethodDeclaration) mutant;
+	}
+	
+	@Override
+	public void visit(MethodDeclaration fd) throws ParseTreeException {
+		if (compare(fd, this.mutant)) {
+	        // -----------------------------------------------------------
+	        mutated_line = line_num;
+	        String log_str = "removed  => " + mutant.toFlattenString();
+	        writeLog(removeNewline(log_str));
+	        // -----------------------------------------------------------
+		} else {
+			super.visit(fd);
+		}
+	}
+	
+	private boolean compare(MethodDeclaration md1, MethodDeclaration md2) {
+		String f1Name = md1.getName();
+		String f2Name = md2.getName();
+		String f1RetType = md1.getReturnType().getName();
+		String f2RetType = md2.getReturnType().getName();
+		if (f1Name.equals(f2Name) && f1RetType.equals(f2RetType)) {
+			TypeName[] fd1Exc = md1.getThrows();
+			TypeName[] fd2Exc = md2.getThrows();
+			if (fd1Exc.length == fd2Exc.length) {
+				for (int e = 0; e < fd1Exc.length; e++) {
+					if (fd1Exc[e].getName().compareTo(fd2Exc[e].getName())==0)
+						return false;
+				}
+			}
+			ParameterList fd1Params = md1.getParameters();
+			ParameterList fd2Params = md2.getParameters();
+			if (fd1Params.size() == fd2Params.size()) {
+				for (int p = 0; p < fd1Params.size(); p++) {
+					Parameter fd1Param = fd1Params.get(p);
+					Parameter fd2Param = fd2Params.get(p);
+					if (fd1Param.getModifiers().getRegular() != fd2Param.getModifiers().getRegular()) {
+						return false;
+					}
+					if (fd1Param.getTypeSpecifier().getName().compareTo(fd2Param.getTypeSpecifier().getName())!=0) {
+						return false;
+					}
+				}
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return false;
+	}
 
-   public void setMutant(MethodDeclaration mutant)
-   {
-      this.mutant = mutant;
-   }
-
-   public IOD_Writer( String file_name, PrintWriter out ) 
-   {
-	  super(file_name, out);
-   }
-
-   /**
-    * Write and log mutated line to files
-    */
-   public void visit( MethodDeclaration p ) throws ParseTreeException
-   {
-      if (!(isSameObject(p, mutant)))
-      {
-         super.visit(p);
-      }
-      else
-      {
-         // -----------------------------------------------------
-         mutated_line = line_num;
-         String temp= mutant.getModifiers().toString() + " "
-			  + mutant.getReturnType().getName()+ " "
-		      + mutant.getName() +"("
-			  + mutant.getParameters().toString()+")";
-         writeLog(removeNewline(temp)+" is deleted.");
-         // ----------------------------------------------------
-         writeTab();
-         out.print("// ");
-
-         /*ModifierList*/
-         ModifierList modifs = p.getModifiers();
-         if (modifs != null) 
-         {
-            modifs.accept( this );
-            if (! modifs.isEmptyAsRegular())  
-               out.print( " " );
-         }
-
-         TypeName ts = p.getReturnType();
-         ts.accept( this );
-
-         out.print( " " );
-
-         String name = p.getName();
-         out.print( name );
-
-         ParameterList params = p.getParameters();
-         out.print( "(" );
-         if (! params.isEmpty()) 
-         {
-            out.print( " " );  
-            params.accept( this );  
-            out.print( " " );
-         } 
-         else 
-         {
-            params.accept( this );
-         }
-         out.print( ")" );
-
-         TypeName[] tnl = p.getThrows();
-         if (tnl.length != 0) 
-         {
-            out.println(); 
-            line_num++;
-            writeTab();  
-            writeTab();
-            out.print( "// throws " );
-            tnl[0].accept( this );
-            for (int i = 1; i < tnl.length; ++i) 
-            {
-               out.print ( ", " );
-               tnl[i].accept( this );
-            }
-         }
-         out.println("{ ... }");  
-         line_num++;
-      }
-   }
 }

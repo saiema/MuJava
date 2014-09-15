@@ -6,8 +6,10 @@
 
 package mujava.op.basic;
 
-import mujava.op.util.TraditionalMutantCodeWriter;
+import mujava.api.Mutation;
+import mujava.op.util.MutantCodeWriter;
 import openjava.ptree.*;
+
 import java.io.*;
 
 /**
@@ -17,40 +19,22 @@ import java.io.*;
  * @version 1.0
   */
 
-public class AODU_Writer extends TraditionalMutantCodeWriter
-{
-   UnaryExpression original;
+public class AODU_Writer extends MutantCodeWriter {
 
-   public AODU_Writer( String file_name, PrintWriter out ) 
-   {
-      super(file_name, out);
+   public AODU_Writer( String file_name, PrintWriter out, Mutation mi)  {
+      super(file_name, out, mi);
    }
 
-   /**
-    * Set original source code
-    * @param exp1
-    */
-   public void setMutant(UnaryExpression exp1)
-   {
-      original = exp1;
-   }
-
-   /**
-    * Log mutated line
-    */
-   public void visit( UnaryExpression p ) throws ParseTreeException
-   {
-      if (isSameObject(p, original))
-      {
-         super.visit(p.getExpression());
+   public void visit( UnaryExpression p ) throws ParseTreeException {
+      if (isSameObject(p, (UnaryExpression) this.mi.getOriginal())) {
+         super.visit((Expression) this.mi.getMutant());
          // -----------------------------------------------------------
          mutated_line = line_num;
-         String log_str = p.toString() + " => " + p.getExpression().toString();
+         String log_str = ((UnaryExpression) this.mi.getOriginal()).toString() + " => " + ((Expression) this.mi.getMutant()).toString();
          writeLog(removeNewline(log_str));
          // -------------------------------------------------------------
       } 
-      else
-      {
+      else {
          super.visit(p);
       }
    }

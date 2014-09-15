@@ -6,70 +6,103 @@
 
 package mujava.op;
 
-import java.io.*;
-import java.util.Vector;
+import mujava.api.Api;
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
+import mujava.app.MutationRequest;
 import openjava.mop.*;
 import openjava.ptree.*;
 
 /**
- * <p>Generate JSI (Java-specific static modifier insertion) --
- *    add the <i>static</i> modifier to instance variables
+ * <p>
+ * Generate JSI (Java-specific static modifier insertion) -- add the
+ * <i>static</i> modifier to instance variables
  * </p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
+ * <p>
+ * Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED
+ * </p>
+ * 
  * @author Yu-Seung Ma
  * @version 1.0
-  */
+ */
 
-public class JSI extends mujava.op.util.Mutator
-{
-   Vector nonStaticFields;
-   boolean isField;
+public class JSI extends mujava.op.util.Mutator {
+	private boolean smartMode;
 
-   public JSI(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
-   {
-	  super( file_env,comp_unit );
-      nonStaticFields = new Vector();
-      isField = false;
-   }
+	public JSI(FileEnvironment file_env, ClassDeclaration cdecl,CompilationUnit comp_unit) {
+		super(file_env, comp_unit);
+		this.smartMode = false;
+	}
+	
+	public void setSmartMode() {
+		this.smartMode = true;
+	}
+	
+	public void setDumbMode() {
+		this.smartMode = false;
+	}
 
-   public void visit( FieldDeclaration p ) throws ParseTreeException 
-   {
-      if (!(p.getModifiers().contains(ModifierList.STATIC)))
-      {
-         // nonStaticFields.add(p);
-         outputToFile(p);
-      }
-   }
+	public void visit(FieldDeclaration p) throws ParseTreeException {
+		if (Api.usingApi() && (Api.getMethodUnderConsideration().compareTo(MutationRequest.MUTATE_FIELDS)!=0)) {
+			return;
+		}
+		if (getMutationsLeft(p) <= 0) return;
+		mutate(p);
+	}
 
-   /**
-    * Output JSI mutants to files
-    * @param original
-    */
-   public void outputToFile(FieldDeclaration original)
-   {
-      if (comp_unit == null) 
-    	 return;
+	private void mutate(FieldDeclaration original) {
+		if (!original.getModifiers().contains(ModifierList.STATIC)) {
+			FieldDeclaration mutant = (FieldDeclaration) original.makeRecursiveCopy_keepOriginalID();
+			ModifierList newModifiers = mutant.getModifiers();
+			newModifiers.add(ModifierList.STATIC);
+			outputToFile(original, mutant);
+		}
+	}
 
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
+	private void outputToFile(FieldDeclaration original, FieldDeclaration mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.JSI, original, mutant);
+	}
+	
+	public void visit(MethodDeclaration p) throws ParseTreeException {
+		if (Api.usingApi() && !p.getName().equals(Api.getMethodUnderConsideration())) {
+			return;
+		}
+		if (getMutationsLeft(p) <= 0) return;
+		if (this.smartMode) {
+			mutate_smart(p);
+		} else {
+			mutate_dumb(p);
+		}
+	}
 
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-	 	 JSI_Writer writer = new JSI_Writer( mutant_dir, out );
-		 writer.setMutant(original);
-		 comp_unit.accept( writer );
-		 out.flush();  
-		 out.close();
-      } catch ( IOException e ) 
-      {
-	     System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) 
-      {
-	     System.err.println( "errors during printing " + f_name );
-	     e.printStackTrace();
-      }
-   }
+	private void mutate_dumb(MethodDeclaration original) {
+		if (!original.getModifiers().contains(ModifierList.STATIC)) {
+			MethodDeclaration mutant = (MethodDeclaration) original.makeRecursiveCopy_keepOriginalID();
+			ModifierList newModifiers = mutant.getModifiers();
+			newModifiers.add(ModifierList.STATIC);
+			outputToFile(original, mutant);
+		}
+	}
+
+	private void mutate_smart(MethodDeclaration original) {
+		if ((!original.getModifiers().contains(ModifierList.STATIC)) && willCompile(original)) {
+			MethodDeclaration mutant = (MethodDeclaration) original.makeRecursiveCopy_keepOriginalID();
+			ModifierList newModifiers = mutant.getModifiers();
+			newModifiers.add(ModifierList.STATIC);
+			outputToFile(original, mutant);
+		}
+	}
+	
+	private boolean willCompile(MethodDeclaration p) {
+		//TODO: code
+		//this will check if the new method declaration will compile
+		//adding static to a method that calls non-static methods will
+		//result in a compiling error
+		return true;
+	}
+	
+	private void outputToFile(MethodDeclaration original,MethodDeclaration mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.JSI, original, mutant);
+	}
+
 }

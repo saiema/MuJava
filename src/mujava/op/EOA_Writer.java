@@ -8,145 +8,77 @@ package mujava.op;
 
 import java.io.*;
 import openjava.ptree.*;
+import mujava.api.Mutation;
 import mujava.op.util.MutantCodeWriter;
 
 /**
- * <p>Output and log EOA mutants to files</p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
+ * <p>
+ * Output and log EOA mutants to files
+ * </p>
+ * <p>
+ * Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED
+ * </p>
+ * 
  * @author Yu-Seung Ma
  * @version 1.0
-  */ 
+ */
 
-public class EOA_Writer extends MutantCodeWriter
-{
-   MethodCall original_methodcall = null;
-   AssignmentExpression original = null;
-   String mutant = null;
+public class EOA_Writer extends MutantCodeWriter {
+	private AssignmentExpression original_ae;
+	private VariableDeclarator original_vd;
+	private AssignmentExpression mutant_ae;
+	private VariableDeclarator mutant_vd;
+	
+	public EOA_Writer(String file_name, PrintWriter out, Mutation mi) {
+		super(file_name, out, mi);
+		this.original_ae = null;
+		this.original_vd = null;
+		this.mutant_ae = null;
+		this.mutant_vd = null;
+		setMutant(this.mi.getOriginal(), this.mi.getMutant());
+	}
+	
+	private void setMutant(Object v1, Object v2) {
+		
+		if (v1 instanceof VariableDeclarator) {
+			this.original_vd = (VariableDeclarator)v1;
+		} else if (v1 instanceof AssignmentExpression) {
+			this.original_ae = (AssignmentExpression) v1;
+		}
+		
+		if (v2 instanceof VariableDeclarator) {
+			this.mutant_vd = (VariableDeclarator)v2;
+		} else if (v2 instanceof AssignmentExpression) {
+			this.mutant_ae = (AssignmentExpression) v2;
+		}
+	}
 
-   ExpressionStatement original_stmt = null;
-
-   /**
-    * Set original source code and mutated code
-    * @param original
-    * @param mutant
-    */
-   public void setMutant(AssignmentExpression original, String mutant)
-   {
-      this.mutant = mutant;
-      this.original = original;
-   }
-
-   /**
-    * Set original source code and mutated code
-    * @param original
-    * @param mutant
-    */
-   public void setMutant(ExpressionStatement original, String mutant)
-   {
-      this.mutant = mutant;
-      this.original_stmt = original;
-   }
-
-   /**
-    * Set original method call
-    * @param original
-    */
-   public void setMutant(MethodCall original)
-   {
-      this.original_methodcall = original;
-   }
-
-   public EOA_Writer( String file_name, PrintWriter out ) 
-   {
-	  super(file_name, out);
-   }
-
-   public void visit( MethodCall p ) throws ParseTreeException
-   {
-      if (isSameObject(p, original_methodcall))
-      {
-         Expression expr = p.getReferenceExpr();
-         TypeName reftype = p.getReferenceType();
-
-         if (expr != null) 
-         {
-            if (expr instanceof Leaf ||
-                expr instanceof ArrayAccess ||
-                expr instanceof FieldAccess ||
-                expr instanceof MethodCall ||
-                expr instanceof Variable) 
-            {
-               expr.accept( this );
-            } 
-            else 
-            {
-		       writeParenthesis( expr );
-            }
-         } 
-         else if (reftype != null) 
-         {
-            reftype.accept( this );
-	     }
-
-         // -------------------------------------------------------------
-         mutated_line = line_num;
-         out.print(mutant);
-         writeLog(removeNewline(p.toString()+" =>  " + p.toString().substring(0,p.toString().length()-".clone()".length())));
-         // -------------------------------------------------------------
-
-      }
-      else
-      {
-         super.visit(p);
-      }
-   }
-	 
-   public void visit( ExpressionStatement p ) throws ParseTreeException
-   {
-      if (isSameObject(p, original_stmt))
-      {
-		 // -------------------------------------------------------------
-		 writeTab(); out.println("try{");
-		 line_num++;
-		 mutated_line = line_num;
-		 pushNest();
-		 writeTab(); 
-		 out.println(mutant+";");
-		 popNest();
-		 writeLog(removeNewline(original_stmt.toString() + " => " + mutant));
-		 writeTab(); 
-		 out.println("}catch(CloneNotSupportedException cnse){");
-		 line_num++;
-		 pushNest();
-		 writeTab(); 
-		 out.println("System.err.println(cnse);");
-		 popNest();
-		 line_num++;
-		 writeTab(); 
-		 out.println("}");
-		 line_num++;
-		 // -------------------------------------------------------------
-      }
-      else
-      {
-		 super.visit(p);
-      }
-   }
-
-   public void visit( AssignmentExpression p ) throws ParseTreeException
-   {
-      if (isSameObject(p, original))
-      {
-		 // -------------------------------------------------------------
-		 mutated_line = line_num;
-		 out.print(mutant);
-		 writeLog(removeNewline(original.toString() + " => " + mutant));
-		 // -------------------------------------------------------------
-      }
-      else
-      {
-		 super.visit(p);
-      }
-   }
+	public void visit(AssignmentExpression p) throws ParseTreeException {
+		if (this.original_ae != null && isSameObject(p, this.original_ae)) {
+			String originalString = this.original_ae.toFlattenString();
+			this.original_ae = null;
+			super.visit(this.mutant_ae);
+			// -------------------------------------------------------------
+			mutated_line = line_num;
+			writeLog(removeNewline(originalString + " => " + this.mutant_ae.toString()));
+			// -------------------------------------------------------------
+		} else {
+			super.visit(p);
+		}
+	}
+	
+	public void visit(VariableDeclarator p) throws ParseTreeException {
+		if (this.original_vd != null && isSameObject(p, this.original_vd)) {
+			String originalString = this.original_vd.toFlattenString();
+			this.original_vd = null;
+			super.visit(this.mutant_vd);
+			// -------------------------------------------------------------
+			mutated_line = line_num;
+			writeLog(removeNewline(originalString + " => " + this.mutant_vd.toString()));
+			// -------------------------------------------------------------
+		} else {
+			super.visit(p);
+		}
+	}
 
 }

@@ -6,155 +6,118 @@
 
 package mujava.op;
 
-import java.io.*;
-import java.util.Vector;
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
 
 /**
- * <p>Generate JTI (Java-specific this keyword insertion) --
- *    insert the keyword <i>this</i> to instance variables or method parameters
+ * <p>
+ * Generate JTI (Java-specific this keyword insertion) -- insert the keyword
+ * <i>this</i> to instance variables or method parameters
  * </p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
+ * <p>
+ * Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED
+ * </p>
+ * 
  * @author Yu-Seung Ma
  * @version 1.0
-  */
+ */
 
-public class JTI extends mujava.op.util.Mutator
-{
-   Vector instanceVar = new Vector();
-   Vector localVar = new Vector();
-   boolean isJTITarget = false;
+public class JTI extends mujava.op.util.Mutator {
+	private boolean smartMode;
 
-   public JTI(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
-   {
-	  super( file_env, comp_unit );
-   }
+	public JTI(FileEnvironment file_env, ClassDeclaration cdecl,CompilationUnit comp_unit) {
+		super(file_env, comp_unit);
+		this.smartMode = false;
+	}
 
-   boolean isTarget( Parameter p ) throws ParseTreeException 
-   {
-      for (int i=0; i<instanceVar.size(); i++)
-      {
-         String field_name = instanceVar.get(i).toString();
-         if (field_name.equals(p.getVariable()))
-         {
-            localVar.add(p.getVariable());
-            return true;
-         }
-      }
-      return false;
-   }
+	public void smartMode() {
+		this.smartMode = true;
+	}
+	
+	public void dumbMode() {
+		this.smartMode = false;
+	}
 
-   public void visit( FieldDeclaration p ) throws ParseTreeException 
-   {
-      instanceVar.add(p.getName());
-   }
+	public void visit(Variable p) throws ParseTreeException {
+		if (!(getMutationsLeft(p) > 0))
+			return;
+		Expression mutant = this.smartMode?insertThis_smart(p):insertThis_dumb(p);
+		if (mutant != null) {
+			outputToFile(p, mutant);
+		}
+	}
+	
 
-   public void visit( AssignmentExpression p ) throws ParseTreeException 
-   {
-  	  Expression newp = this.evaluateDown( p );
-	  if (newp != p) 
-	  {
-		 p.replace( newp );
-	     return;
-	  }
-	  p.childrenAccept( this );
-	  newp = this.evaluateUp( p );
-	  if (newp != p)  
-		 p.replace( newp );
-   }
+	public void visit(MethodCall p) throws ParseTreeException {
+		if (!(getMutationsLeft(p) > 0))
+			return;
+		ExpressionList args = p.getArguments();
+		for (int a = 0; a < args.size(); a++) {
+			Expression exp = args.get(a);
+			exp.accept(this);
+		}
+	}
+	
+	private Expression insertThis_dumb(Variable var) throws ParseTreeException {
+		SelfAccess sa = SelfAccess.makeThis();
+		FieldAccess fa = new FieldAccess(sa, var.toString());
+		return fa;
+	}
+	
+	private Expression insertThis_smart(Variable var) throws ParseTreeException {
+		OJField[] allFields = getAllFields(getSelfType());
+		for (OJField f : allFields) {
+			String nameVar = var.toString();
+			String fieldName = f.getName();
+			if (compareNamesWithoutPackage(nameVar, fieldName)) {
+				OJClass varType = getType(var);
+				OJClass fieldType = f.getType();
+				if (varType.getName().equals(fieldType.getName())) {
+					SelfAccess sa = SelfAccess.makeThis();
+					FieldAccess fa = new FieldAccess(sa, f.getName());
+					return fa;
+				}
+			}
+		}
+		return null;
+	}
 
-   public void visit( ConstructorDeclaration p ) throws ParseTreeException 
-   {
-      ParameterList plist = p.getParameters();
-      localVar.removeAllElements();
-      for (int i=0; i<plist.size(); i++)
-      {
-         if (isTarget(plist.get(i)))
-         {
-            isJTITarget = true;
-         }
-      }
-      if (isJTITarget)
-      {
-         super.visit(p);
-      }
-      isJTITarget = false;
-   }
-
-   public void visit( MethodDeclaration p ) throws ParseTreeException 
-   {
-      ParameterList plist = p.getParameters();
-      localVar.removeAllElements();
-      for (int i=0; i<plist.size(); i++)
-      {
-         if (isTarget(plist.get(i)))
-         {
-            isJTITarget = true;
-         }
-      }
-      
-      if (isJTITarget)
-      {
-         super.visit(p);
-      }
-      isJTITarget = false;
-   }
-
-   public void visit( FieldAccess p ) throws ParseTreeException 
-   {
-	  Expression ref_exp = p.getReferenceExpr();
-	  if (ref_exp instanceof SelfAccess)
-	  {
-         return;
-	  } 
-	  else
-	  {
-         super.visit(p);
-	  }
-   }
-
-   public void visit( Variable p ) throws ParseTreeException 
-   {
-      for (int i=0; i<localVar.size(); i++)
-      {
-         if (p.toString().equals(localVar.get(i).toString()))
-         {
-		    outputToFile(p);
-		 }
-      }
-   }
-
-   /**
-    * Output JTI mutants to files
-    * @param original
-    */
-   public void outputToFile(Variable original)
-   {
-      if (comp_unit == null) 
-    	 return;
-
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
-
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-		 JTI_Writer writer = new JTI_Writer(mutant_dir, out);
-		 writer.setMutant(original);
-		 comp_unit.accept( writer );
-		 out.flush();  
-		 out.close();
-      } catch ( IOException e ) 
-      {
-		 System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) 
-      {
-		 System.err.println( "errors during printing " + f_name );
-		 e.printStackTrace();
-      }
-   }
+	private void outputToFile(Variable original, Expression mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(this.smartMode?Mutant.JTI_SMART:Mutant.JTI, original, (ParseTreeObject) mutant);
+	}
+	
+	public void visit(BinaryExpression p) throws ParseTreeException {
+		Expression lexp = p.getLeft();
+		lexp.accept(this);
+		Expression rexp = p.getRight();
+		rexp.accept(this);
+	}
+	
+	public void visit(ReturnStatement p) throws ParseTreeException {
+		Expression exp = p.getExpression();
+		exp.accept(this);
+	}
+	
+	public void visit(VariableDeclarator p) throws ParseTreeException {
+		Expression	rexp = (Expression) p.getInitializer();
+		
+		if( rexp == null ){
+			super.visit(p);
+			return;
+		} else {
+			rexp.accept(this);
+		}
+	}
+	
+	public void visit(AssignmentExpression p) throws ParseTreeException {
+		if (getMutationsLeft(p) > 0) {
+			Expression lexp = p.getLeft();
+			Expression rexp = p.getRight();
+			
+			super.visit(lexp);
+			super.visit(rexp);
+		}
+	}
 }
-

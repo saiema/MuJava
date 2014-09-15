@@ -16,28 +16,12 @@ public class MethodLevelMutator  extends mujava.op.util.Mutator
 
    String getMethodSignature(MethodDeclaration p)
    {
-       //remover the generics in the return type
-	   String temp = p.getReturnType().getName();
-       if(temp.indexOf("<") != -1 && temp.indexOf(">")!= -1){
-    	   temp = temp.substring(0, temp.indexOf("<")) + temp.substring(temp.lastIndexOf(">") + 1, temp.length());
-       }
-	  String str = temp + "_" + p.getName() + "(";
+      String str = p.getReturnType().getName() + "_" + p.getName() + "(";
       ParameterList pars = p.getParameters();
-      
-      //the for loop goes through each parameter of a method and return them in a String, separated by comma
-      for (int i = 0; i < pars.size(); i++)
+    
+      for (int i=0; i<pars.size(); i++)
       {
-    	 //because generics in introduced, the original code does not work anymore
-    	 //the code below applies the cheapest solution: ignore generics by removing the contents between '<' and '>'
-    	 String tempParameter = pars.get(i).getTypeSpecifier().getName();
-    	 if(tempParameter.indexOf("<") >=0 && tempParameter.indexOf(">") >=0){
-    		 tempParameter = tempParameter.substring(0, tempParameter.indexOf("<")) + tempParameter.substring(tempParameter.lastIndexOf(">") + 1, tempParameter.length());
-    		 str += tempParameter;		
-    	 }    		 
-    	 else{
-    		 str += tempParameter;		 
-    	 }
-
+         str += pars.get(i).getTypeSpecifier().getName();
          if (i != (pars.size()-1)) 
         	str += ",";
       }
@@ -49,24 +33,11 @@ public class MethodLevelMutator  extends mujava.op.util.Mutator
    {
       String str = p.getName() +"(";
       ParameterList pars = p.getParameters();
-      
-      //the for loop goes through each parameter of a constructor and return them in a String, separated by comma
       for (int i=0; i<pars.size(); i++)
       {
-         /** the original code: str += pars.get(i).getTypeSpecifier().getName();  **/
-    	 //because generics in introduced, the original code does not work anymore
-     	 //the code below applies the cheapest solution: ignore generics by removing the contents between '<' and '>'
-    	  String tempParameter = pars.get(i).getTypeSpecifier().getName(); 
-    	  if(tempParameter.indexOf("<") >=0 && tempParameter.indexOf(">") >=0){
-     		 tempParameter = tempParameter.substring(0, tempParameter.indexOf("<")) + tempParameter.substring(tempParameter.lastIndexOf(">") + 1, tempParameter.length());
-     		 str += tempParameter;		
-     	  }    		 
-     	  else{
-     		 str += tempParameter;		 
-     	  }
-         
-          if (i != (pars.size()-1)) 
-        	 str+=",";
+         str += pars.get(i).getTypeSpecifier().getName();
+         if (i != (pars.size()-1)) 
+        	str+=",";
       }
       str += ")";
       return str;

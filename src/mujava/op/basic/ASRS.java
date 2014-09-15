@@ -6,9 +6,10 @@
 
 package mujava.op.basic;
 
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
-import java.io.*;
 
 /**
  * <p>Generate ASRS (Assignment Operator Replacement (short-cut)) mutants --
@@ -29,164 +30,160 @@ import java.io.*;
 
 public class ASRS extends MethodLevelMutator
 {
-   public ASRS(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
-   {
-      super( file_env, comp_unit );
-   }
 
-   /**
-    * If the assignment operator is of arithmetic type (+=, -=, *=, /=, %=), 
-    *    replace it with each of the other arithmetic assignment operators. 
-    * If the assignment operator is of logical type (&=, |=, ^=), 
-    *    replace it with each of the other logical assignment operators.
-    * If the assignment operator is a shift operator (<<, >>, >>>)
-    *    replace it with each of the other shift operators. 
-    */
-   public void visit( AssignmentExpression p ) throws ParseTreeException
-   {
-      int op = p.getOperator();
-      if ( (op == AssignmentExpression.ADD) || (op == AssignmentExpression.SUB)  ||
-           (op == AssignmentExpression.MULT) || (op == AssignmentExpression.DIVIDE) ||
-           (op == AssignmentExpression.MOD) )
-      {
-         genArithmeticMutants(p,op);
-      }
-      else if ( (op == AssignmentExpression.AND) || (op == AssignmentExpression.OR) ||
-                (op == AssignmentExpression.XOR))
-      {
-         genLogicalMutants(p,op);
-      }
-      else if ( (op == AssignmentExpression.SHIFT_L) || (op == AssignmentExpression.SHIFT_R) ||
-                (op == AssignmentExpression.SHIFT_RR))
-      {
-         genShiftMutants(p,op);
-      }
-   }
+	private int mutationsLeft = -1;
+	ParseTreeObject parent = null;
 
-   /*
-    * Replace the arithmetic assignment operator (+=, -+, *=, /=, %=)
-    * by each of the other operators  
-    */   
-   void genArithmeticMutants(AssignmentExpression p, int op)
-   {
-      AssignmentExpression mutant;
-      if (!(op == AssignmentExpression.ADD))
-      {
-         mutant = (AssignmentExpression)(p.makeRecursiveCopy());
-         mutant.setOperator(AssignmentExpression.ADD);
-         outputToFile(p, mutant);
-      }
-      if (!(op == AssignmentExpression.DIVIDE))
-      {
-         mutant = (AssignmentExpression)(p.makeRecursiveCopy());
-         mutant.setOperator(AssignmentExpression.DIVIDE);
-         outputToFile(p, mutant);
-      }
-      if (!(op == AssignmentExpression.MULT))
-      {
-         mutant = (AssignmentExpression)(p.makeRecursiveCopy());
-         mutant.setOperator(AssignmentExpression.MULT);
-         outputToFile(p,mutant);
-      }  
-      if (!(op == AssignmentExpression.SUB))
-      {
-         mutant = (AssignmentExpression)(p.makeRecursiveCopy());
-         mutant.setOperator(AssignmentExpression.SUB);
-         outputToFile(p,mutant);
-      }  
-      if (!(op == AssignmentExpression.MOD))
-      {
-         mutant = (AssignmentExpression)(p.makeRecursiveCopy());
-         mutant.setOperator(AssignmentExpression.MOD);
-         outputToFile(p,mutant);
-      }
-   }
+	public ASRS(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
+	{
+		super( file_env, comp_unit );
+	}
 
-   /*
-    * Replace the logical assignment operator (&=, |+, ^=)
-    * by each of the other operators  
-    */   
-   void genLogicalMutants(AssignmentExpression p, int op)
-   {
-      AssignmentExpression mutant;
-      if (!(op == AssignmentExpression.AND))
-      {
-         mutant = (AssignmentExpression)(p.makeRecursiveCopy());
-         mutant.setOperator(AssignmentExpression.AND);
-         outputToFile(p, mutant);
-      }
-      if (!(op == AssignmentExpression.OR))
-      {
-         mutant = (AssignmentExpression)(p.makeRecursiveCopy());
-         mutant.setOperator(AssignmentExpression.OR);
-         outputToFile(p, mutant);
-      }
-      if (!(op == AssignmentExpression.XOR))
-      {
-         mutant = (AssignmentExpression)(p.makeRecursiveCopy());
-         mutant.setOperator(AssignmentExpression.XOR);
-         outputToFile(p, mutant);
-      }
-   }
 
-   /*
-    * Replace the shift assignment operator (<<=, >>=, >>>=)
-    * by each of the other operators  
-    */   
-   void genShiftMutants(AssignmentExpression p, int op)
-   {
-      AssignmentExpression mutant;
-      if (!(op == AssignmentExpression.SHIFT_L))
-      {
-         mutant = (AssignmentExpression)(p.makeRecursiveCopy());
-         mutant.setOperator(AssignmentExpression.SHIFT_L);
-         outputToFile(p, mutant);
-      }
-      if (!(op == AssignmentExpression.SHIFT_R))
-      {
-         mutant = (AssignmentExpression)(p.makeRecursiveCopy());
-         mutant.setOperator(AssignmentExpression.SHIFT_R);
-         outputToFile(p, mutant);
-      }
-      if (!(op == AssignmentExpression.SHIFT_RR))
-      {
-         mutant = (AssignmentExpression)(p.makeRecursiveCopy());
-         mutant.setOperator(AssignmentExpression.SHIFT_R);
-         outputToFile(p, mutant);
-      }
-   }
+	/**
+	 * If the assignment operator is of arithmetic type (+=, -=, *=, /=, %=), 
+	 *    replace it with each of the other arithmetic assignment operators. 
+	 * If the assignment operator is of logical type (&=, |=, ^=), 
+	 *    replace it with each of the other logical assignment operators.
+	 * If the assignment operator is a shift operator (<<, >>, >>>)
+	 *    replace it with each of the other shift operators. 
+	 */
+	public void visit( AssignmentExpression p ) throws ParseTreeException
+	{
+		if (!(getMutationsLeft(p)>0)) return;
+		int op = p.getOperator();
+		if ( (op == AssignmentExpression.ADD) || (op == AssignmentExpression.SUB)  ||
+				(op == AssignmentExpression.MULT) || (op == AssignmentExpression.DIVIDE) ||
+				(op == AssignmentExpression.MOD) )
+		{
+			genArithmeticMutants(p,op);
+		}
+		else if ( (op == AssignmentExpression.AND) || (op == AssignmentExpression.OR) ||
+				(op == AssignmentExpression.XOR))
+		{
+			genLogicalMutants(p,op);
+		}
+		else if ( (op == AssignmentExpression.SHIFT_L) || (op == AssignmentExpression.SHIFT_R) ||
+				(op == AssignmentExpression.SHIFT_RR))
+		{
+			genShiftMutants(p,op);
+		}
+	}
 
-   /**
-    * Output ASRS mutants to file
-    * @param original
-    * @param mutant
-    */
-   public void outputToFile(AssignmentExpression original,AssignmentExpression mutant)
-   {
-      if (comp_unit == null) 
-         return;
-      
-      String f_name;
-      num++;
-      f_name = getSourceName("ASRS");
-      String mutant_dir = getMuantID("ASRS");
+	/*
+	 * Replace the arithmetic assignment operator (+=, -+, *=, /=, %=)
+	 * by each of the other operators  
+	 */   
+	void genArithmeticMutants(AssignmentExpression p, int op)
+	{
+		AssignmentExpression mutant;
+		if (!(op == AssignmentExpression.ADD))
+		{
+			mutant = (AssignmentExpression)(p.makeRecursiveCopy_keepOriginalID());
+			mutant.setOperator(AssignmentExpression.ADD);
+			outputToFile(p, mutant);
+		}
+		if (!(op == AssignmentExpression.DIVIDE))
+		{
+			mutant = (AssignmentExpression)(p.makeRecursiveCopy_keepOriginalID());
+			mutant.setOperator(AssignmentExpression.DIVIDE);
+			outputToFile(p, mutant);
+		}
+		if (!(op == AssignmentExpression.MULT))
+		{
+			mutant = (AssignmentExpression)(p.makeRecursiveCopy_keepOriginalID());
+			mutant.setOperator(AssignmentExpression.MULT);
+			outputToFile(p,mutant);
+		}  
+		if (!(op == AssignmentExpression.SUB))
+		{
+			mutant = (AssignmentExpression)(p.makeRecursiveCopy_keepOriginalID());
+			mutant.setOperator(AssignmentExpression.SUB);
+			outputToFile(p,mutant);
+		}  
+		if (!(op == AssignmentExpression.MOD))
+		{
+			mutant = (AssignmentExpression)(p.makeRecursiveCopy_keepOriginalID());
+			mutant.setOperator(AssignmentExpression.MOD);
+			outputToFile(p,mutant);
+		}
+	}
 
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-		 ASRS_Writer writer = new ASRS_Writer(mutant_dir, out);
-		 writer.setMutant(original, mutant);
-         writer.setMethodSignature(currentMethodSignature);
-		 comp_unit.accept( writer );
-		 out.flush();  
-		 out.close();
-      } catch ( IOException e ) 
-      {
-		  System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) 
-      {
-		 System.err.println( "errors during printing " + f_name );
-		 e.printStackTrace();
-      }
-   }
+	/*
+	 * Replace the logical assignment operator (&=, |+, ^=)
+	 * by each of the other operators  
+	 */   
+	void genLogicalMutants(AssignmentExpression p, int op)
+	{
+		AssignmentExpression mutant;
+		if (!(op == AssignmentExpression.AND))
+		{
+			mutant = (AssignmentExpression)(p.makeRecursiveCopy_keepOriginalID());
+			mutant.setOperator(AssignmentExpression.AND);
+			outputToFile(p, mutant);
+		}
+		if (!(op == AssignmentExpression.OR))
+		{
+			mutant = (AssignmentExpression)(p.makeRecursiveCopy_keepOriginalID());
+			mutant.setOperator(AssignmentExpression.OR);
+			outputToFile(p, mutant);
+		}
+		if (!(op == AssignmentExpression.XOR))
+		{
+			mutant = (AssignmentExpression)(p.makeRecursiveCopy_keepOriginalID());
+			mutant.setOperator(AssignmentExpression.XOR);
+			outputToFile(p, mutant);
+		}
+	}
+
+	/*
+	 * Replace the shift assignment operator (<<=, >>=, >>>=)
+	 * by each of the other operators  
+	 */   
+	void genShiftMutants(AssignmentExpression p, int op)
+	{
+		AssignmentExpression mutant;
+		if (!(op == AssignmentExpression.SHIFT_L))
+		{
+			mutant = (AssignmentExpression)(p.makeRecursiveCopy_keepOriginalID());
+			mutant.setOperator(AssignmentExpression.SHIFT_L);
+			outputToFile(p, mutant);
+		}
+		if (!(op == AssignmentExpression.SHIFT_R))
+		{
+			mutant = (AssignmentExpression)(p.makeRecursiveCopy_keepOriginalID());
+			mutant.setOperator(AssignmentExpression.SHIFT_R);
+			outputToFile(p, mutant);
+		}
+		if (!(op == AssignmentExpression.SHIFT_RR))
+		{
+			mutant = (AssignmentExpression)(p.makeRecursiveCopy_keepOriginalID());
+			mutant.setOperator(AssignmentExpression.SHIFT_RR);
+			outputToFile(p, mutant);
+		}
+	}
+
+	/**
+	 * Output ASRS mutants to file
+	 * @param original
+	 * @param mutant
+	 */
+	public void outputToFile(AssignmentExpression original,AssignmentExpression mutant)
+	{
+		if (comp_unit == null) 
+			return;
+
+		mutationsLeft = getMutationsLeft(original);
+
+		if (!(mutationsLeft>0)) return;
+
+
+		//********** MUJAVA++ MODIFICATION **********//
+		//********** date: 7 Feb 2012     **********//
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.ASRS,
+				original, mutant);
+		return;
+		//*******************************************//
+
+	}
 }

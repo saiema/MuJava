@@ -1,198 +1,107 @@
-////////////////////////////////////////////////////////////////////////////
-// Module : OMR.java
-// Author : Ma, Yu-Seung
-// COPYRIGHT 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED.
-////////////////////////////////////////////////////////////////////////////
-
 package mujava.op;
 
-import java.io.*;
-import openjava.mop.*;
-import openjava.ptree.*;
-import mujava.op.util.DeclAnalyzer;
+import java.util.LinkedList;
+import java.util.List;
 
-/**
- * <p>Generate OMR (Overloading method contents replace) mutants --
- *    replaces the body of a method with the body of another method 
- *    that has the same name
- * </p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
- * @author Yu-Seung Ma
- * @version 1.0
-  */ 
+import openjava.mop.FileEnvironment;
+import openjava.ptree.ClassDeclaration;
+import openjava.ptree.CompilationUnit;
+import openjava.ptree.MemberDeclaration;
+import openjava.ptree.MemberDeclarationList;
+import openjava.ptree.MethodDeclaration;
+import openjava.ptree.Parameter;
+import openjava.ptree.ParameterList;
+import openjava.ptree.ParseTreeException;
+import openjava.ptree.StatementList;
+import mujava.api.Api;
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
+import mujava.op.util.Mutator;
 
-public class OMR extends DeclAnalyzer
-{
-   OverloadingHelper oM_helper = new OverloadingHelper();
-
-   public void translateDefinition(CompilationUnit comp_unit) throws openjava.mop.MOPException
-   {
-      // 복잡한 알고리즘임 -_-;
-      OJMethod[] m = getDeclaredMethods();
-      int[] omNum = new int[m.length];   // number of overloading method
-
-      int i, j, k;
-      String name1, name2;
-      boolean checkF = false;
-
-      // Calculate overloading method number
-      for (i=0; i<m.length; i++)
-      {
-         omNum[i]=1;
-         checkF = false;
-         for (j=0; j<m.length; j++)
-         {
-            name1 = m[i].getName();
-            name2 = m[j].getName();
-            if (i > j)
-            {
-               if (name1.equals(name2)) 
-            	  checkF = true;
-            }
-            
-            if (!checkF && i<j && name1.equals(name2))
-            {
-               omNum[i]++;
-            }
-         }
-      }
-
-      for (i=0; i<m.length; i++)
-      {
-         // If overloading methods exist
-         if (omNum[i] > 1)
-         {
-            String omName = m[i].getName();
-
-            // Collect overloading methods of m[i]
-            OJMethod[] overloadingM = new OJMethod[omNum[i]];
-            int index = 0;
-            overloadingM[index] = m[i];
-            index++;
-            for (j=i+1; j<m.length; j++)
-            {
-               if ( omName.equals(m[j].getName()) )
-               {
-                  overloadingM[index] = m[j];
-                  index++;
-               }
-            }
-
-            // Change the contents between overloading methods
-            // Idea : using permutation
-            for (j = 0; j<omNum[i] ; j++)
-            {
-               for (k=0; k<omNum[i] ; k++)
-               {
-                  if ( j!=k && oM_helper.sameReturnType(overloadingM[j], overloadingM[k]) &&
-                       oM_helper.compatibleParameter(overloadingM[j], overloadingM[k]))
-                  {
-                     generateMutant(overloadingM[j], overloadingM[k], comp_unit);
-                  }
-               }
-            }
-         }
-      }
-   }
-
-   /**
-    * Generate OMR mutants
-    * @param m1
-    * @param m2
-    * @param comp_unit
-    */
-   public void generateMutant(OJMethod m1, OJMethod m2, CompilationUnit comp_unit)
-   {
-      int i,j;
-      int num;
-      int[][] compatibleIndex; 
-
-      compatibleIndex = oM_helper.genCompatibleLocations(m1,m2);
-      if (compatibleIndex != null)
-      {
-         num = compatibleIndex.length;
-      } 
-      else
-      {
-         num=0;
-      }
-
-      try
-      {
-         MethodDeclaration original = m1.getSourceCode();
-         String mutant = null;
-         String[] par_name;
-
-         if (num == 0)
-         {
-		    mutant = m1.getName() + "();";
-		    outputToFile(comp_unit, original, mutant);
-         } 
-         else
-         {
-			for( i=0; i<num ; i++ )
-			{
-			   mutant = m1.getName() + "(";
-			   for(j=0; j< m2.getParameters().length; j++)
-			   {
-				  par_name = m1.getParameters();
-				  mutant = mutant + par_name[(compatibleIndex[i][j])];
-				  if (j != m2.getParameters().length-1)
-				  {
-					 mutant = mutant + ",";
-				  }
-			   }
-			   mutant = mutant + ");";
-			   outputToFile(comp_unit, original, mutant);
+public class OMR extends Mutator {
+	private List<MethodDeclaration> methods = new LinkedList<MethodDeclaration>();
+	private boolean smartMode = false;
+	
+	public OMR(FileEnvironment file_env, ClassDeclaration cdecl,CompilationUnit comp_unit) {
+		super(file_env, comp_unit);
+	}
+	
+	
+	public void smartMode() {
+		this.smartMode = true;
+	}
+	
+	public void dumbMode() {
+		this.smartMode = false;
+	}
+	
+	@Override
+	public ClassDeclaration evaluateUp(ClassDeclaration ptree)
+			throws ParseTreeException {
+		return ptree;
+	}
+	
+	public void visit(ClassDeclaration cs) throws ParseTreeException {
+		super.visit(cs);
+		MemberDeclarationList members = cs.getBody();
+		for (int m = 0; m < members.size(); m++) {
+			MemberDeclaration member = members.get(m);
+			if (member instanceof MethodDeclaration) {
+				MethodDeclaration method = (MethodDeclaration) member;
+				if (Api.getMethodUnderConsideration().compareTo(method.getName())==0) {
+					//get only the methods with the same name as the method under consideration
+					methods.add((MethodDeclaration) member);
+				}
 			}
-         }
-      } catch(Exception e)
-      {
-         System.err.println("Error " + e);
-      }
-   }
+		}
+		for (int m = 0; m < members.size(); m++) {
+			visit(members.get(m));
+		}
+	}
+	
+	public void visit(MethodDeclaration md) throws ParseTreeException {
+		if (Api.getMethodUnderConsideration().compareTo(md.getName()) != 0) {
+			return;
+		}
+		if (!(getMutationsLeft(md) > 0)) return;
+		for (MethodDeclaration amd : this.methods) {
+			if (sameMethods(md, amd)) continue;
+			MethodDeclaration copy = (MethodDeclaration) md.makeRecursiveCopy_keepOriginalID();
+			StatementList newBody = (StatementList) amd.getBody().makeRecursiveCopy_keepOriginalID();
+			if (this.smartMode) {
+				adjustBody(newBody, amd.getParameters(), md.getParameters());
+			}
+			copy.setBody(newBody);
+			outputToFile(md, copy);
+		}
+	}
+	
+	private void adjustBody(StatementList body, ParameterList parametersOrig, ParameterList parametersNew) {
+		//TODO: this method will add all parameters that are in parametersOrig but are not in parametersNew in body as local variables
+		//TODO: this should modify or delete return statments
+		//TODO: change this method signature
+	}
 
-   /**
-    * Output OMR mutants to files
-    * @param comp_unit
-    * @param original
-    * @param mutant
-    */
-   public void outputToFile(CompilationUnit comp_unit,
-		  MethodDeclaration original, String mutant)
-   {
-      if (comp_unit == null) 
-    	 return;
 
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
+	private boolean sameMethods(MethodDeclaration md1, MethodDeclaration md2) {
+		ParameterList params1 = md1.getParameters();
+		ParameterList params2 = md2.getParameters();
+		if (params1.size() != params2.size()) {
+			return false;
+		}
+		for (int p = 0; p < params1.size(); p++) {
+			Parameter p1 = params1.get(p);
+			Parameter p2 = params2.get(p);
+			if (p1.getTypeSpecifier().getName().compareTo(p2.getTypeSpecifier().getName()) != 0) {
+				return false;
+			}
+		}
+		return true;
+	}
 
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-		 OMR_Writer writer = new OMR_Writer( mutant_dir, out );
-		 writer.setMutant(original,mutant);
-		 comp_unit.accept( writer );
-		 out.flush();  
-		 out.close();
-      } catch ( IOException e ) 
-      {
-		 System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) {
-		 System.err.println( "errors during printing " + f_name );
-		 e.printStackTrace();
-      }
-   }
-
-   public OMR( openjava.mop.Environment oj_param0, openjava.mop.OJClass oj_param1, openjava.ptree.ClassDeclaration oj_param2 )
-   {
-      super( oj_param0, oj_param1, oj_param2 );
-   }
-
-   public OMR( java.lang.Class oj_param0, openjava.mop.MetaInfo oj_param1 )
-   {
-      super( oj_param0, oj_param1 );
-   }
+	private void outputToFile(MethodDeclaration original, MethodDeclaration mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.OMR, original, mutant);
+	}
+	
+	
 }

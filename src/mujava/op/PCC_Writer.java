@@ -1,71 +1,41 @@
 ////////////////////////////////////////////////////////////////////////////
-// Module : PCC_Writer.java
+// Module : AMC_Writer.java
 // Author : Ma, Yu-Seung
 // COPYRIGHT 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED.
 ////////////////////////////////////////////////////////////////////////////
 
 package mujava.op;
 
-import java.io.*;
-import openjava.ptree.*;
+import mujava.api.Mutation;
 import mujava.op.util.MutantCodeWriter;
+import openjava.ptree.*;
 
-/**
- * <p>Output and log PCC mutants to files</p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
- * @author Yu-Seung Ma
- * @version 1.0
-  */ 
+import java.io.*;
 
-public class PCC_Writer extends MutantCodeWriter
-{
-   CastExpression original = null;
-   String type = "";
+public class PCC_Writer extends MutantCodeWriter {
+	private CastExpression original;
+	private CastExpression mutant;
 
-   /**
-    * Set original source code and mutated code
-    * @param original
-    * @param mutated_type
-    */
-   public void setMutant(CastExpression original, String mutated_type)
-   {
-      this.original = original;
-      this.type = mutated_type;
-   }
+	public PCC_Writer(String file_name, PrintWriter out, Mutation mi) {
+		super(file_name, out, mi);
+		setMutant(this.mi.getOriginal(), this.mi.getMutant());
+	}
 
-   public PCC_Writer( String file_name, PrintWriter out ) 
-   {
-	  super(file_name, out);
-   }
+	private void setMutant(Object original, Object mutant) {
+		this.original = (CastExpression) original;
+		this.mutant = (CastExpression) mutant;
+	}
 
-   public void visit( CastExpression p ) throws ParseTreeException
-   {
-      if (isSameObject(p, original))
-      {
-         out.print( "(" + type + ") ");
-         Expression expr = p.getExpression();
-        
-         if (expr instanceof AssignmentExpression
-           || expr instanceof ConditionalExpression
-           || expr instanceof BinaryExpression
-           || expr instanceof InstanceofExpression
-           || expr instanceof UnaryExpression)
-         {
-	        writeParenthesis( expr );
-         } 
-         else 
-         {
-	        expr.accept( this );
-         }
-        
-         // -------------------------------------------------------------
-         mutated_line = line_num;
-         writeLog(removeNewline("(" + p.getTypeSpecifier().getName() + ")  =>  (" + type + ")"));
-         // -------------------------------------------------------------
-      }
-      else
-      {
-         super.visit(p);
-      }
-   }
+	public void visit(CastExpression p) throws ParseTreeException {
+		if (isSameObject(p, original)) {
+			super.visit(mutant);
+			// -----------------------------------------------------------
+			mutated_line = line_num;
+			String log_str = p.toFlattenString() + " => "+ mutant.toFlattenString();
+			writeLog(removeNewline(log_str));
+			// -------------------------------------------------------------
+		} else {
+			super.visit(p);
+		}
+	}
 }

@@ -6,154 +6,210 @@
 
 package mujava.op;
 
-import java.io.*;
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
 
 /**
- * <p>Generate EOC (Java-specific reference comparison and content assignment replacement) mutants --
- *    check whether the two references point to the same data object in memory, using
- *    the Java convention of an <i>equals()</i> method 
+ * <p>
+ * Generate EOC (Java-specific reference comparison and content assignment
+ * replacement) mutants -- check whether the two references point to the same
+ * data object in memory, using the Java convention of an <i>equals()</i> method
  * </p>
- * <p><i>Example</i>:
- *    boolean b = (f1 == f2); is mutated to boolean b = (f1.equals(f2));  
+ * <p>
+ * <i>Example</i>: boolean b = (f1 == f2); is mutated to boolean b =
+ * (f1.equals(f2));
  * </p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
+ * <p>
+ * Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED
+ * </p>
+ * 
  * @author Yu-Seung Ma
  * @version 1.0
-  */
+ */
 
-public class EOC extends mujava.op.util.Mutator
-{
-   public EOC(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
-   {
-	  super( file_env,comp_unit );
-   }
+public class EOC extends mujava.op.util.Mutator {
+	
+	private static final int NORMAL = 0;
+	private static final int SMART = 1;
+	private static final int RELAXED = 2;
+	private static final int STRICT = 3;
+	
+	private int mode = NORMAL;
+	private int smartMode = RELAXED;
+	
+	public EOC(FileEnvironment file_env, ClassDeclaration cdecl,
+			CompilationUnit comp_unit) {
+		super(file_env, comp_unit);
+	}
+	
+	public void normalMode() {
+		this.mode = NORMAL;
+		this.smartMode = -1;
+	}
+	
+	public void smartMode(boolean strict) {
+		this.mode = SMART;
+		this.smartMode = strict?STRICT:RELAXED;
+	}
+	
+	private boolean isInNormalMode() {
+		return this.mode == NORMAL;
+	}
+	
+	private boolean isInSmartMode() {
+		return this.mode == SMART;
+	}
+	
+	private boolean isInRelaxedSmartMode() {
+		return this.smartMode == RELAXED;
+	}
+	
+	private boolean isInStrictSmartMode() {
+		return this.smartMode == STRICT;
+	}
+	
+	private OJMethod findEquals(OJClass c, OJClass paramType) {
+		OJMethod[] methods = c.getAllMethods();
+		for (OJMethod m : methods) {
+//			if (m.getName().compareTo("equals")==0 && m.getParameterTypes().length == 1) {
+//				return m;
+//			}
+			if (isValidEqualMethod(m, c, paramType)) {
+				return m;
+			}
+		}
+		return null;
+	}
+	
+	private boolean isValidEqualMethod(OJMethod m, OJClass callerType, OJClass paramType) {
+		if (isInNormalMode()) {
+			return m.getName().compareTo("equals")==0 && m.getParameterTypes().length == 1;
+		} else {
+			boolean validName = m.getName().compareTo("equals")==0;
+			boolean validParamsNumber = m.getParameterTypes().length == 1;
+			boolean validResultType = m.getReturnType().isPrimitive() && m.getReturnType().getName().compareTo("boolean") == 0;
+			boolean validParamType = true;
+			if (isInRelaxedSmartMode()) {
+				validParamType = compatibleAssignType(m.getParameterTypes()[0], paramType);
+			} else if (isInStrictSmartMode()) {
+				validParamType = m.getParameterTypes()[0].getName().compareTo(paramType.getName()) == 0;
+			}
+			return validName && validParamsNumber && validResultType && validParamType;
+		}
+	}
+	
+	public void visit( MethodCall p ) throws ParseTreeException {
+		if (!(getMutationsLeft(p)>0)) return;
+		if ( (p.getName().equals("equals"))) {
+	         // do nothing
+		} else {
+			ExpressionList args = p.getArguments();
+			for (int a = 0; a < args.size(); a++) {
+				Expression exp = args.get(a);
+				exp.accept(this);
+			}
+		}
+	}
 
-   public void visit( MethodCall p ) throws ParseTreeException
-   {
-      if (p.getName().equals("equals"))
-      {
-    	 // do nothing
-      }
-      else
-      {
-         super.visit(p);
-      }
-   }
+	public void visit(BinaryExpression p) throws ParseTreeException {
 
-   public void visit( BinaryExpression p ) throws ParseTreeException 
-   {
-      if (p.getOperator() == BinaryExpression.EQUAL)
-      {
-         Expression left = p.getLeft();
-         Expression right = p.getRight();
+		if (!(getMutationsLeft(p)>0)) return;
+		
+		if ((p.getOperator() == BinaryExpression.EQUAL)) {
+			Expression left = p.getLeft();
+			Expression right = p.getRight();
+			boolean mutationIsApplicable = !(left instanceof Literal);
+			if (mutationIsApplicable) {
+				OJMethod equals = findEquals(getType(left), getType(right));
+				if (equals != null && ((isInNormalMode())||(isInSmartMode() && isNotNull(right)))) {
+					if (compatibleAssignType(equals.getParameterTypes()[0], getType(right))) {
+						Expression leftCopy = (Expression) left.makeRecursiveCopy_keepOriginalID();
+						Expression rightCopy = (Expression) right.makeRecursiveCopy_keepOriginalID();
+						ExpressionList args = new ExpressionList();
+						args.add(rightCopy);
+						MethodCall mutant = new MethodCall(leftCopy, "equals", args);
+						outputToFile(p, mutant);
+					}
+				}
+			}
+		} else {
+			if (p.getLeft() instanceof BinaryExpression) {
+				visit(p.getLeft());
+			}
+			if (p.getRight() instanceof BinaryExpression) {
+				visit(p.getRight());
+			}
+		}
+	}
 
-         if (right instanceof Variable)
-         {
-			Environment env = getEnvironment();
-			OJClass bindedtype = env.lookupBind(right.toString());
+	
+	/**
+	 * This will try to check if an expression is not null or
+	 * in the case that the expression is a variable or a field this will try to check if it holds a non-null value
+	 */
+	private boolean isNotNull(Expression expr) {
+		//use PRVO#fixStupidVariable method on expr if it's a Variable
+		if (expr instanceof Literal) {
+			return ((Literal)expr).getLiteralType() != Literal.NULL;
+		} else if (expr instanceof Variable || expr instanceof FieldAccess) {
+			Expression initialization = lookupInitialization(expr);
+			if (initialization == null) return false;
+			if (initialization instanceof Literal && ((Literal)initialization).getLiteralType() == Literal.NULL) {
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	private Expression lookupInitialization(Expression expr) {
+		Expression current = (Expression) expr.makeRecursiveCopy();
+		current = (Expression) ((ParseTreeObject)current).getParent();
+		Statement statement = null;
+		boolean stop = current == null;
+		boolean exprIsVar = (expr instanceof Variable);
+		while (!stop) {
+			if (statement == null && current instanceof Statement) {
+				statement = (Statement) current.makeCopy_keepOriginalID();
+			}
+			if (current instanceof MethodDeclaration) {
+				//if expr is a Variable return null
+				//else if expr is a Field check class fields declarations
+				if (expr instanceof FieldAccess) {
+					//get field declarations and check initializers
+					//if the field is not declared in this class then return expr
+				}
+			} else if (current instanceof StatementList) {
+				int s = 0;
+				Statement currentStmnt = ((StatementList)current).get(s);
+				while (currentStmnt.getObjectID() != statement.getObjectID() && s < ((StatementList)current).size()) {
+					if (current instanceof VariableDeclaration) {
+						String var = ((VariableDeclaration)current).getVariable();
+						if (exprIsVar && ((Variable)expr).toString().compareTo(var)==0) {
+							return (Expression) ((VariableDeclaration)current).getInitializer();
+						}
+					} else if (current instanceof VariableDeclarator) {
+						String var = ((VariableDeclarator)current).getVariable();
+						if (exprIsVar && ((Variable)expr).toString().compareTo(var)==0) {
+							return (Expression) ((VariableDeclarator)current).getInitializer();
+						}
+					} else if (current instanceof AssignmentExpression) { 
+						Expression leftSide = ((AssignmentExpression)current).getLeft();
+						//check if leftSide is Variable or FieldAccess (use PRVO#fixStupidVariable)
+						//if the leftSide is the same as expr then return the right side of the assignment
+					}
+					s++;
+					currentStmnt = ((StatementList)current).get(s);
+				}
+			}
+		}
+		return null;
+	}
 
-			if ( (bindedtype!=null) && !(bindedtype.isPrimitive()) )
-			{
-			   try
-			   {
-				  OJMethod[] m = bindedtype.getAllMethods();
-				  boolean find = true;
-				  for (int i=0; i<m.length ; i++)
-				  {
-					 if (m[i].getName().equals("equals") &&
-						 m[i].getDeclaringClass().getName().equals("java.lang.Object"))
-					 {
-				        find = false;
-				  	 }
-				  }
-				  if (find)
-				  {
-					 String mutant = left.toString()+ ".equals(" + right.toString()+ ")";
-	  				 outputToFile(p, mutant);
-					 return;
-				  }
-			   } catch(Exception e)
-			   {
-				  System.err.println(" [error] " + e);
-                  e.printStackTrace();
-			   }
-		    }
-         }
-      }
-
-      // Normal Action
-      Expression newp = this.evaluateDown( p );
-      if (newp != p) 
-      {
-         p.replace( newp );
-         return;
-      }
-      p.childrenAccept( this );
-      newp = this.evaluateUp( p );
-      if (newp != p)  
-    	 p.replace( newp );
-   }
-
-
-   /**
-    * Output EOC mutants to files
-    * @param original
-    */
-   public void outputToFile(MethodCall original)
-   {
-      if (comp_unit == null) 
-    	 return;
-      
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
-
-      try 
-      {
-	     PrintWriter out = getPrintWriter(f_name);
-   	     EOC_Writer writer = new EOC_Writer( mutant_dir, out );
-	     writer.setMutant(original);
-	     comp_unit.accept( writer );
-	     out.flush();  
-	     out.close();
-      } catch ( IOException e ) {
-   	     System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) {
-	     System.err.println( "errors during printing " + f_name );
-	     e.printStackTrace();
-      }
-   }
-
-   /**
-    * Output EOC mutants to files
-    * @param original
-    * @param mutant
-    */
-   public void outputToFile(BinaryExpression original, String mutant)
-   {
-      if (comp_unit == null) 
-    	 return;
-
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
-
-      try 
-      {
-	     PrintWriter out = getPrintWriter(f_name);
-	     EOC_Writer writer = new EOC_Writer( mutant_dir, out );
-	     writer.setMutant(original, mutant);
-	     comp_unit.accept( writer );
-	     out.flush();   out.close();
-      } catch ( IOException e ) {
-	     System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) {
-	     System.err.println( "errors during printing " + f_name );
-	     e.printStackTrace();
-      }
-   }
+	private void outputToFile(BinaryExpression original, MethodCall mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.EOC, original, mutant);
+	}
+	
 }

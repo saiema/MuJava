@@ -10,9 +10,10 @@ import openjava.mop.*;
 import openjava.ptree.*;
 
 import java.io.*;
-import mujava.op.*;
-import mujava.op.basic.*;
+
 import mujava.op.util.*;
+import mujava.opOld.*;
+import mujava.opOld.basic.*;
 import mujava.util.Debug;
 
 /**

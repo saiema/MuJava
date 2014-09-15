@@ -8,8 +8,12 @@ package mujava.op.util;
 
 import java.io.*;
 import java.util.Enumeration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import openjava.ptree.*;
 import mujava.MutationSystem;
+import mujava.api.Mutation;
 import mujava.op.util.CodeChangeLog;
 import openjava.ptree.util.ParseTreeVisitor;
 
@@ -28,6 +32,9 @@ import openjava.ptree.util.ParseTreeVisitor;
  */
 
 public class MutantCodeWriter extends ParseTreeVisitor {
+	
+	protected Mutation mi;	//added (12/09/14) [simon]
+	
 	protected PrintWriter out;
 	// public static String NEWLINE;
 
@@ -66,6 +73,39 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	public void popNest() {
 		setNest(getNest() - 1);
 	}
+	
+	// +++++++++++++++++++++++++++++++++
+	// +++++++++added (12/09/14) [simon]
+	public int getCurrentLine() {
+		return this.line_num;
+	}
+	// ---------------------------------
+	
+	// +++++++++++++++++++++++++++++++++
+	// +++++++++added (12/09/14) [simon]
+	public int getMutatedLine() {
+		return this.mutated_line;
+	}
+	// ---------------------------------
+	
+	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// +++++++++++++++++++++++++++++++++++++added (12/09/14) [simon]
+	public MutantCodeWriter(String mutant_dir, PrintWriter out, Mutation mi, boolean printPrologue) {
+		this(mutant_dir, out, mi);
+		this.printMutantPrologue = printPrologue; // added (12/09/14) [simon]
+	}
+	// -------------------------------------------------------------
+	
+	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// +++++++++++++++++++++++++++++++++++++added (12/09/14) [simon]
+	public MutantCodeWriter(String mutant_dir, PrintWriter out, Mutation mi) {
+		super();
+		this.out = out;
+		class_name = mutant_dir;
+		this.mi = mi;
+		this.printMutantPrologue = true; // added (12/09/14) [simon]
+	}
+	// -------------------------------------------------------------
 
 	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	// +++++++++++++++++++++++++++++++++++++added (10/09/14) [simon]
@@ -1716,7 +1756,21 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	private void outputCommentIfApplicable(String comment) {
 		if (!comment.isEmpty())
 			out.print(comment);
+		this.line_num += countCommentLines(comment);	//added (12/09/14) [simon]
 	}
 	// ----------------------------------------------------
+	
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++
+	// +++++++++++++++++++++++++++added (12/09/14) [simon]
+	private int countCommentLines(String comment) {
+		if (comment == null || comment.isEmpty()) return 0;
+		Matcher m = Pattern.compile("(\n)|(\r)|(\r\n)|("+System.getProperty("line.separator")+")").matcher(comment);
+		int newLines = 0;
+		while (m.find()) {
+			newLines++;
+		}
+		return newLines;
+	}
+	//-----------------------------------------------------
 
 }

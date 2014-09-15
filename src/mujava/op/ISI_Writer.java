@@ -1,86 +1,90 @@
-////////////////////////////////////////////////////////////////////////////
-// Module : ISI_Writer.java
-// Author : Ma, Yu-Seung
-// COPYRIGHT 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED.
-////////////////////////////////////////////////////////////////////////////
-
 package mujava.op;
 
-import java.io.*;
-import openjava.ptree.*;
+import java.io.PrintWriter;
+
+import openjava.ptree.Expression;
+import openjava.ptree.FieldAccess;
+import openjava.ptree.MethodCall;
+import openjava.ptree.ParseTreeException;
+import openjava.ptree.Variable;
+
+import mujava.api.Mutation;
 import mujava.op.util.MutantCodeWriter;
 
+public class ISI_Writer extends MutantCodeWriter {
+	private Variable original_var;
+	private FieldAccess original_fa;
+	private MethodCall original_mc;
+	private Expression mutant;
+	
+	public ISI_Writer(String mutant_dir, PrintWriter out, Mutation mi) {
+		super(mutant_dir, out, mi);
+		setMutant(this.mi.getOriginal(), this.mi.getMutant());
+	}
+	
+	private void setMutant(Object v1, Object v2) {
+		this.mutant = (Expression) v2;
+		if (v1 instanceof Variable) {
+			setOriginal((Variable)v1);
+		} else if (v1 instanceof FieldAccess) {
+			setOriginal((FieldAccess)v1);
+		} else if (v1 instanceof MethodCall) {
+			setOriginal((MethodCall)v1);
+		}
+	}
+	
+	private void setOriginal(Variable original) {
+		this.original_var = original;
+	}
+	
+	private void setOriginal(FieldAccess original) {
+		this.original_fa = original;
+	}
+	
+	private void setOriginal(MethodCall original) {
+		this.original_mc = original;
+	}
+	
+	public void visit(Variable var) throws ParseTreeException {
+		if (this.original_var != null && isSameObject(var, this.original_var)) {
+			this.original_var = null;
+			super.visit(this.mutant);
+			// -----------------------------------------------------------
+	         mutated_line = line_num;
+	         String log_str = var.toFlattenString()+ " => " + mutant.toFlattenString();
+	         writeLog(removeNewline(log_str));
+	         // -------------------------------------------------------------
+		} else {
+			super.visit(var);
+		}
+	}
+	
+	public void visit(FieldAccess fa) throws ParseTreeException {
+		if (this.original_fa != null && isSameObject(fa, this.original_fa)) {
+			this.original_fa = null;
+			super.visit(this.mutant);
+			// -----------------------------------------------------------
+	         mutated_line = line_num;
+	         String log_str = fa.toFlattenString()+ " => " + mutant.toFlattenString();
+	         writeLog(removeNewline(log_str));
+	         // -------------------------------------------------------------
+		} else {
+			super.visit(fa);
+		}
+	}
+	
+	public void visit(MethodCall mc) throws ParseTreeException {
+		if (this.original_mc != null && isSameObject(mc, this.original_mc)) {
+			this.original_mc = null;
+			super.visit(this.mutant);
+			// -----------------------------------------------------------
+	         mutated_line = line_num;
+	         String log_str = mc.toFlattenString()+ " => " + mutant.toFlattenString();
+	         writeLog(removeNewline(log_str));
+	         // -------------------------------------------------------------
+		} else {
+			super.visit(mc);
+		}
+	}
 
-/**
- * <p>Output and log ISI mutants to files</p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
- * @author Yu-Seung Ma
- * @version 1.0
-  */ 
-
-public class ISI_Writer  extends MutantCodeWriter
-{
-   Variable target = null;
-   MethodCall method_target = null;
-
-   /**
-    * Set mutated code for an instance variable
-    * @param f
-    */
-   public void setMutant(Variable f)
-   {
-      target = f;
-   }
-
-   /**
-    * Set mutated code for a method call
-    * @param f
-    */
-   public void setMutant(MethodCall f)
-   {
-      method_target = f;
-   }
-
-   public ISI_Writer( String file_name, PrintWriter out ) 
-   {
-	  super(file_name,out);
-   }
-
-   /**
-    * Log mutated line (variables)
-    */
-   public void visit( Variable p ) throws ParseTreeException
-   {
-      if (isSameObject(p, target))
-      {
-         out.print("super."+p.toString());
-         // -------------------------------------------------------------
-         mutated_line = line_num;
-         writeLog(removeNewline(p.toString()+"  -->  super." + p.toString()));
-         // -------------------------------------------------------------
-      } 
-      else
-      {
-         super.visit(p);
-      }
-   }
-
-   /**
-    * Log mutated line (method calls)
-    */
-   public void visit( MethodCall p ) throws ParseTreeException
-   {
-      if (isSameObject(p, method_target))
-      {
-        out.print("super."+p.toString());
-         // -------------------------------------------------------------
-        mutated_line = line_num;
-        writeLog(removeNewline(p.toString()+"  -->  super." + p.toString()));
-        // -------------------------------------------------------------
-      }
-      else
-      {
-         super.visit(p);
-      }
-   }
 }

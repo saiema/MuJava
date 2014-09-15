@@ -6,149 +6,137 @@
 
 package mujava.op;
 
-import java.io.*;
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
 
+import java.util.LinkedList;
+import java.util.List;
+
 /**
- * <p>Generate EAM (Java-specific accessor method change) mutants --
- *    change the accessor method name for other compatible accessor 
- *    method names. Note: <i>compatible</i> means that the signatures
- *    are the same except the method name
+ * <p>
+ * Generate EAM (Java-specific accessor method change) mutants -- change the
+ * accessor method name for other compatible accessor method names. Note:
+ * <i>compatible</i> means that the signatures are the same except the method
+ * name
  * </p>
- * <p><i>Example</i>: point.getX(); is mutated to point.getY();
+ * <p>
+ * <i>Example</i>: point.getX(); is mutated to point.getY();
  * </p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
+ * <p>
+ * Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED
+ * </p>
+ * 
  * @author Yu-Seung Ma
  * @version 1.0
-  */
+ */
 
-public class EAM extends mujava.op.util.Mutator
-{
-   public EAM(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
-   {
-	  super( file_env, comp_unit );
-   }
+public class EAM extends mujava.op.util.Mutator {
 
-   public void visit( MethodCall p ) throws ParseTreeException 
-   {
-      int i;
-      MethodCall mutant = null;
-      String method_name = p.getName();
+	public EAM(FileEnvironment file_env, ClassDeclaration cdecl,
+			CompilationUnit comp_unit) {
+		super(file_env, comp_unit);
+	}
 
-      if ((method_name.indexOf("get") == 0) && (p.getArguments().size() == 0))
-      {
-         Environment env = getEnvironment();
-         Expression ref = p.getReferenceExpr();
-
-         // defined in same class
-         OJClass bindedtype = null;
-         if (ref == null)
-         {
-			bindedtype = env.lookupClass(env.currentClassName());
-         }
-         else if (ref instanceof Variable)
-         {
-		    bindedtype = env.lookupBind(ref.toString());
-         } 
-
-         if (bindedtype != null)
-         {
-			try
-			{
-			   OJMethod[] m = bindedtype.getAllMethods();
-			   boolean[] find_flag = new boolean[m.length];
-			   int method_index = -1;
-			   for ( i=0; i<m.length ; i++)
-			   {
-				  find_flag[i]=false;
-				  // find my method
-				  if ( m[i].getName().equals(method_name))
-				  {
-					 //my_method = m[i];
-					 method_index = i;
-				 	 break;
-				  }
-			   }
-
-			   if (method_index != -1)
-			   {
- 				  int set_num = 0;
-				  for ( i=0; i<m.length; i++)
-				  {
-					 if ( (i != method_index) && (m[i].getName().indexOf("get") == 0)
-						  && sameReturnType(m[i],m[method_index])
-						  && compatibleMethods(m[i],m[method_index])) 
-					 {
-				        find_flag[i] = true;
-				        set_num++;
-					 }
-				  }
-				  
-				  if (set_num>0)
-				  {
-					 for (i=0; i<m.length; i++)
-					 {
-					    if (find_flag[i])
-					    {
-						   mutant = (MethodCall)p.makeRecursiveCopy();
-					   	   mutant.setName(m[i].getName());
-						   outputToFile(p, mutant);
-					    }
-					 }
-					 return;
-				  }
-			   } 
-			} catch ( Exception e)
-			{
-			   System.err.println(" [error] " + e + " :  " + p.toString());
-               e.printStackTrace();
+	public void visit(MethodCall p) throws ParseTreeException {
+		if (!(getMutationsLeft(p) > 0))
+			return;
+		if (!isGetter(p))
+			return;
+		List<OJMethod> getters = getAllGetters(getSelfType());
+		OJMethod original = getOriginalMethod(p, getters);
+		for (OJMethod g : getters) {
+			if (!isSameMethod(p, g) && compatibleMethods(original, g)) {
+				MethodCall mutant = (MethodCall) p.makeRecursiveCopy_keepOriginalID();
+				mutant.setName(g.getName());
+				outputToFile(p, mutant);
 			}
-         }
-      } 
+		}
+	}
 
-      Expression newp = this.evaluateDown( p );
-      if (newp != p) 
-      {
-         p.replace( newp );
-         return;
-      }
+	private OJMethod getOriginalMethod(MethodCall p, List<OJMethod> getters) throws ParseTreeException {
+		for (OJMethod g : getters) {
+			if (isSameMethod(p, g)) {
+				return g;
+			}
+		}
+		return null;
+	}
 
-      p.childrenAccept( this );
-      newp = this.evaluateUp( p );
-      if (newp != p)  
-    	 p.replace( newp );
-   }
+	private boolean isSameMethod(MethodCall m1, OJMethod m2)throws ParseTreeException {
+		String nm1 = m1.getName();
+		String nm2 = m2.getName();
+		if (nm1.compareTo(nm2) != 0) {
+			return false;
+		}
+		OJClass rtm1 = getType(m1);
+		OJClass rtm2 = m2.getReturnType();
+		if (rtm1.getName().compareTo(rtm2.getName()) != 0) {
+			return false;
+		}
+		int argsM1 = m1.getArguments().size();
+		int argsM2 = m2.getParameterTypes().length;
+		if (argsM1 != argsM2) {
+			return false;
+		}
+		return true;
+	}
 
-   /**
-    * Output EAM mutants to files
-    * @param original
-    * @param mutant
-    */
-   public void outputToFile(MethodCall original, MethodCall mutant)
-   {
-      if (comp_unit == null) 
-    	 return;
+	private List<OJMethod> getAllGetters(OJClass t) {
+		List<OJMethod> result = new LinkedList<OJMethod>();
+		OJMethod[] allMethods = getAllMethods(t);
+		for (OJMethod m : allMethods) {
+			if (isGetter(m)) {
+				result.add(m);
+			}
+		}
+		return result;
+	}
 
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
+	/**
+	 * Determine whether two method have the same parameter type
+	 * 
+	 * @param m1
+	 * @param m2
+	 * @return true - same type
+	 */
+	public boolean compatibleMethods(OJMethod m1, OJMethod m2) {
+		OJClass[] c1 = m1.getParameterTypes();
+		OJClass[] c2 = m2.getParameterTypes();
 
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-	 	 EAM_Writer writer = new EAM_Writer( mutant_dir, out );
-		 writer.setMutant(original, mutant);
-		 comp_unit.accept( writer );
-		 out.flush();  
-		 out.close();
-      } catch ( IOException e ) {
-		 System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) {
-		 System.err.println( "errors during printing " + f_name );
-		 e.printStackTrace();
-      }
-   }
+		if (c1.length == c2.length) {
+			for (int i = 0; i < c1.length; i++) {
+				if (!(compatibleAssignType(c1[i], (c2[i]))))
+					return false;
+			}
+		} else {
+			return false;
+		}
+		OJClass retType1 = m1.getReturnType();
+		OJClass retType2 = m2.getReturnType();
+		if (!(compatibleAssignType(retType1, retType2))) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean isGetter(OJMethod m) {
+		return m.getName().startsWith("get") && m.getReturnType().getName().compareToIgnoreCase("void")!=0;
+	}
+
+	private boolean isGetter(MethodCall p) throws ParseTreeException {
+		return p.getName().startsWith("get") && getType(p).getName().compareToIgnoreCase("void")!=0;
+	}
+
+	/**
+	 * Output EAM mutants to files
+	 * 
+	 * @param original
+	 * @param mutant
+	 */
+	public void outputToFile(MethodCall original, MethodCall mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.EAM, original, mutant);
+	}
 
 }

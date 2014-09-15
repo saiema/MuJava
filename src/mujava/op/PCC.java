@@ -1,204 +1,127 @@
-////////////////////////////////////////////////////////////////////////////
-// Module : PCC.java
-// Author : Ma, Yu-Seung
-// COPYRIGHT 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED.
-////////////////////////////////////////////////////////////////////////////
-
 package mujava.op;
 
-import java.io.*;
-import openjava.mop.*;
-import openjava.ptree.*;
-import mujava.MutationSystem;
-import mujava.util.InheritanceINFO;
-import java.util.*;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.LinkedList;
+import java.util.List;
 
-/**
- * <p>Generate PCC (Cast type change) mutants --
- *    change the type that a variable is to be cast into 
- * </p>
- * <p><i>Example</i>: <br/>
- *    ((Parent)ref).toString(); is mutated to ((Child)ref).toString();
- * </p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
- * @author Yu-Seung Ma
- * @version 1.0
-  */
+import openjava.mop.FileEnvironment;
+import openjava.mop.OJClass;
+import openjava.ptree.AssignmentExpression;
+import openjava.ptree.BinaryExpression;
+import openjava.ptree.CastExpression;
+import openjava.ptree.ClassDeclaration;
+import openjava.ptree.CompilationUnit;
+import openjava.ptree.Expression;
+import openjava.ptree.ExpressionList;
+import openjava.ptree.MethodCall;
+import openjava.ptree.ParseTreeException;
+import openjava.ptree.ReturnStatement;
+import openjava.ptree.TypeName;
+import openjava.ptree.VariableDeclarator;
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
+import mujava.op.util.Mutator;
 
-public class PCC extends mujava.op.util.TypeCastMutator
-{
-   String afterCastType = "";
-   String beforeCastType = "";
+public class PCC extends Mutator {
+	
+	public PCC(FileEnvironment file_env, ClassDeclaration cdecl,CompilationUnit comp_unit) {
+		super(file_env, comp_unit);
+	}
+	
+	public void visit(CastExpression cast) throws ParseTreeException {
+		if (getMutationsLeft(cast) <= 0) return;
+		OJClass castType = getType(cast.getTypeSpecifier());
+		OJClass superType = castType.getSuperclass();
+		Class<?> castTypeAsClass;
+		List<String> generics = new LinkedList<String>();
+		try {
+			castTypeAsClass = Class.forName(castType.getName());
+			Type superClassType = castTypeAsClass.getGenericSuperclass();
+			if (superClassType instanceof ParameterizedType) {
+				ParameterizedType parameterizedType = (ParameterizedType) superClassType;
+				Type[] genericsTypes = parameterizedType.getActualTypeArguments();
+				for (Type t : genericsTypes) {
+					generics.add(getClassName(t.toString()));
+				}
+			}
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		generateMutants(cast, superType, generics);
+	}
+	
+	private String getClassName(String input) {
+		if (input.startsWith("class")) {
+			input = input.replace("class", "");
+			input = input.trim();
+		}
+		return input;
+	}
 
-   public PCC(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
-   {
-	  super( file_env, comp_unit );
-   }
+	private void generateMutants(CastExpression original, OJClass superType, List<String> generics) {
+		CastExpression mutant = (CastExpression) original.makeRecursiveCopy_keepOriginalID();
+		TypeName newCast = TypeName.forOJClass(superType);
+		String genericsString = "";
+		int i = 0;
+		for (String g : generics) {
+			genericsString += g;
+			i++;
+			if (i < generics.size() - 1) {
+				genericsString += ", ";
+			}
+		}
+		if (!genericsString.isEmpty()) newCast.setGenerics("<"+genericsString+">");
+		mutant.setTypeSpecifier(newCast);
+		outputToFile(original, mutant);
+	}
 
-   void generateUpMutants(CastExpression p, InheritanceINFO info)
-   {
-      InheritanceINFO temp = info.getParent();
-      if (temp != null)
-      {
-   	     if (beforeCastType.equals(temp.getClassName())) 
-   	    	return;
-      
-   	     if (hasHidingVariableOrOverridingMethod(temp.getClassName(), beforeCastType))
-   	     {
-            outputToFile(p, temp.getClassName());
-         }
-         generateUpMutants(p, temp);
-      }
-   }
+	private void outputToFile(CastExpression original, CastExpression mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PCC, original, mutant);
+	}
+	
+	public void visit(MethodCall p) throws ParseTreeException {
+		if (!(getMutationsLeft(p) > 0))
+			return;
+		ExpressionList args = p.getArguments();
+		for (int a = 0; a < args.size(); a++) {
+			Expression exp = args.get(a);
+			exp.accept(this);
+		}
+	}
+	
+	public void visit(BinaryExpression p) throws ParseTreeException {
+		Expression lexp = p.getLeft();
+		lexp.accept(this);
+		Expression rexp = p.getRight();
+		rexp.accept(this);
+	}
+	
+	public void visit(ReturnStatement p) throws ParseTreeException {
+		Expression exp = p.getExpression();
+		exp.accept(this);
+	}
+	
+	public void visit(VariableDeclarator p) throws ParseTreeException {
+		Expression	rexp = (Expression) p.getInitializer();
+		
+		if( rexp == null ){
+			super.visit(p);
+			return;
+		} else {
+			rexp.accept(this);
+		}
+	}
+	
+	public void visit(AssignmentExpression p) throws ParseTreeException {
+		if (getMutationsLeft(p) > 0) {
+			Expression lexp = p.getLeft();
+			Expression rexp = p.getRight();
+			
+			super.visit(lexp);
+			super.visit(rexp);
+		}
+	}
 
-   void generateDownMutants(CastExpression p, InheritanceINFO info)
-   {
-      Vector v = info.getChilds();
-      for (int i=0; i<v.size(); i++)
-      {
-         InheritanceINFO temp = (InheritanceINFO)v.get(i);
-         if (afterCastType.equals(temp.getClassName())) 
-        	return;
-      
-         if (beforeCastType.equals(temp.getClassName())) 
-        	return;
-      
-         if (hasHidingVariableOrOverridingMethod(temp.getClassName(), beforeCastType))
-         {
-            outputToFile(p, temp.getClassName());
-         }
-         generateDownMutants(p, temp);
-      }
-   }
-
-   void generateUpMutants2(CastExpression p, InheritanceINFO info, String method_name, Class[] pars)
-   {
-      InheritanceINFO temp = info.getParent();
-      if (temp != null)
-      {
-         if (beforeCastType.equals(temp.getClassName())) 
-        	return;
-      
-         if (isNonAbstractOverridingMethodCall(temp.getClassName(), beforeCastType, method_name, pars))
-         {
-            outputToFile(p, temp.getClassName());
-         }
-         generateUpMutants(p, temp);
-      }
-   }
-
-   void generateDownMutants2(CastExpression p, InheritanceINFO info, String method_name, Class[] pars)
-   {
-      Vector v = info.getChilds();
-      for (int i=0; i<v.size(); i++)
-      {
-         InheritanceINFO temp = (InheritanceINFO)v.get(i);
-         if (afterCastType.equals(temp.getClassName())) 
-        	return;
-      
-         if (beforeCastType.equals(temp.getClassName())) 
-        	return;
-       
-         if (isNonAbstractOverridingMethodCall(temp.getClassName(), beforeCastType, method_name, pars))
-         {
-            outputToFile(p, temp.getClassName());
-         }
-         generateDownMutants(p, temp);
-      }
-   }
-
-   void generateMutants(CastExpression p, InheritanceINFO info)
-   {
-      if (hasHidingVariableOrOverridingMethod(info.getClassName(), beforeCastType))
-      {
-         outputToFile(p, info.getClassName());
-      }
-      generateUpMutants(p, info);
-      generateDownMutants(p, info);
-   }
-
-   public void visit( CastExpression p )  throws ParseTreeException
-   {
-      afterCastType = p.getTypeSpecifier().getName();
-      beforeCastType = getType(p.getExpression()).getName();
-      
-      if (afterCastType.equals(beforeCastType)) 
-    	 return;
-
-      InheritanceINFO inf = MutationSystem.getInheritanceInfo(beforeCastType);
-      if (inf != null) 
-      {
-         if (currentMethodCall != null)
-         {
-            try
-            {
-               String method_name = currentMethodCall.getName();
-               Class[] par_type = getParameterTypes(currentMethodCall);
-   
-               generateUpMutants2(p, inf, method_name, par_type);
-               generateDownMutants2(p, inf, method_name, par_type);
-            } catch (Exception e)
-            {
-               // do nothing
-            }
-         }
-         else
-         {
-            generateUpMutants(p, inf);
-            generateDownMutants(p, inf);
-         }
-      }
-   }
-
-   public void visit( MethodCall p ) throws ParseTreeException 
-   {
-      Expression newp = this.evaluateDown( p );
-	  if (newp != p) 
-	  {
-	     p.replace( newp );
-	     return;
-	  }
-      
-	  Expression ref = p.getReferenceExpr();
-      if (ref != null)
-      {
-         currentMethodCall = p;
-         ref.accept(this);
-         currentMethodCall = null;
-      }
-    
-      ExpressionList list = p.getArguments();
-      if (list != null) 
-    	 list.accept(this);
-   }
-
-   /**
-    * Write PCC mutants to files
-    * @param original
-    * @param mutant
-    */
-   public void outputToFile(CastExpression original, String mutant)
-   {
-      if (comp_unit == null) 
-    	 return;
-    
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
-
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-		 PCC_Writer writer = new PCC_Writer( mutant_dir, out );
-		 writer.setMutant(original, mutant);
-		 comp_unit.accept( writer );
-		 out.flush();  out.close();
-      } catch ( IOException e ) {
-		 System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) {
-		 System.err.println( "errors during printing " + f_name );
-		 e.printStackTrace();
-      }
-   }
 }

@@ -6,7 +6,8 @@
 
 package mujava.op.basic;
 
-import mujava.op.util.TraditionalMutantCodeWriter;
+import mujava.api.Mutation;
+import mujava.op.util.MutantCodeWriter;
 import openjava.ptree.*;
 import java.io.*;
 
@@ -17,41 +18,30 @@ import java.io.*;
  * @version 1.0
   */
 
-public class LOD_Writer extends TraditionalMutantCodeWriter
-{
-   UnaryExpression original;
+public class LOD_Writer extends MutantCodeWriter {
+	private UnaryExpression original;
+	private Expression mutant;
 
-   public LOD_Writer( String file_name, PrintWriter out ) 
-   {
-      super(file_name, out);
-   }
+	public LOD_Writer( String file_name, PrintWriter out, Mutation mi) {
+		super(file_name, out, mi);
+		setMutant(this.mi.getOriginal(), this.mi.getMutant());
+	}
 
-   /**
-    * Set original source code
-    * @param exp1
-    */
-   public void setMutant(UnaryExpression exp1)
-   {
-      original = exp1;
-   }
+	private void setMutant(Object v1, Object v2) {
+		this.original = (UnaryExpression)v1;
+		this.mutant = (Expression)v2;
+	}
 
-   /**
-    * Log mutated line
-    */
-   public void visit( UnaryExpression p ) throws ParseTreeException
-   {
-      if (isSameObject(p, original))
-      {
-         super.visit(p.getExpression());
-         // -----------------------------------------------------------
-         mutated_line = line_num;
-         String log_str = p.toString() + " => " + p.getExpression().toString();
-         writeLog(removeNewline(log_str));
-         // -------------------------------------------------------------
-      }
-      else
-      {
-         super.visit(p);
-      }
-   }
+	public void visit( UnaryExpression p ) throws ParseTreeException {
+		if (isSameObject(p, this.original)) {
+			super.visit(this.mutant);
+			// -----------------------------------------------------------
+			mutated_line = line_num;
+			String log_str = p.toString() + " => " + this.mutant.toString();
+			writeLog(removeNewline(log_str));
+			// -------------------------------------------------------------
+		} else {
+			super.visit(p);
+		}
+	}
 }

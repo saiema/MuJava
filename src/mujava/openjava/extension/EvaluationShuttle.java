@@ -1,6 +1,9 @@
 package mujava.openjava.extension;
 
 
+import java.util.Stack;
+
+import mujava.api.Api;
 import openjava.mop.Environment;
 import openjava.ptree.AllocationExpression;
 import openjava.ptree.ArrayAccess;
@@ -67,6 +70,7 @@ import openjava.ptree.VariableDeclarator;
 import openjava.ptree.VariableInitializer;
 import openjava.ptree.WhileStatement;
 import openjava.ptree.util.ParseTreeVisitor;
+import openjava.tools.parser.MutableInteger;
 
 /**
  * The class <code>EvaluationShuttle</code> is a Visitor role
@@ -89,6 +93,38 @@ import openjava.ptree.util.ParseTreeVisitor;
  * @see openjava.ptree.util.ParseTreeVisitor
  */
 public abstract class EvaluationShuttle extends ParseTreeVisitor {
+	
+	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// +++++++added (15/09/14) [simon] {annonymous classes numeration}
+	
+	protected Stack<MutableInteger> anonymousClasses = new Stack<MutableInteger>();
+	
+	protected int nextAnnonymousClassID() {
+		if (this.anonymousClasses.isEmpty()) {
+			this.anonymousClasses.push(new MutableInteger(1));
+		} else {
+			MutableInteger current = this.anonymousClasses.peek();
+			current.setIntValue(current.intValue() + 1);
+		}
+		return this.anonymousClasses.peek().intValue();
+	}
+	
+	protected void popLevel() {
+		if (!this.anonymousClasses.isEmpty()) {
+			this.anonymousClasses.pop();
+		}
+	}
+	
+	protected void pushLevel() {
+		this.anonymousClasses.push(new MutableInteger(0));
+	}
+	
+	protected int levels() {
+		return this.anonymousClasses.size();
+	}
+	
+	// ---------------------------------------------------------------
+	
 	protected Environment env;
 
 	public EvaluationShuttle(Environment env) {
@@ -534,12 +570,17 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	}
 
 	public void visit(AllocationExpression p) throws ParseTreeException {
+		if (Api.usingApi() && p.getClassBody() != null && !p.getClassBody().isEmpty()) {	//added (15/09/14) [simon]
+			Api.enterInnerClass(Integer.toString(this.nextAnnonymousClassID()));			//added (15/09/14) [simon]
+		}																					//added (15/09/14) [simon]
 		Expression newp = this.evaluateDown(p);
 		if (newp != p) {
 			p.replace(newp);
 			return;
 		}
+		this.pushLevel();			//added (15/09/14) [simon]
 		p.childrenAccept(this);
+		this.popLevel();			//added (15/09/14) [simon]
 		newp = this.evaluateUp(p);
 		if (newp != p)
 			p.replace(newp);
@@ -708,12 +749,18 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	}
 
 	public void visit(ClassDeclaration p) throws ParseTreeException {
+		if (Api.usingApi()) {									//added (15/09/14) [simon]
+			Api.enterInnerClass(p.toFlattenString());			//added (15/09/14) [simon]
+		}														//added (15/09/14) [simon]
 		ClassDeclaration newp = this.evaluateDown(p);
 		if (newp != p) {
 			p.replace(newp);
 			return;
 		}
+		boolean pushNewLevel = this.levels() > 1;	//added (15/09/14) [simon]
+		if (pushNewLevel) this.pushLevel();			//added (15/09/14) [simon]
 		p.childrenAccept(this);
+		if (pushNewLevel) this.popLevel();			//added (15/09/14) [simon]
 		newp = this.evaluateUp(p);
 		if (newp != p)
 			p.replace(newp);
@@ -768,6 +815,9 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	}
 
 	public void visit(ConstructorDeclaration p) throws ParseTreeException {
+		if (Api.usingApi() && !p.getName().equals(Api.getMethodUnderConsideration())) {			//added (15/09/14) [simon]
+			return;																				//added (15/09/14) [simon]
+		}																						//added (15/09/14) [simon]
 		MemberDeclaration newp = this.evaluateDown(p);
 		if (newp != p) {
 			p.replace(newp);
@@ -831,13 +881,18 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	 * Added for Java 1.5 Enumeration
 	 */
 	public void visit(EnumDeclaration p) throws ParseTreeException {
-		
+		if (Api.usingApi()) {						//added (15/09/14) [simon]
+			Api.enterInnerClass(p.getName());		//added (15/09/14) [simon]
+		}											//added (15/09/14) [simon]
 		MemberDeclaration newp = this.evaluateDown(p);
 		if (newp != p) {
 			p.replace(newp);
 			return;
 		}
+		boolean pushNewLevel = this.levels() > 0;	//added (15/09/14) [simon]
+		if (pushNewLevel) this.pushLevel();			//added (15/09/14) [simon]
 		p.childrenAccept(this);
+		if (pushNewLevel) this.popLevel();			//added (15/09/14) [simon]
 		newp = this.evaluateUp(p);
 		if (newp != p)
 			p.replace(newp);
@@ -1014,6 +1069,9 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	}
 
 	public void visit(MethodDeclaration p) throws ParseTreeException {
+		if (Api.usingApi() && !p.getName().equals(Api.getMethodUnderConsideration())) {		//added (15/09/14) [simon]
+			return;																			//added (15/09/14) [simon]
+		}																					//added (15/09/14) [simon]
 		MemberDeclaration newp = this.evaluateDown(p);
 		if (newp != p) {
 			p.replace(newp);

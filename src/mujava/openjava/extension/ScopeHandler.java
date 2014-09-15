@@ -46,7 +46,7 @@ import openjava.ptree.WhileStatement;
  * @see openjava.ptree.util.EvaluationShuttle
  */
 public abstract class ScopeHandler extends EvaluationShuttle {
-	protected Stack env_nest = new Stack();
+	protected Stack<Environment> env_nest = new Stack<Environment> ();
 
 	public ScopeHandler(Environment base_env) {
 		super(base_env);

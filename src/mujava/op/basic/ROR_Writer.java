@@ -6,86 +6,62 @@
 
 package mujava.op.basic;
 
-import mujava.op.util.TraditionalMutantCodeWriter;
+import mujava.api.Mutation;
+import mujava.op.util.MutantCodeWriter;
 import openjava.ptree.*;
+
 import java.io.*;
 
 /**
- * <p>Output and log ROR mutants to files </p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
+ * <p>
+ * Output and log ROR mutants to files
+ * </p>
+ * <p>
+ * Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED
+ * </p>
+ * 
  * @author Yu-Seung Ma
  * @version 1.0
-  */
+ */
 
-public class ROR_Writer extends TraditionalMutantCodeWriter
-{
-   BinaryExpression original;
-   BinaryExpression mutant;
-   Literal mutantBoolean;
+public class ROR_Writer extends MutantCodeWriter {
+	private BinaryExpression original;
+	private BinaryExpression mutant;
+	private Literal mutantL = null;
 
-   public ROR_Writer( String file_name, PrintWriter out ) 
-   {
-      super(file_name, out);
-   }
+	public ROR_Writer(String file_name, PrintWriter out, Mutation mi) {
+		super(file_name, out, mi);
+		setMutant(this.mi.getOriginal(), this.mi.getMutant());
+	}
 
-   /**
-    * Set original source code and mutated code
-    * @param exp1
-    * @param exp2
-    */
-   public void setMutant(BinaryExpression exp1, BinaryExpression exp2)
-   {
-      original = exp1;
-      mutant = exp2;
-   }
-   
-   /**
-    * Set original source code and mutated code
-    * @param exp1
-    * @param exp2
-    */
-   public void setMutant(BinaryExpression exp1, Literal exp2)
-   {
-      original = exp1;
-      mutantBoolean = exp2;
-   }
+	private void setMutant(Object v1, Object v2) {
+		this.original = (BinaryExpression) v1;
+		if (v2 instanceof BinaryExpression) {
+			this.mutant = (BinaryExpression) v2;
+		} else if (v2 instanceof Literal) {
+			this.mutantL = (Literal) v2;
+		}
+		
+	}
 
-   /**
-    * Log mutated line
-    */
-   public void visit( BinaryExpression p ) throws ParseTreeException
-   {
-	   
-	   if(mutant != null){
-	      if (isSameObject(p, original))
-	      {
-	         super.visit(mutant);
-	         // -----------------------------------------------------------
-	         mutated_line = line_num;
-	         String log_str = p.toFlattenString()+ "  =>  " + mutant.toFlattenString();
-	         writeLog(removeNewline(log_str));
-	         // -------------------------------------------------------------
-	      }
-	      else
-	      {
-	         super.visit(p);
-	      }
-	   }
-	   else{
-		   if (isSameObject(p, original))
-		      {
-		         super.visit(mutantBoolean);
-		         // -----------------------------------------------------------
-		         mutated_line = line_num;
-		         String log_str = p.toFlattenString()+ "  =>  " + mutantBoolean.toFlattenString();
-		         writeLog(removeNewline(log_str));
-		         // -------------------------------------------------------------
-		      }
-		      else
-		      {
-		         super.visit(p);
-		      }
-	   }
-   }
-   
+	public void visit(BinaryExpression p) throws ParseTreeException {
+		if (isSameObject(p, this.original)) {
+			String mutantS = "";
+			if (this.mutantL != null) {
+				mutantS = this.mutantL.toFlattenString();
+				super.visit(this.mutantL);
+			} else {
+				mutantS = this.mutant.toFlattenString();
+				super.visit(this.mutant);
+			}
+			// -----------------------------------------------------------
+			mutated_line = line_num;
+			String log_str = p.toFlattenString() + "  =>  " + mutantS;
+			writeLog(removeNewline(log_str));
+			// -------------------------------------------------------------
+		} else {
+			super.visit(p);
+		}
+	}
+
 }

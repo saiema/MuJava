@@ -6,9 +6,10 @@
 
 package mujava.op.basic;
 
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
-import java.io.*;
 
 /**
  * <p>Generate COD (Conditional Operator Deletion) mutants --
@@ -19,52 +20,54 @@ import java.io.*;
  * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
  * @author Yu-Seung Ma
  * @version 1.0
-  */
+ */
 
-public class COD extends MethodLevelMutator
-{
-   public COD(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
-   {
-      super( file_env, comp_unit );
-   }
+public class COD extends MethodLevelMutator {
 
-   public void visit( UnaryExpression p ) throws ParseTreeException
-   {
-      int op = p.getOperator();
-      if ( op == UnaryExpression.NOT)
-      {
-         outputToFile(p);
-      }
-   }
+	public COD(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit) {
+		super( file_env, comp_unit );
+	}
 
-   /**
-    * Output COD mutants to files
-    * @param original
-    */
-   public void outputToFile(UnaryExpression original)
-   {
-      if (comp_unit == null) 
-    	 return;
-      
-      String f_name;
-      num++;
-      f_name = getSourceName("COD");
-      String mutant_dir = getMuantID("COD");
+	public void visit( UnaryExpression p ) throws ParseTreeException {
+		if (!(getMutationsLeft(p)>0)) return;
+		int op = p.getOperator();
+		if ( op == UnaryExpression.NOT) {
+			outputToFile(p, p.getExpression());
+		}
+		super.visit(p.getExpression());
+	}
+	
+	public void visit( BinaryExpression p) throws ParseTreeException {
+		if (!(getMutationsLeft(p) > 0)) return;
+		p.getLeft().accept(this);
+		p.getRight().accept(this);
+	}
 
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-		 COD_Writer writer = new COD_Writer(mutant_dir, out);
-		 writer.setMutant(original);
-         writer.setMethodSignature(currentMethodSignature);
-		 comp_unit.accept( writer );
-		 out.flush();  
-		 out.close();
-      } catch ( IOException e ) {
-		 System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) {
-		 System.err.println( "errors during printing " + f_name );
-		 e.printStackTrace();
-      }
-   }
+	public void visit( AssignmentExpression p ) throws ParseTreeException {
+		if (!(getMutationsLeft(p) > 0)) return;
+		Expression rexp = p.getRight();
+		rexp.accept( this );
+	}
+	
+	public void visit (MethodCall p) throws ParseTreeException {
+		if (!(getMutationsLeft(p) > 0)) return;
+		ExpressionList args = p.getArguments();
+		for (int a = 0; a < args.size(); a++) {
+			Expression exp = args.get(a);
+			exp.accept(this);
+		}
+	}
+
+	public void visit(ReturnStatement p) throws ParseTreeException {
+		if (!(getMutationsLeft(p) > 0)) return;
+		Expression exp = p.getExpression();
+		exp.accept(this);
+	}
+
+	public void outputToFile(UnaryExpression original, Expression mutant) {
+		if (comp_unit == null) 
+			return;
+
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COD,original, (ParseTreeObject) mutant);
+	}
 }

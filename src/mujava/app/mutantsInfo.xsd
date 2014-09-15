@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+    <xs:element name="info">
+        <xs:complexType>
+            <xs:sequence maxOccurs="unbounded">
+                <xs:element ref="mutant"/>
+            </xs:sequence>
+            <xs:attribute name="date" type="xs:date" use="required"/>
+            <xs:attribute name="notes" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="mutant">
+        <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+            <xs:attribute name="type" use="required">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="MethodLevel"/>
+                        <xs:enumeration value="ClassLevel"/>
+                        <xs:enumeration value="ClassAndMethodLevel"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="isBasic" type="xs:boolean" use="required"/>
+            <xs:attribute name="shortDescription" type="xs:string" use="required"/>
+            <xs:attribute name="fullDescription" type="xs:string" use="required"/>
+            <xs:attribute name="affectsOneLine" type="xs:boolean" use="required"/>
+            <xs:attribute name="developerNotes" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

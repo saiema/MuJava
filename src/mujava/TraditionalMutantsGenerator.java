@@ -9,8 +9,9 @@ package mujava;
 
 import openjava.ptree.*;
 import java.io.*;
-import mujava.op.basic.*;
+
 import mujava.op.util.*;
+import mujava.opOld.basic.*;
 import mujava.util.Debug;
 
 /**

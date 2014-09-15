@@ -32,6 +32,7 @@ public class Arithmetic_OP extends MethodLevelMutator
    public boolean isArithmeticType(Expression p) throws ParseTreeException
    {
       OJClass type = getType(p);
+      if (type.isPrimitiveWrapper()) type = type.unwrappedPrimitive();
       if ( type == OJSystem.INT || type == OJSystem.DOUBLE || type == OJSystem.FLOAT
          || type == OJSystem.LONG || type == OJSystem.SHORT 
          || type == OJSystem.CHAR || type == OJSystem.BYTE )

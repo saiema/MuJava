@@ -6,69 +6,55 @@
 
 package mujava.op;
 
-import java.io.*;
+import mujava.api.Api;
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
 
 /**
- * <p>Generate IPC (Explicit call to parent's constructor deletion) mutants --
- *    delete <i>super</i> constructor calls, causing the default constructor
- *    of the parent class to be called 
+ * <p>
+ * Generate IPC (Explicit call to parent's constructor deletion) mutants --
+ * delete <i>super</i> constructor calls, causing the default constructor of the
+ * parent class to be called
  * </p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
+ * <p>
+ * Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED
+ * </p>
+ * 
  * @author Yu-Seung Ma
  * @version 1.0
-  */
+ */
 
-public class IPC extends mujava.op.util.Mutator
-{
-   // ClassDeclaration my_class;
-   public IPC(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
-   {
-	  super( file_env, comp_unit );
-	  //my_class = cdecl;
-   }
+public class IPC extends mujava.op.util.Mutator {
 
-   public void visit( ConstructorInvocation p ) throws ParseTreeException
-   {
-      if (!p.isSelfInvocation())
-      {
-         if (p.getArguments().size() > 0)
-         {
-            outputToFile(p);
-         }
-      }
-   }
+	public IPC(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit) {
+		super(file_env, comp_unit);
+	}
 
-   /**
-    * Output IPC mutants to files
-    * @param mutant
-    */
-   public void outputToFile(ConstructorInvocation mutant)
-   {
-      if (comp_unit == null) 
-    	 return;
+	public void visit(ConstructorDeclaration p) throws ParseTreeException {
+		super.visit(p);
+		if (Api.usingApi() && !p.getName().equals(Api.getMethodUnderConsideration())) {
+			return;
+		}
+		if (!(getMutationsLeft(p)>0)) return;
+		ConstructorInvocation first = p.getConstructorInvocation();
+		if (first != null) {
+			if (!(first.isSelfInvocation())) {
+				if (first.getArguments().size() > 0) {
+					outputToFile(p, first);
+				}
+			}
+		}
+		
+	}
 
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
-
-      try 
-      {
-	     PrintWriter out = getPrintWriter(f_name);
-	     IPC_Writer writer = new IPC_Writer( mutant_dir, out );
-	     writer.setMutant(mutant);
-	     comp_unit.accept( writer );
-	     out.flush();  
-	     out.close();
-      } catch ( IOException e ) 
-      {
-	     System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) 
-      {
-	     System.err.println( "errors during printing " + f_name );
-	     e.printStackTrace();
-      }
-   }
+	/**
+	 * Output IPC mutants to files
+	 * 
+	 * @param mutant
+	 */
+	public void outputToFile(ConstructorDeclaration original, ConstructorInvocation mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.IPC, original, mutant);
+	}
 }

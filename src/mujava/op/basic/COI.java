@@ -6,9 +6,22 @@
 
 package mujava.op.basic;
 
-import openjava.mop.*;
-import openjava.ptree.*;
-import java.io.*;
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
+import openjava.mop.FileEnvironment;
+import openjava.mop.OJSystem;
+import openjava.ptree.AssignmentExpression;
+import openjava.ptree.BinaryExpression;
+import openjava.ptree.ClassDeclaration;
+import openjava.ptree.CompilationUnit;
+import openjava.ptree.Expression;
+import openjava.ptree.ExpressionList;
+import openjava.ptree.FieldAccess;
+import openjava.ptree.Literal;
+import openjava.ptree.MethodCall;
+import openjava.ptree.ParseTreeException;
+import openjava.ptree.UnaryExpression;
+import openjava.ptree.Variable;
 
 /**
  * <p>Generate COI (Conditional Operator Insertion) mutants --
@@ -19,140 +32,107 @@ import java.io.*;
  * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
  * @author Yu-Seung Ma
  * @version 1.0
-  */
+ */
 
-public class COI extends MethodLevelMutator
-{
-   public COI(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
-   {
-      super( file_env, comp_unit );
-   }
+public class COI extends MethodLevelMutator {
+	private boolean ignoreBinary = false;
 
-   public void visit(UnaryExpression p)
-   {
-      // NO OP
-   }
+	public COI(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit) {
+		super( file_env, comp_unit );
+		this.ignoreBinary = false;
+	}
 
-   public void visit( Variable p ) throws ParseTreeException
-   {
-      if (getType(p) == OJSystem.BOOLEAN)
-      {
-         outputToFile(p);
-      }
-   }
+	public void visit(UnaryExpression p) throws ParseTreeException {
+		if (!(getMutationsLeft(p)>0)) return;
+		if (getType(p) == OJSystem.BOOLEAN) {
+			UnaryExpression originalCopy = (UnaryExpression) p.makeRecursiveCopy_keepOriginalID();
+			UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
+			outputToFile(p, mutant);
+			this.ignoreBinary = true;
+		}
+		if (p.getExpression() instanceof BinaryExpression) p.getExpression().accept(this);
+	}
 
-   public void visit( FieldAccess p ) throws ParseTreeException
-   {
-      if (getType(p) == OJSystem.BOOLEAN)
-      {
-         outputToFile(p);
-      }
-   }
 
-   public void visit( BinaryExpression p ) throws ParseTreeException
-   {
-      Expression left = p.getLeft();
-      left.accept(this);
-      Expression right = p.getRight();
-      right.accept(this);
+	public void visit( Variable p ) throws ParseTreeException {
+		if (!(getMutationsLeft(p)>0)) return;
+		if (getType(p) == OJSystem.BOOLEAN) {
+			Variable originalCopy = (Variable) p.makeRecursiveCopy_keepOriginalID();
+			UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
+			outputToFile(p, mutant);
+		}
+	}
 
-      if (getType(p) == OJSystem.BOOLEAN)
-      {
-         outputToFile(p);
-      }
-   }
+	public void visit(Literal p) throws ParseTreeException {
+		if (!(getMutationsLeft(p)>0)) return;
+		if (getType(p) == OJSystem.BOOLEAN) {
+			Literal originalCopy = (Literal) p.makeRecursiveCopy_keepOriginalID();
+			UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
+			outputToFile(p, mutant);
+		}
+	}
 
-   /**
-    * Output COI mutants to files
-    * @param original
-    */
-   public void outputToFile(BinaryExpression original)
-   {
-      if (comp_unit == null) 
-    	 return;
+	public void visit( FieldAccess p ) throws ParseTreeException {
+		if (!(getMutationsLeft(p)>0)) return;
+		if (getType(p) == OJSystem.BOOLEAN) {
+			FieldAccess originalCopy = (FieldAccess) p.makeRecursiveCopy_keepOriginalID();
+			UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
+			outputToFile(p, mutant);
+		}
+	}
 
-      String f_name;
-      num++;
-      f_name = getSourceName("COI");
-      String mutant_dir = getMuantID("COI");
+	public void visit( BinaryExpression p ) throws ParseTreeException {
+		if (!(getMutationsLeft(p)>0)) return; 
+		if (getType(p) == OJSystem.BOOLEAN) {
+			if (!this.ignoreBinary) {
+				BinaryExpression originalCopy = (BinaryExpression) p.makeRecursiveCopy_keepOriginalID();
+				UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
+				outputToFile(p, mutant);
+			}
+			p.getLeft().accept(this);
+			p.getRight().accept(this);
+		}
+	}
+	
+	public void visit( AssignmentExpression p ) throws ParseTreeException {
+		if (!(getMutationsLeft(p)>0)) return;
+		if (getType(p) == OJSystem.BOOLEAN) {
+			p.getRight().accept(this);
+		}
+	}
+	
+	public void visit (MethodCall p) throws ParseTreeException {
+		if (!(getMutationsLeft(p) > 0)) return;
+		ExpressionList args = p.getArguments();
+		for (int a = 0; a < args.size(); a++) {
+			Expression exp = args.get(a);
+			exp.accept(this);
+		}
+	}
 
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-		 COI_Writer writer = new COI_Writer(mutant_dir,out);
-		 writer.setMutant(original);
-         writer.setMethodSignature(currentMethodSignature);
-		 comp_unit.accept( writer );
-		 out.flush();  
-		 out.close();
-      } catch ( IOException e ) 
-      {
-		 System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) 
-      {
-		 System.err.println( "errors during printing " + f_name );
-		 e.printStackTrace();
-      }
-   }
-
-   /**
-    * Output COI mutants to files
-    * @param original
-    */
-   public void outputToFile(Variable original)
-   {
-      if (comp_unit==null) return;
-
-      String f_name;
-      num++;
-      f_name = getSourceName("COI");
-      String mutant_dir = getMuantID("COI");
-
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-		 COI_Writer writer = new COI_Writer(mutant_dir,out);
-		 writer.setMutant(original);
-         writer.setMethodSignature(currentMethodSignature);
-		 comp_unit.accept( writer );
-		 out.flush();  
-		 out.close();
-      } catch ( IOException e ) {
-		 System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) {
-		 System.err.println( "errors during printing " + f_name );
-		 e.printStackTrace();
-      }
-   }
-
-   /**
-    * Output COI mutants to files
-    * @param original
-    */
-   public void outputToFile(FieldAccess original)
-   {
-      if (comp_unit == null) 
-    	 return;
-
-      String f_name;
-      num++;
-      f_name = getSourceName("COI");
-      String mutant_dir = getMuantID("COI");
-
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-		 COI_Writer writer = new COI_Writer(mutant_dir,out);
-		 writer.setMutant(original);
-         writer.setMethodSignature(currentMethodSignature);
-		 comp_unit.accept( writer );
-		 out.flush();  
-		 out.close();
-      } catch ( IOException e ) {
-		 System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) {
-		 System.err.println( "errors during printing " + f_name );
-		 e.printStackTrace();
-      }
-   }
+	private void outputToFile(UnaryExpression original, UnaryExpression mutant) {
+		if (comp_unit == null) return;
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COI, original, mutant);
+	}
+	
+	private void outputToFile(Variable original, UnaryExpression mutant) {
+		if (comp_unit == null) return;
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COI, original, mutant);
+	}
+	
+	private void outputToFile(Literal original, UnaryExpression mutant) {
+		if (comp_unit == null) return;
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COI, original, mutant);
+	}
+	
+	private void outputToFile(FieldAccess original, UnaryExpression mutant) {
+		if (comp_unit == null) return;
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COI, original, mutant);
+	}
+	
+	private void outputToFile(BinaryExpression original, UnaryExpression mutant) {
+		if (comp_unit == null) return;
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COI, original, mutant);
+	}
+	
 }

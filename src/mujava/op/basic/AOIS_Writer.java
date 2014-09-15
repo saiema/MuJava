@@ -6,7 +6,8 @@
 
 package mujava.op.basic;
 
-import mujava.op.util.TraditionalMutantCodeWriter;
+import mujava.api.Mutation;
+import mujava.op.util.MutantCodeWriter;
 import openjava.ptree.*;
 import java.io.*;
 
@@ -17,76 +18,88 @@ import java.io.*;
  * @version 1.0
   */
 
-public class AOIS_Writer extends TraditionalMutantCodeWriter
-{
-   Variable original_var;
-   FieldAccess original_field;
-   String mutant;
+public class AOIS_Writer extends MutantCodeWriter {
+   private Variable original_var = null;
+   private FieldAccess original_field = null;
+   private UnaryExpression original_uexp = null;
+   private UnaryExpression mutant;
 
-   public AOIS_Writer( String file_name, PrintWriter out ) 
-   {
-      super(file_name,out);
+   public AOIS_Writer( String file_name, PrintWriter out, Mutation mi)  {
+	   super(file_name,out, mi);
+	   this.original_var = null;
+	   this.original_field = null;
+	   this.original_uexp = null;
+	   
+	   setMutant(this.mi.getOriginal(), this.mi.getMutant());
    }
 
-   /**
-    * Set original source code and mutated code
-    * @param exp1
-    * @param mutant
-    */
-   public void setMutant(Variable exp1, String mutant)
-   {
-      original_var = exp1; 
+   private void setMutant(Object v1, Object v2) {
+	   UnaryExpression mutant = (UnaryExpression) v2;
+	   if (v1 instanceof Variable) {
+		   setMutant((Variable)v1, mutant);
+	   } else if (v1 instanceof FieldAccess) {
+		   setMutant((FieldAccess)v1, mutant);
+	   } else if (v1 instanceof UnaryExpression) {
+		   setMutant((UnaryExpression)v1, mutant);
+	   }
+   }
+   
+   private void setMutant(Variable original_var, UnaryExpression mutant) {
+      this.original_var = original_var;
       this.mutant = mutant;
    }
 
-   /**
-    * Set original source code and mutated code
-    * @param exp1
-    * @param mutant
-    */
-   public void setMutant(FieldAccess exp1, String mutant)
-   {
-      original_field = exp1;
-      this.mutant = mutant;
+   private void setMutant(FieldAccess original_field, UnaryExpression mutant) {
+	   this.original_field = original_field;
+	   this.mutant = mutant;
+   }
+   
+   private void setMutant(UnaryExpression original_uexp, UnaryExpression mutant) {
+	   this.original_uexp = original_uexp;
+	   this.mutant = mutant;
    }
 
-   /**
-    * Log mutated line
-    */
-   public void visit( Variable p ) throws ParseTreeException
-   {
-      if (isSameObject(p, original_var))
-      {
-         out.print(mutant);
-         // -----------------------------------------------------------
-         mutated_line = line_num;
-         String log_str = p.toString() + " => " + mutant;
-         writeLog(removeNewline(log_str));
-         // -------------------------------------------------------------
-      }
-      else
-      {
-         super.visit(p);
-      }
+   public void visit( Variable p ) throws ParseTreeException {
+	   if (this.original_var != null && isSameObject(p, this.original_var)) {
+		   this.original_var = null;
+		   super.visit(this.mutant);
+		   // -----------------------------------------------------------
+		   mutated_line = line_num;
+		   String log_str = p.toString() + " => " + this.mutant.toString();
+		   writeLog(removeNewline(log_str));
+		   // -------------------------------------------------------------
+	   } else {
+		   super.visit(p);
+	   }
+   }
+   
+   public void visit( FieldAccess p ) throws ParseTreeException {
+	   if (this.original_field != null && isSameObject(p, this.original_field)) {
+		   this.original_field = null;
+		   super.visit(this.mutant);
+		   // -----------------------------------------------------------
+	       mutated_line = line_num;
+	       String log_str = p.toString() + " => " + this.mutant.toString();
+	       writeLog(removeNewline(log_str));
+	       // -------------------------------------------------------------
+	   } else {
+		   super.visit(p);
+	   }
+   }
+   
+   public void visit( UnaryExpression p ) throws ParseTreeException {
+	   if (this.original_uexp != null && isSameObject(p, this.original_uexp)) {
+		   this.original_uexp = null;
+		   super.visit(this.mutant);
+		   // -----------------------------------------------------------
+	       mutated_line = line_num;
+	       String log_str = p.toString() + " => " + this.mutant.toString();
+	       writeLog(removeNewline(log_str));
+	       // -------------------------------------------------------------
+	   } else {
+		   super.visit(p);
+	   }
    }
 
-   /**
-    * Log mutated line
-    */
-   public void visit( FieldAccess p ) throws ParseTreeException
-   {
-      if (isSameObject(p, original_field))
-      {
-         out.print(mutant);
-         // -----------------------------------------------------------
-         mutated_line = line_num;
-         String log_str = p.toString() + " => " + mutant;
-         writeLog(removeNewline(log_str));
-         // -------------------------------------------------------------
-      }
-      else
-      {
-         super.visit(p);
-      }
-   }
+   
 }

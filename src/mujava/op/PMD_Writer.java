@@ -1,87 +1,111 @@
-////////////////////////////////////////////////////////////////////////////
-// Module : PMD_Writer.java
-// Author : Ma, Yu-Seung
-// COPYRIGHT 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED.
-////////////////////////////////////////////////////////////////////////////
-
 package mujava.op;
 
 import java.io.*;
 import openjava.ptree.*;
+import mujava.api.Mutation;
 import mujava.op.util.MutantCodeWriter;
 
-/**
- * <p>Output and log PMD mutants to files</p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
- * @author Yu-Seung Ma
- * @version 1.0
-  */ 
+public class PMD_Writer extends MutantCodeWriter {
+	private FieldDeclaration original_field = null;
+	private FieldDeclaration mutant_field = null;
 
-public class PMD_Writer extends MutantCodeWriter
-{
-   FieldDeclaration original_field = null;
-   FieldDeclaration mutant_field = null;
+	private VariableDeclaration original_var = null;
+	private VariableDeclaration mutant_var = null;
+	
+	private MethodDeclaration original_method = null;
+	private MethodDeclaration mutant_method = null;
+	
+	private ConstructorDeclaration original_constructor = null;
+	private ConstructorDeclaration mutant_constructor = null;
 
-   VariableDeclaration original_var = null;
-   VariableDeclaration mutant_var = null;
+	public PMD_Writer(String file_name, PrintWriter out, Mutation mi) {
+		super(file_name, out, mi);
+		setMutant(this.mi.getOriginal(), this.mi.getMutant());
+	}
+	
+	private void setMutant(Object v1, Object v2) {
+		setOriginal(v1);
+		setMutant(v2);
+	}
+	
+	private void setMutant(Object v2) {
+		if (v2 instanceof FieldDeclaration) {
+			this.mutant_field = (FieldDeclaration)v2;
+		} else if (v2 instanceof VariableDeclaration) {
+			this.mutant_var = (VariableDeclaration)v2;
+		} else if (v2 instanceof MethodDeclaration) {
+			this.mutant_method = (MethodDeclaration)v2;
+		} else if (v2 instanceof ConstructorDeclaration) {
+			this.mutant_constructor = (ConstructorDeclaration)v2;
+		}
+	}
+	
+	private void setOriginal(Object v1) {
+		if (v1 instanceof FieldDeclaration) {
+			this.original_field = (FieldDeclaration)v1;
+		} else if (v1 instanceof VariableDeclaration) {
+			this.original_var = (VariableDeclaration)v1;
+		} else if (v1 instanceof MethodDeclaration) {
+			this.original_method = (MethodDeclaration)v1;
+		} else if (v1 instanceof ConstructorDeclaration) {
+			this.original_constructor = (ConstructorDeclaration)v1;
+		}
+	}
 
-   /**
-    * Set original source code and mutated code
-    * @param original
-    * @param mutant
-    */
-   public void setMutant(FieldDeclaration original, FieldDeclaration mutant)
-   {
-      this.original_field = original;
-      this.mutant_field = mutant;
-   }
+	/**
+	 * Log mutated line
+	 */
+	public void visit(VariableDeclaration p) throws ParseTreeException {
+		if (isSameObject(p, original_var)) {
+			this.mutant_var.setMutGenLimit(this.original_var.getMutGenLimit());
+			super.visit(mutant_var);
+			// -------------------------------------------------------------
+			mutated_line = line_num;
+			writeLog(removeNewline(original_var.toString() + " => "+ mutant_var.toString()));
+			// -------------------------------------------------------------
+		} else {
+			super.visit(p);
+		}
+	}
+	
+	public void visit(FieldDeclaration p) throws ParseTreeException {
+		if (isSameObject(p, original_field)) {
+			this.mutant_field.setMutGenLimit(this.original_field.getMutGenLimit());
+			super.visit(mutant_field);
+			// -------------------------------------------------------------
+			mutated_line = line_num;
+			writeLog(removeNewline(original_field.toString() + " => "+ mutant_field.toString()));
+			// -------------------------------------------------------------
+		} else {
+			super.visit(p);
+		}
+	}
+	
+	public void visit(MethodDeclaration p) throws ParseTreeException {
+		if (isSameObject(p, original_method)) {
+			this.mutant_method.setMutGenLimit(this.original_method.getMutGenLimit());
+			super.visit(mutant_method);
+			// -------------------------------------------------------------
+			mutated_line = line_num;
+			writeLog(removeNewline(original_method.toString() + " => "+ mutant_method.toString()));
+			// -------------------------------------------------------------
+		} else {
+			super.visit(p);
+		}
+	}
+	
+	public void visit(ConstructorDeclaration p) throws ParseTreeException {
+		if (isSameObject(p, this.original_constructor)) {
+			this.mutant_constructor.setMutGenLimit(this.original_constructor.getMutGenLimit());
+			super.visit(this.mutant_constructor);
+			// -------------------------------------------------------------
+			mutated_line = line_num;
+			writeLog(removeNewline(this.original_constructor.toString() + " => "+ this.mutant_constructor.toString()));
+			// -------------------------------------------------------------
+		} else {
+			super.visit(p);
+		}
+	}
 
-   public void setMutant(VariableDeclaration original, VariableDeclaration mutant)
-   {
-      this.original_var = original;
-      this.mutant_var = mutant;
-   }
 
-   public PMD_Writer( String file_name, PrintWriter out ) 
-   {
-	  super(file_name, out);
-   }
-
-   /**
-    * Log mutated line
-    */
-   public void visit( FieldDeclaration p ) throws ParseTreeException
-   {
-      if (isSameObject(p, original_field))
-      {
-         // -------------------------------------------------------------
-         mutated_line = line_num;
-         visit(mutant_field);
-         writeLog(removeNewline(original_field.toString() + " => " + mutant_field.toString()));
-         // -------------------------------------------------------------
-      }
-      else
-      {
-         super.visit(p);
-      }
-   }
-
-   /**
-    * Log mutated line
-    */
-   public void visit( VariableDeclaration p ) throws ParseTreeException
-   {
-      if (isSameObject(p, original_var))
-      {
-		 // -------------------------------------------------------------
-		 mutated_line = line_num;
-		 visit(mutant_var);
-		 writeLog(removeNewline(original_var.toString() + " => " + mutant_var.toString()));
-         // -------------------------------------------------------------
-      }
-      else
-      {
-		 super.visit(p);
-      }
-   }
 }

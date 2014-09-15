@@ -1,214 +1,233 @@
-////////////////////////////////////////////////////////////////////////////
-// Module : IOP.java
-// Author : Ma, Yu-Seung
-// COPYRIGHT 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED.
-////////////////////////////////////////////////////////////////////////////
-
 package mujava.op;
 
-import java.io.*;
-import openjava.mop.*;
-import openjava.ptree.*;
+import openjava.mop.FileEnvironment;
+import openjava.mop.OJClass;
+import openjava.mop.OJMethod;
+import openjava.ptree.ClassDeclaration;
+import openjava.ptree.CompilationUnit;
+import openjava.ptree.Expression;
+import openjava.ptree.ExpressionList;
+import openjava.ptree.ExpressionStatement;
+import openjava.ptree.MethodCall;
+import openjava.ptree.MethodDeclaration;
+import openjava.ptree.Parameter;
+import openjava.ptree.ParameterList;
+import openjava.ptree.ParseTreeException;
+import openjava.ptree.SelfAccess;
+import openjava.ptree.Statement;
+import openjava.ptree.StatementList;
+import openjava.ptree.TypeName;
+import mujava.api.Api;
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
+import mujava.op.util.Mutator;
 
-/**
- * <p>Generate IOP (Overriding method calling position change) mutants --
- *    move each call to an overridden method to the first and last 
- *    statements of the method and up and down one statement
- * </p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
- * @author Yu-Seung Ma
- * @version 1.0
-  */
+public class IOP extends Mutator {
+	
+	public IOP(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit) {
+		super(file_env, comp_unit);
+	}
+	
+	public void visit(MethodDeclaration md) throws ParseTreeException {
+		if (Api.usingApi() && !md.getName().equals(Api.getMethodUnderConsideration())) {
+			return;
+		}
+		if (getMutationsLeft(md) <= 0)
+			return;
+		if (md.getName().equals("main"))
+			return;
+		if (!isOverridingParent(md)) {
+			return;
+		}
+		StatementList stments = md.getBody();
+		for (int s = 0; s < stments.size(); s++) {
+			Statement st = stments.get(s);
+			if (st instanceof ExpressionStatement) {
+				Expression ex = ((ExpressionStatement) st).getExpression();
+				if (ex instanceof MethodCall) {
+					if (isSuperCallOfSameMethod((MethodCall)ex, md)) {
+						generateMutants(md, st, s);
+					}
+				}
+			}
+		}
+	}
 
-public class IOP extends mujava.op.util.Mutator implements IOP_Helper
-{
-   MethodDeclaration containing_method = null;
+	private void generateMutants(MethodDeclaration md, Statement st, int s) {
+		MethodDeclaration originalCopy = (MethodDeclaration) md.makeRecursiveCopy_keepOriginalID();
+		if (md.getBody().size() == 2) {
+			if (s == 0) {
+				MethodDeclaration mutant = generateMutant(originalCopy, s, 1);
+				outputToFile(md, mutant);
+			} else {
+				//s == 1
+				MethodDeclaration mutant = generateMutant(originalCopy, s, 0);
+				outputToFile(md, mutant);
+			}
+		} else if (md.getBody().size() == 3) {
+			if (s == 0) {
+				MethodDeclaration mutant1 = generateMutant(originalCopy, s, 1);
+				MethodDeclaration mutant2 = generateMutant(originalCopy, s, 2);
+				outputToFile(md, mutant1);
+				outputToFile(md, mutant2);
+			} else if (s == 1) {
+				MethodDeclaration mutant1 = generateMutant(originalCopy, s, 0);
+				MethodDeclaration mutant2 = generateMutant(originalCopy, s, 2);
+				outputToFile(md, mutant1);
+				outputToFile(md, mutant2);
+			} else {
+				//s == 2
+				MethodDeclaration mutant1 = generateMutant(originalCopy, s, 0);
+				MethodDeclaration mutant2 = generateMutant(originalCopy, s, 1);
+				outputToFile(md, mutant1);
+				outputToFile(md, mutant2);
+			}
+		} else if (md.getBody().size() > 3) {
+			if (s == 0) {
+				MethodDeclaration mutant1 = generateMutant(originalCopy, s, 1);
+				MethodDeclaration mutant2 = generateMutant(originalCopy, s, md.getBody().size()-1);
+				outputToFile(md, mutant1);
+				outputToFile(md, mutant2);
+			} else if (s == md.getBody().size() - 1) {
+				MethodDeclaration mutant1 = generateMutant(originalCopy, s, 0);
+				MethodDeclaration mutant2 = generateMutant(originalCopy, s, md.getBody().size()-2);
+				outputToFile(md, mutant1);
+				outputToFile(md, mutant2);
+			} else if (s == 1) {
+				MethodDeclaration mutant1 = generateMutant(originalCopy, s, 0);
+				MethodDeclaration mutant2 = generateMutant(originalCopy, s, s+1);
+				MethodDeclaration mutant3 = generateMutant(originalCopy, s, md.getBody().size()-1);
+				outputToFile(md, mutant1);
+				outputToFile(md, mutant2);
+				outputToFile(md, mutant3);
+			} else if (s == md.getBody().size() - 2) {
+				MethodDeclaration mutant1 = generateMutant(originalCopy, s, 0);
+				MethodDeclaration mutant2 = generateMutant(originalCopy, s, s-1);
+				MethodDeclaration mutant3 = generateMutant(originalCopy, s, md.getBody().size()-1);
+				outputToFile(md, mutant1);
+				outputToFile(md, mutant2);
+				outputToFile(md, mutant3);
+			} else {
+				MethodDeclaration mutant1 = generateMutant(originalCopy, s, 0);
+				MethodDeclaration mutant2 = generateMutant(originalCopy, s, md.getBody().size() - 1);
+				MethodDeclaration mutant3 = generateMutant(originalCopy, s, s+1);
+				MethodDeclaration mutant4 = generateMutant(originalCopy, s, s-1);
+				outputToFile(md, mutant1);
+				outputToFile(md, mutant2);
+				outputToFile(md, mutant3);
+				outputToFile(md, mutant4);
+			}
+		}
+	}
 
-   public IOP(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
-   {
-	  super( file_env,comp_unit );
-   }
+	private MethodDeclaration generateMutant(MethodDeclaration original, int origPos, int newPos) {
+		MethodDeclaration mutant = (MethodDeclaration) original.makeRecursiveCopy_keepOriginalID();
+		StatementList statements = mutant.getBody();
+		replace(statements, origPos, newPos);
+		return mutant;
+	}
+	
+	private void replace(StatementList list, int origPos, int newPos) {
+		int o = origPos;
+		int move = origPos<newPos?1:(-1);
+		int d;
+		while (o != newPos) {
+			d = o + move;
+			swap(list, o, d);
+			o += move;
+		}
+	}
+	
+	private void swap(StatementList list, int origPos, int newPos) {
+		int o = origPos<newPos?origPos:newPos;
+		int d = origPos<newPos?newPos:origPos;
+		Statement dest = list.remove(d);
+		list.insertElementAt(dest, o);
+		Statement orig = list.remove(o+1);
+		list.insertElementAt(orig, d);
+	}
+	
+	private void outputToFile(MethodDeclaration original, MethodDeclaration mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.IOP, original, mutant);
+	}
 
-   public void visit(MethodDeclaration p) throws ParseTreeException 
-   {
-	  if (p.getName().equals("main")) 
-		 return;
-      containing_method = p;
-      super.visit(p);
-   }
+	private boolean isSuperCallOfSameMethod(MethodCall mc, MethodDeclaration md) throws ParseTreeException {
+		boolean isSameMethod = compare(mc, md);
+		if (isSameMethod) {
+			Expression lexp = mc.getReferenceExpr();
+			if (lexp == null) {
+				return false;
+			}
+			if (!(((SelfAccess) lexp).getAccessType() == SelfAccess.SUPER))
+				return false;
+			return true;
+		}
+		return false;
+	}
 
-   boolean compatibleParameters( ExpressionList args, ParameterList plist)
-   {
-      if (args.size() != plist.size()) 
-    	 return false;
-      
-      OJClass type = null;
+	private boolean isOverridingParent(MethodDeclaration md) throws ParseTreeException {
+		OJMethod[] inheritedMethods = getInheritedMethods(getSelfType());
+		for (OJMethod m : inheritedMethods) {
+			if (compare(m, md)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean compare(OJMethod md1, MethodDeclaration md2) {
+		String f1Name = md1.getName();
+		String f2Name = md2.getName();
+		String f1RetType = md1.getReturnType().getName();
+		String f2RetType = md2.getReturnType().getName();
+		if (f1Name.equals(f2Name) && f1RetType.equals(f2RetType)) {
+			OJClass[] fd1Params = md1.getParameterTypes();
+			ParameterList fd2Params = md2.getParameters();
+			if (fd1Params.length == fd2Params.size()) {
+				for (int p = 0; p < fd1Params.length; p++) {
+					OJClass fd1Param = fd1Params[p];
+					Parameter fd2Param = fd2Params.get(p);
+					if (fd1Param.getModifiers().toModifier() != fd2Param.getModifiers().getRegular()) {
+						return false;
+					}
+					if (fd1Param.getName().compareTo(fd2Param.getTypeSpecifier().getName())!=0) {
+						return false;
+					}
+				}
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return false;
+	}
+	
+	private boolean compare(MethodCall mc, MethodDeclaration md) throws ParseTreeException {
+		String mcName = mc.getName();
+		String mdName = md.getName();
+		OJClass mcType = getType(mc);
+		TypeName mdType = md.getReturnType();
+		if (mcName.compareTo(mdName) != 0) {
+			return false;
+		}
+		if (mcType.getName().compareTo(mdType.getName()) != 0) {
+			return false;
+		}
+		ExpressionList mcArgs = mc.getArguments();
+		ParameterList mdArgs = md.getParameters();
+		if (mcArgs.size() != mdArgs.size()) {
+			return false;
+		}
+		for (int p = 0; p < mcArgs.size(); p++) {
+			Expression mcArg = mcArgs.get(p);
+			Parameter mdArg = mdArgs.get(p);
+			OJClass mcArgType = getType(mcArg);
+			TypeName mdArgType = mdArg.getTypeSpecifier();
+			if (mcArgType.getName().compareTo(mdArgType.getName()) != 0) {
+				return false;
+			}
+		}
+		return true;
+	}
 
-      for (int i=0; i<args.size(); i++)
-      {
-         try 
-         {
-            type = getType(args.get(i));
-         } catch (ParseTreeException e)
-         {
-            type = null;
-         }
-         
-         if (!(type.getName().equals(plist.get(i).getTypeSpecifier().getName())))
-            return false;
-      }
-      return true;
-   }
-
-   boolean isOverridingMethodCallWithSameName(MethodCall p)
-   {
-      Expression lexp = p.getReferenceExpr();
-      if (lexp == null) 
-    	 return false;
-      if ( !(lexp instanceof SelfAccess)) 
-    	 return false;
-      if ( !(((SelfAccess)lexp).getAccessType()==SelfAccess.SUPER) ) 
-    	 return false;
-      if ( !(p.getName().equals(containing_method.getName()))) 
-    	 return false;
-      if (!compatibleParameters(p.getArguments(),containing_method.getParameters()) ) 
-    	 return false;
-      
-      return true;
-   }
-
-   /**
-    * Write mutants to files and log mutated line
-    */
-   public void visit( StatementList p ) throws ParseTreeException 
-   {
-      this.evaluateDown( p );
-      for (int i=0; i<p.size(); i++)
-      {
-         Statement stmt = p.get(i);
-         if (stmt instanceof ExpressionStatement)
-         {
-            Expression exp = ((ExpressionStatement)stmt).getExpression();
-            if (exp instanceof MethodCall)
-            {
-               if (isOverridingMethodCallWithSameName((MethodCall)exp))
-               {
-                  int[] change_mod = getChangeType(p.size(), i);
-                  if (change_mod == null) 
-                	 continue;
-                  for (int h=0; h<change_mod.length; h++)
-                  {
-                     outputToFile(comp_unit, p, i, change_mod[h]);
-                  }
-               }
-            }
-         }
-      }
-      this.evaluateUp( p );
-   }
-
-   /**
-    * Output IOP mutants to files
-    * @param comp_unit
-    * @param stmt_list
-    * @param index
-    * @param mod
-    */
-   public void outputToFile(CompilationUnit comp_unit, StatementList stmt_list, int index,int mod)
-   {
-      if (comp_unit == null) 
-    	 return;
-
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
-
-      try 
-      {
-         PrintWriter out = getPrintWriter(f_name);
-         IOP_Writer writer = new IOP_Writer( mutant_dir, out );
-         writer.setMutant(stmt_list, index, mod);
-         comp_unit.accept( writer );
-         out.flush();  out.close();
-      } catch ( IOException e ) 
-      {
-	     System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) 
-      {
-	     System.err.println( "errors during printing " + f_name );
-	     e.printStackTrace();
-      }
-   }
-
-   static int[] getChangeType(int stmt_num, int index)
-   {
-      int[] result = null;
-
-      switch (stmt_num)
-      {
-         case 0: break;
-         case 1: break;
-	     case 2: result = new int[1];
-		         if (index == 0) 
-		            result[0] = LAST;
-			     else 
-			        result[0] = FIRST;
-			     break;
-  	     case 3: result = new int[2];
-	             if (index == 0)
-	             {
-				    result[0] = LAST;
-				    result[1] = DOWN;
-	             } 
-	             else if (index == 1)
-	             {
-				    result[0] = FIRST;
-				    result[1] = LAST;
-	             } 
-	             else if (index == 2)
-	             {
-				    result[0] = FIRST;
-				    result[1] = UP;
-	             }
-			     break;
-       	 default:
-	             if (index == 0) 
-	             {
-				    result = new int[2];
-				    result[0] = LAST;
-				    result[1] = DOWN;
-	             } 
-	             else if (index == 1) 
-	             {
-				    result = new int[3];
-				    result[0] = FIRST;
-				    result[1] = LAST;
-				    result[2] = DOWN;
-	             }  
-	             else if (index == stmt_num-2) 
-	             {
-				    result = new int[3];
-				    result[0] = FIRST;
-				    result[1] = LAST;
-				    result[2] = UP;
-	             } 
-	             else if (index == stmt_num-1) 
-	             {
-				    result = new int[2];
-				    result[0] = FIRST;
-				    result[1] = UP;
-	             } 
-	             else 
-	             {
-				    result = new int[4];
-				    result[0] = FIRST;
-				    result[1] = LAST;
-				    result[2] = UP;
-				    result[3] = DOWN;
-	             }
-
-      }
-      return result;
-   }
 }

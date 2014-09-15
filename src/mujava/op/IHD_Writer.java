@@ -1,90 +1,49 @@
-////////////////////////////////////////////////////////////////////////////
-// Module : IHD_Writer.java
-// Author : Ma, Yu-Seung
-// COPYRIGHT 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED.
-////////////////////////////////////////////////////////////////////////////
-
 package mujava.op;
 
-import java.io.*;
-import openjava.ptree.*;
+import java.io.PrintWriter;
+
+import openjava.ptree.FieldDeclaration;
+import openjava.ptree.ParseTreeException;
+
+import mujava.api.Mutation;
 import mujava.op.util.MutantCodeWriter;
 
+public class IHD_Writer extends MutantCodeWriter {
+	private FieldDeclaration mutant;
 
-/**
- * <p>Output and log IHD mutants to files </p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
- * @author Yu-Seung Ma
- * @version 1.0
-  */ 
+	public IHD_Writer(String mutant_dir, PrintWriter out, Mutation mi) {
+		super(mutant_dir, out, mi);
+		setMutant(this.mi.getMutant());
+	}
+	
+	private void setMutant(Object mutant) {
+		this.mutant = (FieldDeclaration) mutant;
+	}
+	
+	@Override
+	public void visit(FieldDeclaration fd) throws ParseTreeException {
+		if (this.mutant != null && compare(fd, this.mutant)) {
+			String mutantString = this.mutant.toFlattenString();
+			this.mutant = null;
+	        // -----------------------------------------------------------
+	        mutated_line = line_num;
+	        String log_str = "removed  => " + mutantString;
+	        writeLog(removeNewline(log_str));
+	        // -----------------------------------------------------------
+		} else {
+			super.visit(fd);
+		}
+	}
+	
+	private boolean compare(FieldDeclaration fd1, FieldDeclaration fd2) {
+		String f1Name = fd1.getName();
+		String f2Name = fd2.getName();
+		String f1Type = fd1.getTypeSpecifier().getName();
+		String f2Type = fd2.getTypeSpecifier().getName();
+		if (f1Name.equals(f2Name) && f1Type.equals(f2Type)) {
+			return true;
+		}
+		return false;
+	}
 
-public class IHD_Writer extends MutantCodeWriter
-{
-   FieldDeclaration original = null;
-   FieldDeclaration mutant = null;
-
-   /**
-    * Set original source code and mutated code
-    * @param original
-    * @param mutant
-    */
-   public void setMutant(FieldDeclaration original, FieldDeclaration mutant)
-   {
-      this.original = original;
-      this.mutant = mutant;
-   }
-
-   public IHD_Writer( String file_name, PrintWriter out ) 
-   {
-      super(file_name, out);
-   }
-
-   public void visit( FieldDeclaration p ) throws ParseTreeException
-   {
-      if (!(isSameObject(p, original)))
-      {
-         super.visit(p);
-      } 
-      else
-      {
-         writeTab();
-		 out.print("// ");
-
-         /*ModifierList*/
-         ModifierList modifs = p.getModifiers();
-         if (modifs != null) 
-         {
-            modifs.accept( this );
-            if (! modifs.isEmptyAsRegular())  
-               out.print( " " );
-         }
-
-         /*TypeName*/
-         TypeName ts = p.getTypeSpecifier();
-         ts.accept(this);
-
-         out.print(" ");
-
-         /*Variable*/
-         String variable = p.getVariable();
-         out.print(variable);
- 
-         /*"=" VariableInitializer*/
-         VariableInitializer initializer = p.getInitializer();
-         if (initializer != null) 
-         {
-            out.print(" = ");
-            initializer.accept(this);
-         }
-         /*";"*/
-         out.print(";");
-
-         // -------------------------
-	     mutated_line = line_num;
-	     writeLog(removeNewline(mutant.toString())+" is deleted.");
-	     // -------------------------
-
-         out.println(); line_num++;
-      }
-   }
 }

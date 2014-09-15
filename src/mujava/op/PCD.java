@@ -1,120 +1,78 @@
-////////////////////////////////////////////////////////////////////////////
-// Module : PCD.java
-// Author : Ma, Yu-Seung
-// COPYRIGHT 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED.
-////////////////////////////////////////////////////////////////////////////
-
 package mujava.op;
 
-import java.io.*;
-import openjava.mop.*;
-import openjava.ptree.*;
+import openjava.mop.FileEnvironment;
+import openjava.ptree.AssignmentExpression;
+import openjava.ptree.BinaryExpression;
+import openjava.ptree.CastExpression;
+import openjava.ptree.ClassDeclaration;
+import openjava.ptree.CompilationUnit;
+import openjava.ptree.Expression;
+import openjava.ptree.ExpressionList;
+import openjava.ptree.MethodCall;
+import openjava.ptree.ParseTreeException;
+import openjava.ptree.ParseTreeObject;
+import openjava.ptree.ReturnStatement;
+import openjava.ptree.VariableDeclarator;
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
+import mujava.op.util.Mutator;
 
-/**
- * <p>Generate PCD (Type cast operator deletion) mutants --
- *    deletes type casting operator
- * </p>
- * <p><i>Example</i>: <br/>
- *   Child cRef; Parent pRef = cRef; ((Child)pRef).toString();  is mutated to <br> 
- *   Child cRef; Parent pRef = cRef; pRef.toString();   
- * </p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
- * @author Yu-Seung Ma
- * @version 1.0
-  */
+public class PCD extends Mutator {
+	
+	public PCD(FileEnvironment file_env, ClassDeclaration cdecl,CompilationUnit comp_unit) {
+		super(file_env, comp_unit);
+	}
+	
+	public void visit(CastExpression cast) throws ParseTreeException {
+		if (getMutationsLeft(cast) <= 0) return;
+		outputToFile(cast, cast.getExpression());
+	}
 
-public class PCD extends mujava.op.util.TypeCastMutator
-{
-   public PCD(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
-   {
-	  super( file_env, comp_unit );
-   } 
+	private void outputToFile(CastExpression original, Expression mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PCD, original, (ParseTreeObject) mutant);
+	}
+	
+	public void visit(MethodCall p) throws ParseTreeException {
+		if (!(getMutationsLeft(p) > 0))
+			return;
+		ExpressionList args = p.getArguments();
+		for (int a = 0; a < args.size(); a++) {
+			Expression exp = args.get(a);
+			exp.accept(this);
+		}
+	}
+	
+	public void visit(BinaryExpression p) throws ParseTreeException {
+		Expression lexp = p.getLeft();
+		lexp.accept(this);
+		Expression rexp = p.getRight();
+		rexp.accept(this);
+	}
+	
+	public void visit(ReturnStatement p) throws ParseTreeException {
+		Expression exp = p.getExpression();
+		exp.accept(this);
+	}
+	
+	public void visit(VariableDeclarator p) throws ParseTreeException {
+		Expression	rexp = (Expression) p.getInitializer();
+		
+		if( rexp == null ){
+			super.visit(p);
+			return;
+		} else {
+			rexp.accept(this);
+		}
+	}
+	
+	public void visit(AssignmentExpression p) throws ParseTreeException {
+		if (getMutationsLeft(p) > 0) {
+			Expression lexp = p.getLeft();
+			Expression rexp = p.getRight();
+			
+			super.visit(lexp);
+			super.visit(rexp);
+		}
+	}
 
-   public void visit( CastExpression p )  throws ParseTreeException
-   {
-      String afterCastType = p.getTypeSpecifier().getName();
-      String beforeCastType = getType(p.getExpression()).getName();
-      
-      if ((afterCastType == null) || (beforeCastType == null)) 
-    	 return;
-      
-      if (afterCastType.equals(beforeCastType)) 
-    	 return;
-     
-      if (currentMethodCall == null)
-      {
-         if (hasHidingVariableOrOverridingMethod(afterCastType, beforeCastType))
-         {
-            outputToFile(p);
-         }
-      } 
-      else
-      {
-         try 
-         {
-            String method_name = currentMethodCall.getName();
-            Class[] par_type = getParameterTypes(currentMethodCall);
-            
-            if ( isNonAbstractOverridingMethodCall(afterCastType, beforeCastType, method_name, par_type))
-            {
-               outputToFile(p);
-            }
-         } catch (Exception e)
-         {
-            // e.printStackTrace();
-         }
-      }
-   }
-
-   public void visit( MethodCall p ) throws ParseTreeException 
-   {
-      Expression newp = this.evaluateDown( p );
-	  if (newp != p) 
-	  {
-	     p.replace( newp );
-	     return;
-	  }
-    
-	  Expression ref = p.getReferenceExpr();
-      if (ref != null)
-      {
-         currentMethodCall = p;
-         ref.accept(this);
-         currentMethodCall = null;
-      }
-     
-      ExpressionList list = p.getArguments();
-      if (list != null) 
-    	 list.accept(this);
-   }
-
-   /**
-    * Write PCD mutants to files
-    * @param original
-    */
-   public void outputToFile(CastExpression original)
-   {
-      if (comp_unit == null) 
-    	 return;
-      
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
-
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-		 PCD_Writer writer = new PCD_Writer( mutant_dir, out );
-		 writer.setMutant(original);
-		 comp_unit.accept( writer );
-		 out.flush();  
-		 out.close();
-      } catch ( IOException e ) {
-		 System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) {
-		 System.err.println( "errors during printing " + f_name );
-		 e.printStackTrace();
-      }
-   }
 }

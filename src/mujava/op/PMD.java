@@ -1,238 +1,135 @@
-////////////////////////////////////////////////////////////////////////////
-// Module : PMD.java
-// Author : Ma, Yu-Seung
-// COPYRIGHT 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED.
-////////////////////////////////////////////////////////////////////////////
-
 package mujava.op;
 
-import java.io.*;
-import openjava.mop.*;
-import openjava.ptree.*;
-import mujava.MutationSystem;
-import mujava.util.InheritanceINFO;
+import openjava.mop.FileEnvironment;
+import openjava.mop.OJClass;
+import openjava.mop.OJClassNotFoundException;
+import openjava.ptree.ClassDeclaration;
+import openjava.ptree.CompilationUnit;
+import openjava.ptree.ConstructorDeclaration;
+import openjava.ptree.FieldDeclaration;
+import openjava.ptree.MethodDeclaration;
+import openjava.ptree.Parameter;
+import openjava.ptree.ParameterList;
+import openjava.ptree.ParseTreeException;
+import openjava.ptree.TypeName;
+import openjava.ptree.VariableDeclaration;
+import mujava.api.Api;
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
+import mujava.app.MutationRequest;
+import mujava.op.util.Mutator;
 
-/**
- * <p>Generate PMD (Member variable declaration with parent class type) mutants ---
- *    change the declared type of an object reference to the parent of the original 
- *    declared type        
- * </p>
- * <p><i>Example</i>: let class A be the parent of class B --
- *       B b; b = new B(); is mutated to A b; b = new B();
- * </p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
- * @author Yu-Seung Ma
- * @version 1.0
-  */
+public class PMD extends Mutator {
+	private boolean pmd = true;
 
-public class PMD extends mujava.op.util.PolymorphicMutator
-{
-   public PMD(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit)
-   {
-	  super( file_env, comp_unit );
-   } 
+	public PMD(FileEnvironment file_env, ClassDeclaration cdecl,CompilationUnit comp_unit) {
+		super(file_env, comp_unit);
+	}
+	
+	public void setPPD() {
+		this.pmd = false;
+	}
+	
+	public void setPMD() {
+		this.pmd = true;
+	}
+	
+	public void visit(VariableDeclaration vd) throws ParseTreeException {
+		if (getMutationsLeft(vd) <= 0) return;
+		if (!this.pmd) return; 
+		try {
+			OJClass varType = OJClass.forName(vd.getTypeSpecifier().getName());
+			OJClass parentsType = varType.getSuperclass();
+			VariableDeclaration copy = (VariableDeclaration) vd.makeRecursiveCopy_keepOriginalID();
+			copy.setTypeSpecifier(TypeName.forOJClass(parentsType));
+			outputToFile(vd, copy);
+		} catch (OJClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void visit(FieldDeclaration fd) throws ParseTreeException {
+		if (Api.usingApi() && (Api.getMethodUnderConsideration().compareTo(MutationRequest.MUTATE_FIELDS)!=0)) {
+			return;
+		}
+		if (getMutationsLeft(fd) <= 0) return;
+		if (!this.pmd) return;
+		try {
+			OJClass varType = OJClass.forName(fd.getTypeSpecifier().getName());
+			OJClass parentsType = varType.getSuperclass();
+			FieldDeclaration copy = (FieldDeclaration) fd.makeRecursiveCopy_keepOriginalID();
+			copy.setTypeSpecifier(TypeName.forOJClass(parentsType));
+			outputToFile(fd, copy);
+		} catch (OJClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public void visit(MethodDeclaration md) throws ParseTreeException {
+		if (Api.usingApi() && !md.getName().equals(Api.getMethodUnderConsideration())) {
+			return;
+		}
+		super.visit(md.getBody());
+		if (getMutationsLeft(md) <= 0) return;
+		if (this.pmd) return;
+		ParameterList params = md.getParameters();
+		for (int p = 0; p < params.size(); p++) {
+			Parameter param = params.get(p);
+			try {
+				OJClass varType = OJClass.forName(param.getTypeSpecifier().getName());
+				OJClass parentsType = varType.getSuperclass();
+				MethodDeclaration copy = (MethodDeclaration) md.makeRecursiveCopy_keepOriginalID();
+				copy.getParameters().get(p).setTypeSpecifier(TypeName.forOJClass(parentsType));
+				outputToFile(md, copy);
+			} catch (OJClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
+	
+	public void visit( ConstructorDeclaration cd ) throws ParseTreeException {
+		if (Api.usingApi() && !cd.getName().equals(Api.getMethodUnderConsideration())) {
+			return;
+		}
+		super.visit(cd.getBody());
+		if (getMutationsLeft(cd) <= 0) return;
+		if (this.pmd) return;
+		ParameterList params = cd.getParameters();
+		for (int p = 0; p < params.size(); p++) {
+			Parameter param = params.get(p);
+			try {
+				OJClass varType = OJClass.forName(param.getTypeSpecifier().getName());
+				OJClass parentsType = varType.getSuperclass();
+				ConstructorDeclaration copy = (ConstructorDeclaration) cd.makeRecursiveCopy_keepOriginalID();
+				copy.getParameters().get(p).setTypeSpecifier(TypeName.forOJClass(parentsType));
+				outputToFile(cd, copy);
+			} catch (OJClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
+	
+	private void outputToFile(ConstructorDeclaration original, ConstructorDeclaration mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PPD, original, mutant);
+	}
 
-   public void visit(VariableDeclaration p) throws ParseTreeException
-   {
-      this.evaluateDown(p);
-      if (MutationSystem.isPrimitive(getType(p.getTypeSpecifier()))) 
-    	 return;
-      
-      String original_class = p.getTypeSpecifier().getName();
-      InheritanceINFO inf = MutationSystem.getInheritanceInfo(original_class);
-      if (inf == null) 
-    	 return;
-      if (inf.getParent() != null)
-      {
-         generateMutant(p, inf.getParent());
-      }
-      else
-      {
-         if (original_class.equals("java.lang.Object")) 
-        	return;
-         try
-         {
-            Class super_class = Class.forName(original_class).getSuperclass();
-            if (!((super_class == null) || (super_class.getName().equals("java.lang.Object"))))
-               generateMutant(p, super_class.getName());
-         } catch (Exception e)
-         {
-            return;
-         }
-      }
-   }
+	private void outputToFile(VariableDeclaration original, VariableDeclaration mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PMD, original, mutant);
+	}
+	
+	private void outputToFile(FieldDeclaration original, FieldDeclaration mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PMD, original, mutant);
+	}
 
-   /**
-    * Generate PMD mutant and write output to file
-    * @param p
-    * @param parent
-    */
-   public void generateMutant(VariableDeclaration p, String parent)
-   {
-      String declared_type = p.getTypeSpecifier().getName();
-      
-      if (hasHidingVariable(declared_type, parent))
-      {
-         VariableDeclaration mutant = (VariableDeclaration)p.makeRecursiveCopy();
-         mutant.setTypeSpecifier(new TypeName(parent));
-         outputToFile(p, mutant);
-      }
-   }
-
-   /**
-    * Generate PMD mutant and write output to file
-    * @param p
-    * @param parent
-    */
-   public void generateMutant(VariableDeclaration p, InheritanceINFO parent)
-   {
-      String declared_type = p.getTypeSpecifier().getName();
-      String parent_type = parent.getClassName();
-      
-      if (hasHidingVariable(declared_type, parent_type))
-      {
-         VariableDeclaration mutant = (VariableDeclaration)p.makeRecursiveCopy();
-         mutant.setTypeSpecifier(new TypeName(parent_type));
-         outputToFile(p, mutant);
-      }
-      
-      if (parent.getParent() != null)
-      {
-         generateMutant(p,parent.getParent());
-      }
-   }
-
-   /**
-    * Generate PMD mutant and write output to file
-    * @param p
-    * @param parent
-    */
-   public void generateMutant(FieldDeclaration p, String parent)
-   {
-      String declared_type = p.getTypeSpecifier().getName();
-    
-      if (hasHidingVariable(declared_type, parent))
-      {
-         FieldDeclaration mutant = (FieldDeclaration)p.makeRecursiveCopy();
-         mutant.setTypeSpecifier(new TypeName(parent));
-         outputToFile(p, mutant);
-      }
-   }
-
-   /**
-    * Generate PMD mutant and write output to file
-    * @param p
-    * @param parent
-    */
-   public void generateMutant(FieldDeclaration p, InheritanceINFO parent)
-   {
-      String declared_type = p.getTypeSpecifier().getName();
-      String parent_type = parent.getClassName();
-      
-      if (hasHidingVariable(declared_type, parent_type))
-      {
-         FieldDeclaration mutant = (FieldDeclaration)p.makeRecursiveCopy();
-         mutant.setTypeSpecifier(new TypeName(parent.getClassName()));
-         outputToFile(p, mutant);
-      }
-      
-      if (parent.getParent() != null)
-      {
-         generateMutant(p, parent.getParent());
-      }
-   }
-
-   public void visit( FieldDeclaration p ) throws ParseTreeException 
-   {
-      if (MutationSystem.isPrimitive(getType(p.getTypeSpecifier()))) 
-    	 return;
-    
-      String original_class = p.getTypeSpecifier().getName();
-      InheritanceINFO inf = MutationSystem.getInheritanceInfo(original_class);
-      
-      if (inf == null) 
-    	 return;
-      if (inf.getParent() != null)
-      {
-         generateMutant(p, inf.getParent());
-      }
-      else
-      {
-         if (original_class.equals("java.lang.Object")) 
-        	return;
-         try
-         {
-            Class super_class = Class.forName(original_class).getSuperclass();
-            if (!((super_class == null) || (super_class.getName().equals("java.lang.Object"))))
-               generateMutant(p,super_class.getName());
-         } catch(Exception e)
-         {
-            return;
-         }
-      }
-   }
-
-   /**
-    * Output PMD mutants to files
-    * @param original
-    * @param mutant
-    */
-   public void outputToFile(FieldDeclaration original, FieldDeclaration mutant)
-   {
-      if (comp_unit == null) 
-    	 return;
-
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
-
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-		 PMD_Writer writer = new PMD_Writer( mutant_dir,out );
-		 writer.setMutant(original,mutant);
-		 //writer.setDebugLevel( 0 );
-		 comp_unit.accept( writer );
-		 out.flush();  
-		 out.close();			 
-      } catch ( IOException e ) {
-		 System.err.println( "fails to create " + f_name );			 
-      } catch ( ParseTreeException e ) {
-		 System.err.println( "errors during printing " + f_name );
-		 e.printStackTrace();
-      }
-   }
-
-   /**
-    * Output PMD mutants to files
-    * @param original
-    * @param mutant
-    */
-   public void outputToFile(VariableDeclaration original, VariableDeclaration mutant)
-   {
-      if (comp_unit == null) return;
-
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
-
-      try 
-      {
-		 PrintWriter out = getPrintWriter(f_name);
-		 PMD_Writer writer = new PMD_Writer( mutant_dir,out );
-		 writer.setMutant(original,mutant);
-		 //writer.setDebugLevel( 0 );
-		 comp_unit.accept( writer );
-		 out.flush();  
-		 out.close();			 
-      } catch ( IOException e ) {
-		 System.err.println( "fails to create " + f_name );			 
-      } catch ( ParseTreeException e ) {
-		 System.err.println( "errors during printing " + f_name );
-		 e.printStackTrace();
-      }
-   }
-
+	private void outputToFile(MethodDeclaration original, MethodDeclaration mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PPD, original, mutant);
+	}
+	
 }

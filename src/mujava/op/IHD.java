@@ -1,134 +1,107 @@
-////////////////////////////////////////////////////////////////////////////
-// Module : IHD.java
-// Author : Ma, Yu-Seung
-// COPYRIGHT 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED.
-////////////////////////////////////////////////////////////////////////////
-
 package mujava.op;
 
-import java.io.*;
-import openjava.mop.*;
-import openjava.ptree.*;
-import mujava.op.util.DeclAnalyzer;
+import java.util.LinkedList;
+import java.util.List;
 
-/**
- * <p>Generate IHD (Hiding variable deletion) mutants -- delete each 
- *    declaration of an overriding, or hiding variable to causes 
- *    references to that variable to access the variable defined in
- *    the parent.</p>
- * <p>Copyright: Copyright (c) 2005 by Yu-Seung Ma, ALL RIGHTS RESERVED </p>
- * @author Yu-Seung Ma
- * @version 1.0
-  */
+import mujava.api.Api;
+import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
+import mujava.app.MutationRequest;
+import openjava.mop.FileEnvironment;
+import openjava.mop.OJClass;
+import openjava.mop.OJField;
+import openjava.mop.OJModifier;
+import openjava.ptree.ClassDeclaration;
+import openjava.ptree.CompilationUnit;
+import openjava.ptree.FieldDeclaration;
+import openjava.ptree.ModifierList;
+import openjava.ptree.ParseTreeException;
+import openjava.ptree.TypeName;
 
-public class IHD extends DeclAnalyzer
-{
-   Environment file_env = null;
+public class IHD extends mujava.op.util.Mutator {
 
-   /** number of IHD mutant for a target class*/
-   private int total = 0;
+	public IHD(FileEnvironment file_env, ClassDeclaration cdecl,
+			CompilationUnit comp_unit) {
+		super(file_env, comp_unit);
+	}
 
-   /** return number of IHD mutant for a target class */
-   public int getTotal()
-   {
-      return total;
-   }
+	@Override
+	public ClassDeclaration evaluateUp(ClassDeclaration ptree)
+			throws ParseTreeException {
+		return ptree;
+	}
 
-   /** Generate IHD mutant <br>
-    *  <i> When to generate</i>: if declared fields have the same name and 
-    *         type with the inherited fields
-    */
-   public void translateDefinition(CompilationUnit comp_unit) throws openjava.mop.MOPException
-   {
-      OJField[] d_fields = getDeclaredFields();
-      OJField[] i_fields = getInheritedFields();
-      if ( (d_fields.length == 0) || (i_fields.length == 0) ) 
-         return;
+	public void visit(ClassDeclaration cs) throws ParseTreeException {
+		super.visit(cs);
 
-      for (int i=0; i<d_fields.length; i++)
-      {
-         // private fields do not have have no effect although they are hidden.
-         if (d_fields[i].getModifiers().isPrivate()) 
-        	continue;
-         
-         for (int j=0; j<i_fields.length; j++)
-         {
-            if (equalNameAndType(d_fields[i], i_fields[j]))
-            {
-               // examine equivalency
-               if ((d_fields[i].getModifiers().isPublic()) || (!isEquivalent(comp_unit,d_fields[i])) )
-               {
-                  FieldDeclaration original = d_fields[i].getSourceCode();
-                  FieldDeclaration mutant;
-                  mutant = (FieldDeclaration)original.makeRecursiveCopy();
-                  outputToFile(comp_unit, original, mutant);
-                  total++;
-               }
-               break;
-            }
-         }
-      }
-   }
+		if (Api.usingApi()
+				&& (Api.getMethodUnderConsideration().compareTo(
+						MutationRequest.MUTATE_CLASS) != 0)) {
+			return;
+		}
+		if (!(getMutationsLeft(cs) > 0))
+			return;
 
-   private boolean isEquivalent(CompilationUnit comp_unit, OJField f)
-   {
-      IHD_IHI_EqAnalyzer engine = new IHD_IHI_EqAnalyzer(file_env, comp_unit, f.getName());
-      try
-      {
-         comp_unit.accept(engine);
-      } catch (ParseTreeException e)
-      {
-    	  // do nothing
-      }
-      
-      if (engine.isEquivalent()) 
-         return true;
-      else 
-         return false;
-   }
+		OJField[] localFields = getSelfType().getDeclaredFields();
+		OJField[] inheritedFields = filterInheritable(getSelfType()
+				.getSuperclass().getAllFields());
+		for (int i = 0; i < inheritedFields.length; i++) {
+			boolean isHidden = false;
+			for (int l = 0; l < localFields.length; l++) {
+				if (compareFields(inheritedFields[i], localFields[l])) {
+					isHidden = true;
+					break;
+				}
+			}
+			if (isHidden) {
 
-   /**
-    * Output IHD mutants to files
-    * @param comp_unit
-    * @param original
-    * @param mutant
-    */
-   public void outputToFile(CompilationUnit comp_unit, FieldDeclaration original, FieldDeclaration mutant)
-   {
-      if (comp_unit == null) 
-    	 return;
+				try {
+					ModifierList modlist = new ModifierList();
+					OJModifier modif = inheritedFields[i].getModifiers();
+					TypeName tname = TypeName.forOJClass(inheritedFields[i]
+							.getType());
+					modlist.add(modif.toModifier());
+					String name = inheritedFields[i].getName();
+					FieldDeclaration mutant = new FieldDeclaration(modlist,
+							tname, name, null);
+					outputToFile(cs, mutant);
+				} catch (Exception ex) {
+					System.err.println("[Exception]  " + ex);
+				}
 
-      String f_name;
-      num++;
-      f_name = getSourceName(this);
-      String mutant_dir = getMuantID();
+			}
+		}
 
-      try 
-      {
-         PrintWriter out = getPrintWriter(f_name);
-         IHD_Writer writer = new IHD_Writer( mutant_dir, out );
-         writer.setMutant(original,mutant);
-         comp_unit.accept( writer );
-         out.flush();  out.close();
-      } catch ( IOException e ) 
-      {
-         System.err.println( "fails to create " + f_name );
-      } catch ( ParseTreeException e ) 
-      {
-         System.err.println( "errors during printing " + f_name );
-         e.printStackTrace();
-      }
-   }
+	}
 
-   public IHD( openjava.mop.Environment oj_param0, openjava.mop.OJClass oj_param1, openjava.ptree.ClassDeclaration oj_param2 )
-   {
-      super( oj_param0, oj_param1, oj_param2 );
-      file_env = oj_param0;
-   }
+	private OJField[] filterInheritable(OJField[] allFields) {
+		List<OJField> inheritableFields = new LinkedList<OJField>();
+		for (OJField f : allFields) {
+			if (f.getModifiers().isFinal()) {
+				continue;
+			}
+			if (f.getModifiers().isPrivate()) {
+				continue;
+			}
+			inheritableFields.add(f);
+		}
+		return inheritableFields.toArray(new OJField[inheritableFields.size()]);
+	}
 
-   public IHD( java.lang.Class oj_param0, openjava.mop.MetaInfo oj_param1 )
-   {
-      super( oj_param0, oj_param1 );
-   }
+	private boolean compareFields(OJField f1, OJField f2) {
+		if (f1.getName().compareTo(f2.getName()) == 0) {
+			OJClass f1Type = f1.getType();
+			OJClass f2Type = f2.getType();
+			if (f1Type.getName().compareTo(f2Type.getName()) == 0)
+				return true;
+			return false;
+		} else {
+			return false;
+		}
+	}
+
+	private void outputToFile(ClassDeclaration original, FieldDeclaration mutant) {
+		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.IHD, original, mutant);
+	}
 
 }
