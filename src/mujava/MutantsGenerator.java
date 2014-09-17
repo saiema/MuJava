@@ -322,7 +322,7 @@ public abstract class MutantsGenerator {
 			System.out.println("File " + file);
 			result = parser.CompilationUnit(OJSystem.env);
 		} catch (ParseException e) {
-			throw new OpenJavaException(" can't generate parse tree");
+			throw new OpenJavaException(" can't generate parse tree\nreason: " + e.getMessage()); //modified (17/09/14) [simon] {added reason for parsing error}
 		} catch (Exception e) {
 			e.printStackTrace();
 			result = null;

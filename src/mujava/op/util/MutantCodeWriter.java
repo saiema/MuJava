@@ -829,7 +829,6 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	public void visit(EnumConstant p) throws ParseTreeException {
 		writeTab();
 
-		ModifierList modifiers = p.getModifiers();
 		String identifier = p.getName();
 		ExpressionList arguments = p.getArguments();
 		MemberDeclarationList classBoday = p.getClassBody();

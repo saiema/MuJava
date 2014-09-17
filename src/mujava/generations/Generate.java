@@ -13,9 +13,9 @@ public class Generate {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String clazz = "roops" + Core.SEPARATOR + "core" + Core.SEPARATOR + "objects" + Core.SEPARATOR + "SinglyLinkedList3";
+		//String clazz = "roops" + Core.SEPARATOR + "core" + Core.SEPARATOR + "objects" + Core.SEPARATOR + "SinglyLinkedList3";
 		//String clazz = "bugHunting" + Core.SEPARATOR + "PRVOMethodCall";
-		//String clazz = "bugHunting" + Core.SEPARATOR + "SinglyLinkedList";
+		String clazz = "bugHunting" + Core.SEPARATOR + "SinglyLinkedList";
 		//String clazz = "main" + Core.SEPARATOR + "Gcd";
 		//String[] methods = {"insert"};
 		//String[] methods = {"radiatedMethod"};
@@ -68,10 +68,10 @@ public class Generate {
 //							Mutant.SOR
 							
 
-//							Mutant.PRVOL_SMART,
+							Mutant.PRVOL_SMART,
 							Mutant.PRVOR_REFINED,
 							Mutant.PRVOU_REFINED,
-							Mutant.PRVOL,
+//							Mutant.PRVOL,
 							Mutant.AODS,
 							Mutant.AODU,
 							Mutant.AOIS,
