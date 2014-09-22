@@ -1,5 +1,5 @@
 package classMutations;
 
-public class B_2 {
+public class B_2 { //mutGenLimit 1
 
-} //mutGenLimit 1
+}

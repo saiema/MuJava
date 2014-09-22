@@ -27,9 +27,9 @@ public class BooleanOps {
 	public static boolean and(boolean a, boolean b) {
 		boolean auxA = a; //mutGenLimit 0
 		boolean auxB = b; //mutGenLimit 1
-		if (!auxA || !auxB) {
+		if (!auxA || !auxB) { //mutGenLimit 1
 			return false; //mutGenLimit 1
-		} //mutGenLimit 1
+		}
 		return true;
 	}
 	

@@ -41,35 +41,35 @@ public class RORTests {
 		
 		List<Pattern> mceMerge = new LinkedList<Pattern>();
 		List<Pattern> mcneMerge = new LinkedList<Pattern>();
-		mceMerge.add(Pattern.compile("while \\(i \\> lenL \\|\\| j \\< lenR\\) \\{.+\\} //mutGenLimit 0"));
-		mceMerge.add(Pattern.compile("while \\(i \\<= lenL \\|\\| j \\< lenR\\) \\{.+\\} //mutGenLimit 0"));
-		mceMerge.add(Pattern.compile("while \\(i \\>= lenL \\|\\| j \\< lenR\\) \\{.+\\} //mutGenLimit 0"));
-		mceMerge.add(Pattern.compile("while \\(i \\!= lenL \\|\\| j \\< lenR\\) \\{.+\\} //mutGenLimit 0"));
-		mceMerge.add(Pattern.compile("while \\(i == lenL \\|\\| j \\< lenR\\) \\{.+\\} //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(i \\> lenL \\|\\| j \\< lenR\\) \\{ //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(i \\<= lenL \\|\\| j \\< lenR\\) \\{ //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(i \\>= lenL \\|\\| j \\< lenR\\) \\{ //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(i \\!= lenL \\|\\| j \\< lenR\\) \\{ //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(i == lenL \\|\\| j \\< lenR\\) \\{ //mutGenLimit 0"));
 		
-		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| j \\> lenR\\) \\{.+\\} //mutGenLimit 0"));
-		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| j \\<= lenR\\) \\{.+\\} //mutGenLimit 0"));
-		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| j \\>= lenR\\) \\{.+\\} //mutGenLimit 0"));
-		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| j \\!= lenR\\) \\{.+\\} //mutGenLimit 0"));
-		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| j == lenR\\) \\{.+\\} //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| j \\> lenR\\) \\{ //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| j \\<= lenR\\) \\{ //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| j \\>= lenR\\) \\{ //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| j \\!= lenR\\) \\{ //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| j == lenR\\) \\{ //mutGenLimit 0"));
 		
-		mceMerge.add(Pattern.compile("while \\(true \\|\\| j \\< lenR\\) \\{.+\\} //mutGenLimit 0"));
-		mceMerge.add(Pattern.compile("while \\(false \\|\\| j \\< lenR\\) \\{.+\\} //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(true \\|\\| j \\< lenR\\) \\{ //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(false \\|\\| j \\< lenR\\) \\{ //mutGenLimit 0"));
 		
-		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| true\\) \\{.+\\} //mutGenLimit 0"));
-		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| false\\) \\{.+\\} //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| true\\) \\{ //mutGenLimit 0"));
+		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| false\\) \\{ //mutGenLimit 0"));
 		Property propMerge = new Property(Mutant.ROR, "sort/Sorting", "merge", 14, 14, mceMerge, mcneMerge);
 		
 		List<Pattern> mceOrdered = new LinkedList<Pattern>();
 		List<Pattern> mcneOrdered = new LinkedList<Pattern>();
-		mceOrdered.add(Pattern.compile("for \\(int v = 1; v \\> arr\\.length; v\\+\\+\\) \\{.+\\} //mutGenLimit 0"));
-		mceOrdered.add(Pattern.compile("for \\(int v = 1; v \\<= arr\\.length; v\\+\\+\\) \\{.+\\} //mutGenLimit 0"));
-		mceOrdered.add(Pattern.compile("for \\(int v = 1; v \\>= arr\\.length; v\\+\\+\\) \\{.+\\} //mutGenLimit 0"));
-		mceOrdered.add(Pattern.compile("for \\(int v = 1; v \\!= arr\\.length; v\\+\\+\\) \\{.+\\} //mutGenLimit 0"));
-		mceOrdered.add(Pattern.compile("for \\(int v = 1; v == arr\\.length; v\\+\\+\\) \\{.+\\} //mutGenLimit 0"));
+		mceOrdered.add(Pattern.compile("for \\(int v = 1; v \\> arr\\.length; v\\+\\+\\) \\{ //mutGenLimit 0"));
+		mceOrdered.add(Pattern.compile("for \\(int v = 1; v \\<= arr\\.length; v\\+\\+\\) \\{ //mutGenLimit 0"));
+		mceOrdered.add(Pattern.compile("for \\(int v = 1; v \\>= arr\\.length; v\\+\\+\\) \\{ //mutGenLimit 0"));
+		mceOrdered.add(Pattern.compile("for \\(int v = 1; v \\!= arr\\.length; v\\+\\+\\) \\{ //mutGenLimit 0"));
+		mceOrdered.add(Pattern.compile("for \\(int v = 1; v == arr\\.length; v\\+\\+\\) \\{ //mutGenLimit 0"));
 		
-		mceOrdered.add(Pattern.compile("for \\(int v = 1; true; v\\+\\+\\) \\{.+\\} //mutGenLimit 0"));
-		mceOrdered.add(Pattern.compile("for \\(int v = 1; false; v\\+\\+\\) \\{.+\\} //mutGenLimit 0"));
+		mceOrdered.add(Pattern.compile("for \\(int v = 1; true; v\\+\\+\\) \\{ //mutGenLimit 0"));
+		mceOrdered.add(Pattern.compile("for \\(int v = 1; false; v\\+\\+\\) \\{ //mutGenLimit 0"));
 		Property propOrdered = new Property(Mutant.ROR, "sort/Sorting", "ordered", 7, 6, mceOrdered, mcneOrdered);
 		
 		//MUTANTS FOLDERS

@@ -1,6 +1,6 @@
 package classMutations;
 
-public class A2_1 extends A1 {
+public class A2_1 extends A1 { //mutGenLimit 1
 	
 	public void radiatedMethod() {
 		Integer lv0 = 0; //mutGenLimit 1
@@ -14,4 +14,4 @@ public class A2_1 extends A1 {
 		return 3; //mutGenLimit 1
 	}
 	
-} //mutGenLimit 1
+}

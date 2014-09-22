@@ -39,14 +39,14 @@ public class PRVOTests {
 	
 	/*
 	 * TESTS PARA AGREGAR(prvo):
-	 * 1 - asignaci梟 con parte derecha null 							//LISTO
-	 * 2 - asignaci梟 con parte izquierda x.c con c un campo de c		//LISTO		
-	 * 3 - asignaci梟 con una variable como parte derecha				//LISTO
-	 * 4 - asignaci梟 con un m巘odo como parte derecha
-	 * 5 - mutaci梟 dentro del cuerpo un for							//LISTO
-	 * 6 - mutaci梟 dentro del cuerpo de un while						//LISTO
-	 * 7 - mutaci梟 dentro de un try
-	 * 8 - mutaci梟 dentro de un switch									//LISTO
+	 * 1 - asignaci贸n con parte derecha null 							//LISTO
+	 * 2 - asignaci贸n con parte izquierda x.c con c un campo de c		//LISTO		
+	 * 3 - asignaci贸n con una variable como parte derecha				//LISTO
+	 * 4 - asignaci贸n con un m茅todo como parte derecha
+	 * 5 - mutaci贸n dentro del cuerpo un for							//LISTO
+	 * 6 - mutaci贸n dentro del cuerpo de un while						//LISTO
+	 * 7 - mutaci贸n dentro de un try
+	 * 8 - mutaci贸n dentro de un switch									//LISTO
 	 */
 
 	

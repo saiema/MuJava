@@ -231,9 +231,9 @@ public class DoubleLinkedList {
 	
 	public boolean find(Object data) {
 		for (int i = 0; i < size(); i++) {
-			if (get(i) == data) {
+			if (get(i) == data) { //mutGenLimit 1
 				return true;
-			} //mutGenLimit 1
+			}
 		}
 		return false;
 	}

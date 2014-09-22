@@ -1198,8 +1198,8 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 				out.print(" //mutGenLimit " + p.getMutGenLimit());	//added (11/09/14) [simon]
 			}														//added (11/09/14) [simon]
 		} else {
-			out.println();
-			line_num++;
+//			out.println();			//removed (17/09/14) [simon]
+//			line_num++;				//removed (17/09/14) [simon]
 			writeTab();
 			out.print("{");
 			if (p.hasMutGenLimit()) {								//added (11/09/14) [simon]

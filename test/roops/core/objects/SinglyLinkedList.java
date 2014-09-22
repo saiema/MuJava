@@ -38,7 +38,7 @@ public class SinglyLinkedList
         result = false;
         while (result == false && current != null) {
             boolean equalVal;
-            if (value_param == null && current.value == null) {
+            if (value_param == null && current.value == null) { //mutGenLimit 3
                 equalVal = false;
             } else {
                 if (value_param != null) {
@@ -50,7 +50,7 @@ public class SinglyLinkedList
                 } else {
                     equalVal = false;
                 }
-            } //mutGenLimit 3
+            }
             if (equalVal == true) {
                 result = true;
             }

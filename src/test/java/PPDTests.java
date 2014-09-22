@@ -44,7 +44,7 @@ public class PPDTests {
 		 * 
 		 */
 		List<Pattern> mcePPD_1 = new LinkedList<Pattern>();
-		mcePPD_1.add(Pattern.compile("public void radiatedMethod\\( (.+\\.)?PMD_Base param1 \\)([ \t\n\f\r])*\\{.*([ \t\n\f\r])*\\} //mutGenLimit 0"));
+		mcePPD_1.add(Pattern.compile("public void radiatedMethod\\( (.+\\.)?PMD_Base param1 \\)([ \t\n\f\r])*\\{ //mutGenLimit 0"));
 		Property propPPD_1 = new Property(Mutant.PPD,
 										"test/PMD_1",
 										"radiatedMethod",

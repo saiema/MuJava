@@ -35,9 +35,9 @@ public class AODSTests {
 	public static Collection<Object[]> firstValues() {
 		
 		//TESTS DEFINITIONS
-		List<Pattern> mceOMUC = new LinkedList<Pattern>();
-		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.AODS, "list/SinglyLinkedListOutsideMUC", "getHeader", 0, 0, mceOMUC, mcneOMUC);
+//		List<Pattern> mceOMUC = new LinkedList<Pattern>();
+//		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
+//		Property propOMUC = new Property(Mutant.AODS, "list/SinglyLinkedListOutsideMUC", "getHeader", 0, 0, mceOMUC, mcneOMUC);
 		
 		List<Pattern> mceSortingFor = new LinkedList<Pattern>();
 		List<Pattern> mcneSortingFor = new LinkedList<Pattern>();
@@ -59,13 +59,13 @@ public class AODSTests {
 		
 		
 		//MUTANTS GENERATION
-		mfOMUC = TestingTools.generateMutants(propOMUC);
+		//mfOMUC = TestingTools.generateMutants(propOMUC);
 		mfSortingFor = TestingTools.generateMutants(propSortingFor);
 		mfSortingMerge = TestingTools.generateMutants(propSortingMerge);
 		
 		//PARAMETERS
 		return Arrays.asList(new Object[][] {
-				{propOMUC, mfOMUC},
+				//{propOMUC, mfOMUC},
 				{propSortingFor, mfSortingFor},
 				{propSortingMerge, mfSortingMerge}
 		});

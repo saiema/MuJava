@@ -50,9 +50,9 @@ public class COITests {
 		List<Pattern> mcneAnd = new LinkedList<Pattern>();
 		mceAnd.add(Pattern.compile("boolean auxA = a; //mutGenLimit 0"));
 		mceAnd.add(Pattern.compile("boolean auxB = \\!b; //mutGenLimit 0"));
-		mceAnd.add(Pattern.compile("if \\(\\!\\(\\!auxA \\|\\| \\!auxB\\)\\) \\{.+\\} //mutGenLimit 0"));
-		mceAnd.add(Pattern.compile("if \\(\\!\\(\\!auxA\\) \\|\\| \\!auxB\\) \\{.+\\} //mutGenLimit 0"));
-		mceAnd.add(Pattern.compile("if \\(\\!auxA \\|\\| \\!\\(\\!auxB\\)\\) \\{.+\\} //mutGenLimit 0"));
+		mceAnd.add(Pattern.compile("if \\(\\!\\(\\!auxA \\|\\| \\!auxB\\)\\) \\{ //mutGenLimit 0"));
+		mceAnd.add(Pattern.compile("if \\(\\!\\(\\!auxA\\) \\|\\| \\!auxB\\) \\{ //mutGenLimit 0"));
+		mceAnd.add(Pattern.compile("if \\(\\!auxA \\|\\| \\!\\(\\!auxB\\)\\) \\{ //mutGenLimit 0"));
 		mceAnd.add(Pattern.compile("return \\!false; //mutGenLimit 0"));
 		Property propAnd = new Property(Mutant.COI, "utils/BooleanOps", "and", 5, 5, mceAnd, mcneAnd);
 		

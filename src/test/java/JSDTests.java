@@ -62,7 +62,7 @@ public class JSDTests {
 		 * 
 		 */
 		List<Pattern> mceJSD_2 = new LinkedList<Pattern>();
-		mceJSD_2.add(Pattern.compile("public void method1\\(([ \t\n\f\r])*int param1,([ \t\n\f\r])*(.+\\.)?String param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{([ \t\n\f\r])*\\} //mutGenLimit 0"));
+		mceJSD_2.add(Pattern.compile("public void method1\\(([ \t\n\f\r])*int param1,([ \t\n\f\r])*(.+\\.)?String param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*\\}"));
 		Property propJSD_2 = new Property(Mutant.JSD,
 											"test/JSD_1",
 											"method1",
@@ -79,7 +79,7 @@ public class JSDTests {
 		 * 
 		 */
 		List<Pattern> mceJSD_3 = new LinkedList<Pattern>();
-		mceJSD_3.add(Pattern.compile("protected void method2\\(([ \t\n\f\r])*int param1,([ \t\n\f\r])*(.+\\.)?String param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{([ \t\n\f\r])*\\} //mutGenLimit 1"));
+		mceJSD_3.add(Pattern.compile("protected void method2\\(([ \t\n\f\r])*int param1,([ \t\n\f\r])*(.+\\.)?String param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 1([ \t\n\f\r])*\\}"));
 		Property propJSD_3 = new Property(Mutant.JSD,
 											"test/JSD_1",
 											"method2",

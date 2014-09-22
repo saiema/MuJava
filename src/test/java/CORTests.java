@@ -51,10 +51,10 @@ public class CORTests {
 		mceAnd.add(Pattern.compile("boolean auxA = a; //mutGenLimit 0"));
 		mceAnd.add(Pattern.compile("boolean auxB = b; //mutGenLimit 1"));
 		mceAnd.add(Pattern.compile("return false; //mutGenLimit 1"));
-		mceAnd.add(Pattern.compile("if \\(\\!auxA \\&\\& \\!auxB\\) \\{.+\\} //mutGenLimit 0"));
-		mceAnd.add(Pattern.compile("if \\(\\!auxA \\& \\!auxB\\) \\{.+\\} //mutGenLimit 0"));
-		mceAnd.add(Pattern.compile("if \\(\\!auxA \\| \\!auxB\\) \\{.+\\} //mutGenLimit 0"));
-		mceAnd.add(Pattern.compile("if \\(\\!auxA \\^ \\!auxB\\) \\{.+\\} //mutGenLimit 0"));
+		mceAnd.add(Pattern.compile("if \\(\\!auxA \\&\\& \\!auxB\\) \\{ //mutGenLimit 0"));
+		mceAnd.add(Pattern.compile("if \\(\\!auxA \\& \\!auxB\\) \\{ //mutGenLimit 0"));
+		mceAnd.add(Pattern.compile("if \\(\\!auxA \\| \\!auxB\\) \\{ //mutGenLimit 0"));
+		mceAnd.add(Pattern.compile("if \\(\\!auxA \\^ \\!auxB\\) \\{ //mutGenLimit 0"));
 		Property propAnd = new Property(Mutant.COR, "utils/BooleanOps", "and", 4, 4, mceAnd, mcneAnd);
 		
 		/*

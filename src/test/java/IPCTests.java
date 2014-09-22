@@ -36,8 +36,8 @@ public class IPCTests {
 		
 		//TESTS DEFINITIONS
 		List<Pattern> ceIPC_1 = new LinkedList<Pattern>();
-		ceIPC_1.add(Pattern.compile("public IPC\\_1\\(\\)([ \t\n\f\r])*\\{([ \t\n\f\r])*\\} //mutGenLimit 0"));
-		ceIPC_1.add(Pattern.compile("public IPC\\_1\\(([ \t\n\f\r])*int param1\\,([ \t\n\f\r])*boolean param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{([ \t\n\f\r])*\\} //mutGenLimit 0"));
+		ceIPC_1.add(Pattern.compile("public IPC\\_1\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*\\}"));
+		ceIPC_1.add(Pattern.compile("public IPC\\_1\\(([ \t\n\f\r])*int param1\\,([ \t\n\f\r])*boolean param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*\\}"));
 		Property propIPC_1 = new Property(Mutant.IPC,
 										"test/IPC_1",
 										"IPC_1",

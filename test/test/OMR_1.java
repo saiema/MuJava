@@ -5,9 +5,9 @@ import java.util.List;
 
 public class OMR_1 {
 	
-	public void radiatedMethod(int a, int b, int c) {
+	public void radiatedMethod(int a, int b, int c) { //mutGenLimit 300
 		int var1 = a + b + c;
-	} //mutGenLimit 300
+	}
 	
 	public int radiatedMethod(int a) {
 		int var2 = a + 3;

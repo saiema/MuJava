@@ -48,9 +48,9 @@ public class AMCTests {
 		
 		List<Pattern> mceAdd = new LinkedList<Pattern>();
 		List<Pattern> mcneAdd = new LinkedList<Pattern>();
-		mceAdd.add(Pattern.compile("private (.+\\.)?IntWrapper add.+\\} //mutGenLimit 0"));
-		mceAdd.add(Pattern.compile("protected (.+\\.)?IntWrapper add.+\\} //mutGenLimit 0"));
-		mceAdd.add(Pattern.compile("(?!(private|protected|public))[ \t]*([^ \t]+\\.)?IntWrapper add.+\\} //mutGenLimit 0"));
+		mceAdd.add(Pattern.compile("private (.+\\.)?IntWrapper add\\(([ \t\n\f\r])*(.+\\.)?IntWrapper o([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 0"));
+		mceAdd.add(Pattern.compile("protected (.+\\.)?IntWrapper add\\(([ \t\n\f\r])*(.+\\.)?IntWrapper o([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 0"));
+		mceAdd.add(Pattern.compile("(?!(private|protected|public))[ \t]*([^ \t]+\\.)?IntWrapper add\\(([ \t\n\f\r])*(.+\\.)?IntWrapper o([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 0"));
 		Property propAdd = new Property(Mutant.AMC, "utils/IntWrapper", "add", 3, 3, mceAdd, mcneAdd);
 		
 		//MUTANTS FOLDERS

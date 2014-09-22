@@ -46,15 +46,15 @@ public class OMRTests {
 		 */
 		List<Pattern> mceOMR_1 = new LinkedList<Pattern>();
 		mceOMR_1.add(Pattern.compile("public void radiatedMethod\\(([ \t\n\f\r])*int a,([ \t\n\f\r])*int b,([ \t\n\f\r])*int c([ \t\n\f\r])*\\)([ \t\n\f\r])*" +
-				"\\{([ \t\n\f\r])*" +
+				"\\{ //mutGenLimit 299([ \t\n\f\r])*" +
 				"int var2 = a \\+ 3;([ \t\n\f\r])*" +
 				"return var2;([ \t\n\f\r])*" +
-				"\\} //mutGenLimit 299"));
+				"\\}"));
 		mceOMR_1.add(Pattern.compile("public void radiatedMethod\\(([ \t\n\f\r])*int a,([ \t\n\f\r])*int b,([ \t\n\f\r])*int c([ \t\n\f\r])*\\)([ \t\n\f\r])*" +
-				"\\{([ \t\n\f\r])*" +
+				"\\{ //mutGenLimit 299([ \t\n\f\r])*" +
 				"(.+\\.)?List<String> list1 = new (.+\\.)?LinkedList<String>\\(\\);([ \t\n\f\r])*" +
 				"list1\\.add\\( \"lame!\" \\);([ \t\n\f\r])*" +
-				"\\} //mutGenLimit 299"));
+				"\\}"));
 		Property propOMR_1 = new Property(Mutant.OMR,
 										"test/OMR_1",
 										"radiatedMethod",

@@ -44,8 +44,8 @@ public class EAMTests {
 		 *	} //mutGenLimit 1
 		 */
 		List<Pattern> eamce_1 = new LinkedList<Pattern>();
-		eamce_1.add(Pattern.compile("if \\(getFromLast\\( i \\) == data\\)([ \t\n\f\r])*\\{([ \t\n\f\r])*return true;([ \t\n\f\r])*\\} //mutGenLimit 0"));
-		eamce_1.add(Pattern.compile("if \\(getFromStart\\( i \\) == data\\)([ \t\n\f\r])*\\{([ \t\n\f\r])*return true;([ \t\n\f\r])*\\} //mutGenLimit 0"));
+		eamce_1.add(Pattern.compile("if \\(getFromLast\\( i \\) == data\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*return true;([ \t\n\f\r])*\\}"));
+		eamce_1.add(Pattern.compile("if \\(getFromStart\\( i \\) == data\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*return true;([ \t\n\f\r])*\\}"));
 		List<Pattern> eamcne_1 = new LinkedList<Pattern>();
 		Property propEAM_1 = new Property(Mutant.EAM,
 										"objects/DoubleLinkedList",

@@ -3,7 +3,7 @@ package classMutations;
 import java.util.LinkedList;
 import java.util.List;
 
-public class A2_1_D extends A1 {
+public class A2_1_D extends A1 { //mutGenLimit 1
 	protected String atr2;
 	public String atr3;
 	public int atr4 = 0;
@@ -22,4 +22,4 @@ public class A2_1_D extends A1 {
 		return 3; //mutGenLimit 1
 	}
 	
-} //mutGenLimit 1
+}

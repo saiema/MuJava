@@ -40,12 +40,12 @@ public class IntWrapper<T extends List<? extends Comparable<T>>, R extends Compa
 		return this.val.toString();
 	}
 	
-	public IntWrapper add(IntWrapper o) {
+	public IntWrapper add(IntWrapper o) { //mutGenLimit 1
 		int currentValue = this.value();
 		int otherValue = o.value();
 		int result = currentValue + otherValue;
 		IntWrapper ret = new IntWrapper(result);
 		return ret;
-	}  //mutGenLimit 1
+	}
 	
 }

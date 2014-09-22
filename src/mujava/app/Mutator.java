@@ -603,7 +603,7 @@ public class Mutator implements Runnable{
 		className = paks[paks.length-1];
 		String fileToMutateName = className + ".java";
 		if (!applyAllMutantsToSameFile) Mutator.index = 0;
-		//--IF MUTANTS WILL BE APPLYED TO THE SAME FILE THEN THE FOLLOWING OBJECTS WILL BE 
+		//--IF MUTANTS WILL BE APPLIED TO THE SAME FILE THEN THE FOLLOWING OBJECTS WILL BE 
 		//--INSTANCIATED ONLY ONCE
 		File mutatedFile = null;
 		DigestOutputStream dos = null;

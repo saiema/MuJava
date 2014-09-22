@@ -13,20 +13,20 @@ public class Gcd {
 	@*/
 	public static int gcd(int a, int b) {
 
-	  if (a == 0) {
+	  if (a == 0) { //mutGenLimit 1
 		  return b;
 	  }
 	  else
 	  {
-	    while (b != 0) {
+	    while (b != 0) { //mutGenLimit 1
 	      if (a > b) {
 	        a = a - b;
 	      } else {
 	        b = b - a;
 	      }
-	    } //mutGenLimit 1
+	    }
 	    return a;
-	  } //mutGenLimit 1
+	  }
 	} 
 	 
 	

@@ -59,7 +59,7 @@ public class Sorting {
 		int[] merged = new int[lenL+lenR];
 		int i = 0;
 		int j = 0;
-		while(i<lenL||j<lenR){
+		while(i<lenL||j<lenR){ //mutGenLimit 1
 			if(i<lenL & j<lenR){
 				if(L[i]<=R[j]){
 					merged[i+j] = L[i];
@@ -78,7 +78,7 @@ public class Sorting {
 				merged[i+j] = R[j];
 				j++; //mutGenLimit 0
 			}
-		} //mutGenLimit 1
+		}
 		return merged;
 	}
 	
@@ -86,7 +86,7 @@ public class Sorting {
 		boolean isOrdered = true;
 		if (arr.length > 0) {
 			int lastVal = arr[0];
-			for (int v = 1 ; v < arr.length ; v++) {
+			for (int v = 1 ; v < arr.length ; v++) { //mutGenLimit 1
 				if (inc && lastVal > v) {
 					isOrdered = false;
 				}
@@ -95,7 +95,7 @@ public class Sorting {
 				}
 				if (!isOrdered) break;
 				lastVal = v;
-			} //mutGenLimit 1
+			}
 		}
 		return isOrdered;
 	}

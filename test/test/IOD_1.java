@@ -1,6 +1,6 @@
 package test;
 
-public class IOD_1 extends IOD_1_Base {
+public class IOD_1 extends IOD_1_Base { //mutGenLimit 1
 	
 	public void method3() {
 		
@@ -22,4 +22,4 @@ public class IOD_1 extends IOD_1_Base {
 		return p1+p2;
 	}
 
-} //mutGenLimit 1
+}

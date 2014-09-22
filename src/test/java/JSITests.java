@@ -62,7 +62,7 @@ public class JSITests {
 		 * 
 		 */
 		List<Pattern> mceJSI_2 = new LinkedList<Pattern>();
-		mceJSI_2.add(Pattern.compile("public static void method1\\(([ \t\n\f\r])*int param1,([ \t\n\f\r])*(.+\\.)?String param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{([ \t\n\f\r])*\\} //mutGenLimit 0"));
+		mceJSI_2.add(Pattern.compile("public static void method1\\(([ \t\n\f\r])*int param1,([ \t\n\f\r])*(.+\\.)?String param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*\\}"));
 		Property propJSI_2 = new Property(Mutant.JSI,
 											"test/JSI_1",
 											"method1",
@@ -79,7 +79,7 @@ public class JSITests {
 		 * 
 		 */
 		List<Pattern> mceJSI_3 = new LinkedList<Pattern>();
-		mceJSI_3.add(Pattern.compile("protected static void method2\\(([ \t\n\f\r])*int param1,([ \t\n\f\r])*(.+\\.)?String param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{([ \t\n\f\r])*\\} //mutGenLimit 1"));
+		mceJSI_3.add(Pattern.compile("protected static void method2\\(([ \t\n\f\r])*int param1,([ \t\n\f\r])*(.+\\.)?String param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 1([ \t\n\f\r])*\\}"));
 		Property propJSI_3 = new Property(Mutant.JSI,
 											"test/JSI_1",
 											"method2",

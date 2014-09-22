@@ -319,7 +319,7 @@ public abstract class MutantsGenerator {
 
 		CompilationUnit result;
 		try {
-			System.out.println("File " + file);
+			//System.out.println("File " + file); //deleted (17/09/14) [simon] {removed this message because it's annoying}
 			result = parser.CompilationUnit(OJSystem.env);
 		} catch (ParseException e) {
 			throw new OpenJavaException(" can't generate parse tree\nreason: " + e.getMessage()); //modified (17/09/14) [simon] {added reason for parsing error}
