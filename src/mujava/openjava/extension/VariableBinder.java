@@ -105,7 +105,7 @@ public class VariableBinder extends ScopeHandler {
 			//System.out.println("identifier: " + identifier);
 			//System.out.println("type: " + type);
 			for(String type: types)
-				record(env, type, identifier);
+				record(env, type.trim(), identifier); //modified (06/10/14) [simon] {call trim() on type}
 		}
 		else{
 			OJClass OBJECT = OJClass.forClass(Object.class);

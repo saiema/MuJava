@@ -240,6 +240,7 @@ public class IOPTests {
 		 */
 		List<Pattern> mceIOP_13 = new LinkedList<Pattern>();
 		mceIOP_13.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*int d = 0;([ \t\n\f\r])*\\}"));
+		//-----------------------------public  void method() { //mutGenLimit 0int a = 0;super.method();int b = 0;int c = 0;int d = 0;}
 		mceIOP_13.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*int d = 0;([ \t\n\f\r])*\\}"));
 		mceIOP_13.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int d = 0;([ \t\n\f\r])*\\}"));
 		mceIOP_13.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*int d = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*\\}"));

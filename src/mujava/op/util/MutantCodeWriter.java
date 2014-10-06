@@ -44,7 +44,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	public int line_num = 1;
 	public int mutated_line = -1;
 
-	private boolean printMutantPrologue = true; // added (10/09/14) [simon]
+	private boolean printMutantPrologue = false; //added (10/09/14) [simon] //modified (23/09/14) [simon] {printMutantPrologue set to false by default}
 
 	/** to write debugging code */
 	private String tab = "    ";
@@ -103,7 +103,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		this.out = out;
 		class_name = mutant_dir;
 		this.mi = mi;
-		this.printMutantPrologue = true; // added (12/09/14) [simon]
+		this.printMutantPrologue = false; //added (12/09/14) [simon] //modified (23/09/14) [simon] {printMutantPrologue set to false by default}
 	}
 	// -------------------------------------------------------------
 
@@ -118,7 +118,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	public MutantCodeWriter(PrintWriter out) {
 		super();
 		this.out = out;
-		this.printMutantPrologue = true; // added (10/09/14) [simon]
+		this.printMutantPrologue = false; //added (10/09/14) [simon] //modified (23/09/14) [simon] {printMutantPrologue set to false by default}
 	}
 
 	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -134,7 +134,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		super();
 		this.out = out;
 		class_name = mutant_dir;
-		this.printMutantPrologue = true; // added (10/09/14) [simon]
+		this.printMutantPrologue = false; //added (10/09/14) [simon] //modified (23/09/14) [simon] {printMutantPrologue set to false by default}
 	}
 
 	public void setClassName(String str) {
@@ -184,8 +184,8 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 				}
 			}
 
-			out.println();
-			line_num++;
+//			out.println();		//deleted (23/09/14) [simon]
+//			line_num++;			//deleted (23/09/14) [simon]
 
 			EnumConstantList enumConstants = p.getEnumConstants();
 			MemberDeclarationList mdl = p.getBody();
@@ -257,8 +257,8 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 			}
 
-			out.println();
-			line_num++;
+//			out.println();		//deleted (23/09/14) [simon]
+//			line_num++;			//deleted (23/09/14) [simon]
 
 			MemberDeclarationList classbody = p.getBody();
 
@@ -1148,8 +1148,8 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		ModifierList modifs = p.getModifiers();
 		if (modifs != null) {
 			modifs.accept(this);
-			if (!modifs.isEmptyAsRegular())
-				out.print(" ");
+//			if (!modifs.isEmptyAsRegular())	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//				out.print(" ");				// removed (01/10/14) [simon] {modifiers already ends with a space}
 		}
 
 		// print generics type parameters
@@ -1200,8 +1200,8 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		} else {
 //			out.println();			//removed (17/09/14) [simon]
 //			line_num++;				//removed (17/09/14) [simon]
-			writeTab();
-			out.print("{");
+//			writeTab();				//removed (01/10/14) [simon] {unnecessary tab}
+			out.print(" {");		//modified (01/10/14) [simon] {instead of a tab it uses one space}
 			if (p.hasMutGenLimit()) {								//added (11/09/14) [simon]
 				out.print(" //mutGenLimit " + p.getMutGenLimit());	//added (11/09/14) [simon]
 			}														//added (11/09/14) [simon]
@@ -1376,7 +1376,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		out.print("<");
 
 		if (p != null)
-			writeListWithDelimiter(p, ",");
+			writeListWithDelimiter(p, ", ");
 
 		out.print(">");
 

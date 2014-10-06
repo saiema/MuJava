@@ -9,6 +9,7 @@ import mujava.MutationSystem;
 import mujava.NotDirBasedMutantsGenerator;
 import mujava.OpenJavaException;
 import mujava.util.Debug;
+import openjava.mop.OJSystem;
 import openjava.ptree.CompilationUnit;
 import openjava.ptree.ParseTreeException;
 
@@ -32,6 +33,8 @@ public class Api {
 	private static boolean usingApi = false;
 	
 	private static String methodToConsider;
+	
+	private static boolean cleanOJSystemBeforeGenerating = true; //added (06/10/14) [simon]
 	
 	/**
 	 * This field defines if the mutations are to be performed on an inner class
@@ -66,6 +69,7 @@ public class Api {
 			throws OpenJavaException {
 		usingApi = true;
 		parseClassName(className);
+		if (cleanOJSystemBeforeGenerating) OJSystem.clean(); //added (06/10/14) [simon]
 		Api.methodToConsider = methodToConsider;
 		Debug.setDebugLevel(0);
 		NotDirBasedMutantsGenerator gen = new NotDirBasedMutantsGenerator(javaFile, mutOps);
@@ -121,6 +125,13 @@ public class Api {
 	public static boolean insideClassToMutate() {
 		return Api.innerClass.isEmpty();
 	}
+	
+	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	// +++++++++++++++++++++++++++++++++++added (06/10/14) [simon]
+	public static void cleanOJSystemBeforeGenerating(boolean b) {
+		cleanOJSystemBeforeGenerating = b;
+	}
+	// -----------------------------------------------------------
 	
 	//The following methods are used when there's need bypass the method under consideration check
 	

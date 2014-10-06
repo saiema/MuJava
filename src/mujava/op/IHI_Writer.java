@@ -8,6 +8,7 @@ import openjava.ptree.MemberDeclaration;
 import openjava.ptree.ParseTreeException;
 import mujava.api.Mutation;
 import mujava.op.util.MutantCodeWriter;
+import mujava.op.util.Mutator;
 
 public class IHI_Writer extends MutantCodeWriter{
 	private ClassDeclaration original;
@@ -59,7 +60,7 @@ public class IHI_Writer extends MutantCodeWriter{
 		String f2Name = fd2.getName();
 		String f1Type = fd1.getTypeSpecifier().getName();
 		String f2Type = fd2.getTypeSpecifier().getName();
-		if (f1Name.equals(f2Name) && f1Type.equals(f2Type)) {
+		if (f1Name.equals(f2Name) && Mutator.compareNamesWithoutGenerics(f1Type, f2Type, false)/*f1Type.equals(f2Type)*/) {
 			return true;
 		}
 		return false;

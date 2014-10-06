@@ -18,11 +18,11 @@ public class DoubleLinkedList {
 	}
 	
 	public Object next() {
-		if (current == null) {
+		if (current == null) { //mutGenLimit 1
 			current = this.start;
 		} else {
 			current = current.getNext();
-		} //mutGenLimit 1
+		}
 		if (current == null) {
 			return null;
 		} else {

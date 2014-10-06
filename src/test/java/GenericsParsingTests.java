@@ -432,69 +432,70 @@ public class GenericsParsingTests {
 		//PARAMETERS
 		return Arrays.asList(new Object[][] {
 				//Class atribute++++++++++++
-				{propCA_1},
-				{propCA_2},
-				{propCA_3},
-				{propCA_4},
-				{propCA_5},
-				{propCA_6},
-				{propCA_7},
-				{propCA_8},
-				{propCA_9},
-				{propCA_10},
-				{propCA_11},
-				{propCA_12},
+				{propCA_1},										//0
+				{propCA_2},										//1
+				{propCA_3},										//2
+				{propCA_4},										//3
+				{propCA_5},										//4
+				{propCA_6},										//5
+				{propCA_7},										//6
+				{propCA_8},										//7
+				{propCA_9},										//8
+				{propCA_10},									//9
+				{propCA_11},									//10
+				{propCA_12},									//11
 				//Class atribute------------
 				
 				//Internal Class atribute++++++++++++
-				{propCA_IC_1},
-				{propCA_IC_2},
-				{propCA_IC_3},
-				{propCA_IC_4},
+				{propCA_IC_1},									//12
+				{propCA_IC_2},									//13
+				{propCA_IC_3},									//14
+				{propCA_IC_4},									//15
 				//Internal Class atribute------------
 				
 				//Class Fields++++++++++++
-				{propCF_1},
-				{propCF_2},
-				{propCF_3},
+				{propCF_1},										//16
+				{propCF_2},										//17
+				{propCF_3},										//18
 				//Class Fields------------
 				
 				//Local Variable++++++++++++
-				{propLV_1},
-				{propLV_2},
-				{propLV_3},
-				{propLV_4},
-				{propLV_5},
+				{propLV_1},										//19
+				{propLV_2},										//20
+				{propLV_3},										//21
+				{propLV_4},										//22
+				{propLV_5},										//23
 				//Local Variable------------
 				
 				//Method signature++++++++++++
-				{propMS_1},
-				{propMS_2},
-				{propMS_3},
-				{propMS_4},
+				{propMS_1},										//24
+				{propMS_2},										//25
+				{propMS_3},										//26
+				{propMS_4},										//27
 				//Method signature------------
 				
 				//While local variables++++++++++++
-				{propWLV_1},
-				{propWLV_2},
-				{propWLV_3},
+				{propWLV_1},									//28
+				{propWLV_2},									//29
+				{propWLV_3},									//30
 				//While local variables------------
 				
 				//For local variables++++++++++++
-				{propFLV_1},
-				{propFLV_2},
-				{propFLV_3},
+				{propFLV_1},									//31
+				{propFLV_2},									//32
+				{propFLV_3},									//33
 				//For local variables------------
 				
 				//While condition++++++++++++
-				{propWC_1},
-				{propWC_2},
-				{propWC_3},
+				{propWC_1},										//34
+				{propWC_2},										//35
+				{propWC_3},										//36
 				//While condition------------
 				
 				//For condition++++++++++++
-				{propFC_1},
-				{propFC_2}, //this also check generics on a method call argument
+				{propFC_1},										//37
+				{propFC_2},										//38
+				//the above test also check generics on a method call argument
 				//For condition------------
 				
 				//For collection++++++++++++ (There's no support for the sintax "for (<elem> : <collection>) <body>")
@@ -503,25 +504,25 @@ public class GenericsParsingTests {
 				//For collection------------
 				
 				//Switch++++++++++++
-				{propSW_1},
-				{propSW_2},
-				{propSW_3},
+				{propSW_1},										//39
+				{propSW_2},										//40
+				{propSW_3},										//41
 				//Switch------------
 				
 				//Instance of++++++++++++
 				//Since instanceof doesn't accept generics (except for ? wildcard) only one test is used
-				{propIO_1},
+				{propIO_1},										//42
 				//Instance of------------
 				
 				//Condicional assignment++++++++++++
-				{propCAS_1},
-				{propCAS_2},
+				{propCAS_1},									//43
+				{propCAS_2},									//44
 				//Condicional assignment------------
 				
 				//Return++++++++++++
-				{propR_1},
-				{propR_2},
-				{propR_3},
+				{propR_1},										//45
+				{propR_2},										//46
+				{propR_3},										//47
 				//Return------------
 				
 		});

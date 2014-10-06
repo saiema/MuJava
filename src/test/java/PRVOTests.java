@@ -612,9 +612,6 @@ public class PRVOTests {
 		
 		mfOMUCU = TestingTools.generateMutants(propOMUCU);
 		
-//		compile(propSLLBEFieldVarSwitch);
-//		compile(propSLLBEFieldVarTry);
-		
 		return Arrays.asList(new Object[][] {
 				{propSLLBEVarField_right, mfSLLBEVarField_right},			//0
 				{propSLLBEVarField_left, mfSLLBEVarField_left},				//1

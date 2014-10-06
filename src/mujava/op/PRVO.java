@@ -690,10 +690,20 @@ public class PRVO extends mujava.op.util.Mutator {
 			return fnm;
 		}
 		boolean addVariables = (t.getName().compareTo(getSelfType().getName()) == 0) && !forceIgnoreVariables;
-		boolean onlyPublic = t.getPackage() == null || !(t.getPackage().contains(getSelfType().getPackage()));
-		if (this.fieldsAndMethodsPerClass.containsKey(t.getName()+addVariables)) {
-			return this.fieldsAndMethodsPerClass.get(t.getName()+addVariables);
+		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		// modified (06/10/14) [simon] {fixed conditions to use only public methods|fields}
+		String publicCheck = "";
+		boolean tPackageSameAsThisPackage = t.isInSamePackage(getSelfType());// t.getPackage().equals(getSelfType().getPackage());
+		publicCheck += tPackageSameAsThisPackage ? 1 : 0;
+		boolean tIsInnerClassOfThis = isInnerClassOf(getSelfType(), t, true);
+		publicCheck += tIsInnerClassOfThis ? 1 : 0;
+		boolean canUseProtectedAndDefault = tPackageSameAsThisPackage || tIsInnerClassOfThis;
+		publicCheck += canUseProtectedAndDefault ? 1 : 0;
+		boolean onlyPublic = !canUseProtectedAndDefault;
+		if (this.fieldsAndMethodsPerClass.containsKey(t.getName() + addVariables + publicCheck)) {
+			return this.fieldsAndMethodsPerClass.get(t.getName() + addVariables + publicCheck);
 		}
+		// ---------------------------------------------------------------------------------
 		for (OJField f : t.getDeclaredFields()) {
             if ((onlyPublic && f.getModifiers().isPublic()) || !onlyPublic) {
                 fnm.add(f);
@@ -721,7 +731,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					if (!fnm.contains(v)) fnm.add(v);
 			}
 		}
-		this.fieldsAndMethodsPerClass.put(t.getName()+addVariables, fnm);
+		this.fieldsAndMethodsPerClass.put(t.getName()+addVariables+publicCheck, fnm); //modified (06/10/14) [simon]
 		return fnm;
 	}
 	
