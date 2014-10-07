@@ -262,8 +262,8 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 			MemberDeclarationList classbody = p.getBody();
 
-			writeTab();
-			out.print("{");											//modified (11/09/14) [simon]
+//			writeTab();			//deleted (07/10/14) [simon] {without the previous println() there's no need to call writeTab()}
+			out.print(" {");											//modified (11/09/14) [simon] //modified (07/10/14) [simon] {added a space before de '{'}
 			if (p.hasMutGenLimit()) {								//added (10/09/14) [simon] //moved here (11/09/14) [simon]
 				out.print(" //mutGenLimit " + p.getMutGenLimit());	//added (10/09/14) [simon] //moved here (11/09/14) [simon]
 			}														//added (10/09/14) [simon] //moved here (11/09/14) [simon]
@@ -335,11 +335,11 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			out.println();											//added (11/09/14) [simon]
 			line_num++;
 		} else {
-			out.println();
-			line_num++;
-
-			writeTab();
-			out.print("{");											//modified (11/09/14) [simon]
+//			out.println();					//deleted (07/10/14) [simon]
+//			line_num++;						//deleted (07/10/14) [simon]
+//
+//			writeTab();						//deleted (07/10/14) [simon]
+			out.print(" {");										//modified (11/09/14) [simon] //modified (07/10/14) [simon]
 			if (p.hasMutGenLimit()) {								//added (11/09/14) [simon]
 				out.print(" //mutGenLimit " + p.getMutGenLimit());	//added (11/09/14) [simon]
 			}														//added (11/09/14) [simon]
@@ -718,7 +718,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		StatementList stmts = p.getStatements();
 
 		if (stmts.isEmpty()) {
-			out.print(" ; ");
+			out.print(";");				//modified (07/10/14) [simon] {removed unnecessary spaces}
 		} else {
 			writeStatementsBlock(stmts);
 		}
@@ -1469,15 +1469,16 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		out.print("(");
 		Expression expr = p.getExpression();
 		expr.accept(this);
-		out.print(") ");
+		out.print(")"); 											//modified (07/10/14) [simon] {removed space}
 
 		StatementList stmts = p.getStatements();
 		if (stmts.isEmpty()) {
-			out.print(" ;");
+			out.print(";");											//modified (07/10/14) [simon] {removed unnecessary space}
 			if (p.hasMutGenLimit()) {								//added (12/09/14) [simon]
 				out.print(" //mutGenLimit " + p.getMutGenLimit());	//added (12/09/14) [simon]
 			}														//added (12/09/14) [simon]
 		} else {
+			out.print(" ");					//added (07/10/14) [simon] {added a space}
 			writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1);	//modified (12/09/14) [simon]
 		}
 
