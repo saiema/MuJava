@@ -139,7 +139,7 @@ public class IHI extends mujava.op.util.Mutator{
 	}
 
 	private void outputToFile(ClassDeclaration original, FieldDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.IHI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.IHI, original, mutant);
 	}
 
 }

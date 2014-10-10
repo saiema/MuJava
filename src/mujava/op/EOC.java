@@ -209,7 +209,7 @@ public class EOC extends mujava.op.util.Mutator {
 	}
 
 	private void outputToFile(BinaryExpression original, MethodCall mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.EOC, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.EOC, original, mutant);
 	}
 	
 }

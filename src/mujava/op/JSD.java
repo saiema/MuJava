@@ -85,7 +85,7 @@ public class JSD extends mujava.op.util.Mutator {
 	}
 
 	private void outputToFile(FieldDeclaration original, FieldDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.JSD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.JSD, original, mutant);
 	}
 
 	public void visit(MethodDeclaration p) throws ParseTreeException {
@@ -131,7 +131,7 @@ public class JSD extends mujava.op.util.Mutator {
 	}
 
 	private void outputToFile(MethodDeclaration original, MethodDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.JSD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.JSD, original, mutant);
 	}
 
 	

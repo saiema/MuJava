@@ -141,7 +141,7 @@ public class AORS extends MethodLevelMutator
 
 		//********** MUJAVA++ MODIFICATION **********//
 		//********** date: 6 Dic 2011     **********//
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AORS, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AORS, original, mutant);
 		return;
 		//*******************************************//
 

@@ -107,7 +107,7 @@ public class PCI extends Mutator {
 		Class<?> varTypeAsClass;
 		List<String> generics = new LinkedList<String>();
 		try {
-			varTypeAsClass = javaClassForName(varType.getName());//Class.forName(varType.getName());
+			varTypeAsClass = javaClassForName(varType.getName());
 			List<Class<?>> childsOrParents = useChilds?getChilds(varTypeAsClass):getParents(varTypeAsClass);
 			for (Class<?> cop : childsOrParents) {
 				OJClass copAsOJClass = OJClass.forClass(cop);
@@ -194,11 +194,11 @@ public class PCI extends Mutator {
 	}
 	
 	private void outputToFile(Variable original, CastExpression mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PCI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.PCI, original, mutant);
 	}
 	
 	private void outputToFile(FieldAccess original, CastExpression mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PCI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.PCI, original, mutant);
 	}
 
 }

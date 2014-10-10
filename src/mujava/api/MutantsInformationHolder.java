@@ -35,7 +35,7 @@ public class MutantsInformationHolder {
 		return objectParentAsString;
 	}
 	private static boolean alreadyGenerated(ParseTreeObject original, ParseTreeObject mutant) {
-		String originalAsString = original.toFlattenString();
+		String originalAsString = original.toFlattenString() + " " + original.getObjectID();
 		String originalParentAsString = getParentAsString(original);
 		String originalPlusParentAsString = originalAsString + " from " + originalParentAsString;
 		String mutantAsString = mutant.toFlattenString();
@@ -64,7 +64,15 @@ public class MutantsInformationHolder {
 		String mutantAsString = mutant.toFlattenString();
 		String mutantParentAsString = getParentAsString(mutant);
 		String mutantPlusParentAsString = mutantAsString + " from " + mutantParentAsString;
-		boolean equalToOriginal = originalPlusParentAsString.compareTo(mutantPlusParentAsString) == 0;
+		//++++++++++++++++++++++++++++++++++++++++++
+		//++++++++++++++++null for null special case
+		if (originalAsString.trim().compareTo("null") == 0 && mutantAsString.trim().compareTo("null") == 0) {
+			if (verbose) System.out.println("ignoring mutation changing null for null");
+			return true;
+		}
+		//------------------------------------------
+		if (verbose) System.out.println("\toriginal: "+originalPlusParentAsString+"\n\tmutant: "+mutantPlusParentAsString);
+		boolean equalToOriginal = originalPlusParentAsString.trim().compareTo(mutantPlusParentAsString.trim()) == 0;
 		if (equalToOriginal && verbose) System.out.println("mutant " + mutantPlusParentAsString + " equal to original");
 		return equalToOriginal;
 	}
@@ -97,15 +105,15 @@ public class MutantsInformationHolder {
 		return compUnit;
 	}
 
-	public void addMutantIdentifier(Mutant mutOp, ParseTreeObject original, ParseTreeObject mutant) {
+	public void addMutation(Mutant mutOp, ParseTreeObject original, ParseTreeObject mutant) {
 		if (isEqualToOriginal(original, (ParseTreeObject)mutant)) return;
 		if (alreadyGenerated(original, (ParseTreeObject)mutant)) return;
 		mutantsIdentifiers.add(new Mutation(mutOp, original, mutant));
 	}
 	
 	public void clear() {
-		mutantsIdentifiers = new ArrayList<Mutation>();
-		compUnit = null;
+		this.mutantsIdentifiers = new ArrayList<Mutation>();
+		this.compUnit = null;
 	}
 	
 	public static MutantsInformationHolder mainHolder() {

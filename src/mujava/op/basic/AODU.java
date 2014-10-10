@@ -67,6 +67,6 @@ public class AODU extends Arithmetic_OP {
 		if (comp_unit == null) 
 			return;
 		
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AODU, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AODU, original, (ParseTreeObject) mutant);
 	}
 }

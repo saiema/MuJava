@@ -55,6 +55,6 @@ public class IPC extends mujava.op.util.Mutator {
 	 * @param mutant
 	 */
 	public void outputToFile(ConstructorDeclaration original, ConstructorInvocation mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.IPC, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.IPC, original, mutant);
 	}
 }

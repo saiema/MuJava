@@ -100,7 +100,7 @@ public class OMR extends Mutator {
 	}
 
 	private void outputToFile(MethodDeclaration original, MethodDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.OMR, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.OMR, original, mutant);
 	}
 	
 	

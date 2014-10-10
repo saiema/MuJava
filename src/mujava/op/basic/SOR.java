@@ -79,7 +79,7 @@ public class SOR extends MethodLevelMutator {
 		if (comp_unit == null) 
 			return;
 		
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.SOR, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.SOR, original, mutant);
 		
 	}
 }

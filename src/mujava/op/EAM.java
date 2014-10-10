@@ -136,7 +136,7 @@ public class EAM extends mujava.op.util.Mutator {
 	 * @param mutant
 	 */
 	public void outputToFile(MethodCall original, MethodCall mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.EAM, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.EAM, original, mutant);
 	}
 
 }

@@ -11,12 +11,10 @@ import openjava.ptree.*;
 import openjava.tools.parser.*;
 import openjava.ptree.util.*;
 import java.io.*;
-import java.util.*;
 import java.lang.reflect.Constructor;
 
 import mujava.op.util.*;
 import mujava.util.*;
-import com.sun.tools.javac.Main;
 
 /**
  * <p>
@@ -77,32 +75,17 @@ public abstract class MutantsGenerator {
 
 		generateParseTree();
 		Debug.print("..done. \n");
-		// System.out.println("0");
 		Debug.print("* Initializing parse tree. \n");
 		initParseTree();
 		Debug.print("..done. \n");
-		// System.out.println("1");
 		Debug.print("* Generating Mutants \n");
 		genMutants();
 		Debug.print("..done.\n");
-		// System.out.println("2");
-		Debug.print("* Arranging original soure code. \n");
-		arrangeOriginal();
-		// System.out.println("3");
-		compileOriginal();
-		Debug.print("..done. \n");
 		Debug.flush();
 		return true;
 	}
 
 	abstract void genMutants();
-
-	/*
-	 * void generateMutant(OJClass mutant_op){ try {
-	 * mutant_op.translateDefinition(comp_unit); }catch (Exception ex){
-	 * System.err.println("fail to translate " +mutant_op.getName()+" : " + ex);
-	 * ex.printStackTrace(); } }
-	 */
 
 	/**
 	 * Generate mutants from Java bytecode
@@ -114,37 +97,6 @@ public abstract class MutantsGenerator {
 			System.err.println("fail to translate " + mutant_op.getName()
 					+ " : " + ex);
 			ex.printStackTrace();
-		}
-	}
-
-	/**
-	 * Arrange the original source file into an appropriate directory
-	 */
-	protected void arrangeOriginal() {
-		if (comp_unit == null) {
-			System.err.println(original_file + " is skipped.");
-		}
-
-		ClassDeclarationList cdecls = comp_unit.getClassDeclarations();
-		for (int j = 0; j < cdecls.size(); ++j) {
-			ClassDeclaration cdecl = cdecls.get(j);
-			File outfile = null;
-			try {
-				outfile = new File(MutationSystem.ORIGINAL_PATH,
-						MutationSystem.CLASS_NAME + ".java");
-				FileWriter fout = new FileWriter(outfile);
-				PrintWriter out = new PrintWriter(fout);
-				MutantCodeWriter writer = new MutantCodeWriter(out);
-				writer.setClassName(cdecl.getName());
-				comp_unit.accept(writer);
-				out.flush();
-				out.close();
-			} catch (IOException e) {
-				System.err.println("fails to create " + outfile);
-			} catch (ParseTreeException e) {
-				System.err.println("errors during printing " + outfile);
-				e.printStackTrace();
-			}
 		}
 	}
 
@@ -345,84 +297,6 @@ public abstract class MutantsGenerator {
 			return cd.getName();
 		} else
 			return null;
-	}
-
-	/**
-	 * Compile mutants
-	 */
-	public void compileMutants() {
-		File f = new File(MutationSystem.MUTANT_PATH);
-
-		String[] s = f.list(new MutantDirFilter());
-
-		for (int i = 0; i < s.length; i++) {
-			File target_dir = new File(MutationSystem.MUTANT_PATH + "/" + s[i]);
-			String[] target_file = target_dir.list(new ExtensionFilter("java"));
-
-			Vector v = new Vector();
-			for (int j = 0; j < target_file.length; j++) {
-				v.add(MutationSystem.MUTANT_PATH + "/" + s[i] + "/"
-						+ target_file[j]);
-			}
-
-			String[] pars = new String[v.size() + 2];
-
-			pars[0] = "-classpath";
-			pars[1] = MutationSystem.CLASS_PATH;
-			for (int j = 0; j < v.size(); j++) {
-				pars[2 + j] = v.get(j).toString();
-			}
-			try {
-				// result = 0 : SUCCESS, result = 1 : FALSE
-				// int result = Main.compile(pars,new PrintWriter(new
-				// FileOutputStream("temp")));
-				int result = Main.compile(pars);
-				if (result == 0) {
-					Debug.print("+" + s[i] + "   ");
-				} else {
-					Debug.print("-" + s[i] + "   ");
-					// delete directory
-					File dir_name = new File(MutationSystem.MUTANT_PATH + "/"
-							+ s[i]);
-					File[] mutants = dir_name.listFiles();
-					boolean tr = false;
-
-					for (int j = 0; j < mutants.length; j++) {
-						// [tricky solution] It can produce loop -_-;;
-						while (!tr) {
-							tr = mutants[j].delete();
-						}
-						tr = false;
-					}
-
-					while (!tr) {
-						tr = dir_name.delete();
-					}
-				}
-			} catch (Exception e) {
-				System.err.println(e);
-			}
-		}
-		Debug.println();
-	}
-
-	/**
-	 * Compile original java source file
-	 */
-	protected void compileOriginal() {
-		String[] pars = {
-				"-classpath",
-				MutationSystem.CLASS_PATH,
-				MutationSystem.ORIGINAL_PATH + "/" + MutationSystem.CLASS_NAME
-						+ ".java" };
-		try {
-			// result = 0 : SUCCESS, result = 1 : FALSE
-			// int result = Main.compile(pars,new PrintWriter(new
-			// FileOutputStream("temp")));
-			Main.compile(pars);
-		} catch (Exception e) {
-			System.err.println(e);
-		}
 	}
 
 	private static void initPrimitiveTypes() {

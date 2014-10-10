@@ -107,7 +107,7 @@ public class COR extends MethodLevelMutator
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COR, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.COR, original, mutant);
 
 	}
 }

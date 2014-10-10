@@ -117,19 +117,19 @@ public class PMD extends Mutator {
 	}
 	
 	private void outputToFile(ConstructorDeclaration original, ConstructorDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PPD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.PPD, original, mutant);
 	}
 
 	private void outputToFile(VariableDeclaration original, VariableDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PMD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.PMD, original, mutant);
 	}
 	
 	private void outputToFile(FieldDeclaration original, FieldDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PMD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.PMD, original, mutant);
 	}
 
 	private void outputToFile(MethodDeclaration original, MethodDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PPD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.PPD, original, mutant);
 	}
 	
 }

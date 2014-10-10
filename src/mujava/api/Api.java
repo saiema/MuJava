@@ -22,19 +22,13 @@ import openjava.ptree.ParseTreeException;
  * created (with horrible code inside) so as to minimize code intervention
  * (but some minor changes in muJava's codebase had to be done nonetheless).
  */
-/*
- * CODE-READER'S BEWARE: THIS CODE IS HORRIBLE.
- * 
- * In order to avoid massive intervention in muJava's original
- * codebase some ugly stuff had to be done.
- */
 public class Api {
 
 	private static boolean usingApi = false;
 	
 	private static String methodToConsider;
 	
-	private static boolean cleanOJSystemBeforeGenerating = true; //added (06/10/14) [simon]
+	private static boolean cleanOJSystemBeforeGenerating = true;
 	
 	/**
 	 * This field defines if the mutations are to be performed on an inner class
@@ -52,24 +46,18 @@ public class Api {
 	 * "bin" directory containing the compiled java file as well as other
 	 * necessary classes should be in the CLASSPATH.
 	 * 
-	 * @param javaFile the .java file to generate mutants from.
-	 * @param className the name of the class to consider.
-	 * @param methodToConsider the method to consider. Mutant operators will
-	 *     be only applied to expressions within this given method
-	 * @param mutOps the mutant operators to apply if possible
-	 * @return a MutantsInformationHolder object that holds the necessary
-	 *     information that identifies each mutant generated from the given
-	 *     java file
+	 * @param javaFile			:	the java source file from which mutants will be generated		:	{@code File}
+	 * @param className			:	the qualified name of the class to consider						:	{@code String}
+	 * @param methodToConsider	:	the method in which mutants operators will be applied			:	{@code String}
+	 * @param mutOps			:	the mutations operators to apply								:	{@code Set<Mutant>}
+	 * @return a {@code MutantsInformationHolder} object that holds the generated mutations and the {@code CompilationUnit} associated with {@code javaFile}	:	{@code MutantsInformationHolder}
 	 * @see MutantsInformationHolder
-	 * @throws OpenJavaException if some exception occurs while parsing the
-	 *     given java file
+	 * @throws OpenJavaException if some exception occurs while parsing the given java file
 	 */
-	public static MutantsInformationHolder generateMutants(File javaFile,
-			String className, String methodToConsider, Set<Mutant> mutOps)
-			throws OpenJavaException {
+	public static MutantsInformationHolder generateMutants(File javaFile, String className, String methodToConsider, Set<Mutant> mutOps) throws OpenJavaException {
 		usingApi = true;
 		parseClassName(className);
-		if (cleanOJSystemBeforeGenerating) OJSystem.clean(); //added (06/10/14) [simon]
+		if (cleanOJSystemBeforeGenerating) OJSystem.clean();
 		Api.methodToConsider = methodToConsider;
 		Debug.setDebugLevel(0);
 		NotDirBasedMutantsGenerator gen = new NotDirBasedMutantsGenerator(javaFile, mutOps);
@@ -81,22 +69,18 @@ public class Api {
 	}
 	
 	/**
-	 * Writes the given mutant into the given output. Will generate a clean
-	 * java file that is the result of applying the given mutant identifier to
-	 * the given source.
+	 * Writes a mutant which is the result of applying a mutation to {@code CompilationUnit} that represent a java AST
 	 * 
-	 * @param source the base file compilation unit. The given mutant will be
-	 *     applied to this source
-	 * @param mutant the information that uniquely identifies a mutant
-	 * @param output the writer where to output the resulting java file
-	 * @return the number of the line mutated
+	 * @param source	:	a {@code CompilationUnit} that represents a java file AST								:	{@code CompilationUnit}
+	 * @param mutation	:	a tuple containing the original AST node, the mutated AST node and the operator used	:	{@code Mutation}
+	 * @param output 	:	the writer that will be used to output the resulting mutant								:	{@code PrintWriter}
+	 * @return the number of the line mutated	:	{@code int}
 	 * @throws ParseTreeException
 	 */
-	public static int writeMutant(CompilationUnit source, Mutation mutant,
-			PrintWriter output) throws ParseTreeException{
+	public static int writeMutant(CompilationUnit source, Mutation mutation, PrintWriter output) throws ParseTreeException{
 		usingApi = true;
 		MutantIdentifierWriter writer = new MutantIdentifierWriter(source, output);
-		return writer.write(mutant);
+		return writer.write(mutation);
 	}
 
 	public static boolean usingApi() {

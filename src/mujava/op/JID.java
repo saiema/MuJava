@@ -54,6 +54,6 @@ public class JID extends mujava.op.util.Mutator {
 	 * @param original
 	 */
 	private void outputToFile(FieldDeclaration original, FieldDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.JID, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.JID, original, mutant);
 	}
 }

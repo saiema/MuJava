@@ -1,14 +1,11 @@
 package mujava;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import mujava.api.Mutant;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.util.CodeChangeLog;
-import mujava.op.util.Mutator;
 import mujava.op.AMC;
 import mujava.op.EAM;
 import mujava.op.EMM;
@@ -56,26 +53,30 @@ import openjava.ptree.ClassDeclaration;
 import openjava.ptree.ClassDeclarationList;
 import openjava.ptree.ParseTreeException;
 
+/**
+ * This class is used to generate mutations, call each mutation operator
+ * on a compilation unit.
+ * 
+ * This class does not create any directory nor mutated file.
+ * 
+ * @version 1.0
+ */
 public class NotDirBasedMutantsGenerator extends MutantsGenerator {
-	
-	public static Map<Mutant, Mutator> prvoMutators = new HashMap<Mutant, Mutator>();
 
+	/**
+	 * Mutation operators to use : {@code Set<Mutant>}
+	 */
 	private Set<Mutant> mutOps;
 		
+	/**
+	 * Constructor
+	 * 
+	 * @param f			:	the java source file to mutate	:	{@code File}
+	 * @param mutOps	:	the mutation operators to use 	:	{@code Set<Mutant>}
+	 */
 	public NotDirBasedMutantsGenerator(File f, Set<Mutant> mutOps) {
 		super(f);
 		this.mutOps = mutOps;
-		prvoMutators.clear();
-	}
-	
-	@Override
-	protected void arrangeOriginal() {
-		return;
-	}
-
-	@Override
-	protected void compileOriginal() {
-		return;
 	}
 
 	@Override
@@ -98,8 +99,6 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 	}
 
 	private void generateMutants(ClassDeclarationList cdecls) {
-		// Code taken from genTraditionalMutans
-		
 		for (int j = 0 ; j < cdecls.size() ; ++j ) {
 			ClassDeclaration cdecl = cdecls.get(j);
 			if (cdecl.getName().equals(MutationSystem.CLASS_NAME)) {
@@ -193,7 +192,6 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 						((PRVO)mutant_op).dumbMode();
 						((PRVO)mutant_op).setOP(Mutant.PRVOL);
 						comp_unit.accept(mutant_op);
-						NotDirBasedMutantsGenerator.prvoMutators.put(Mutant.PRVOL, mutant_op);
 					}
 					
 					if (mutOps.contains(Mutant.PRVOL_SMART)) {
@@ -203,7 +201,6 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 						((PRVO)mutant_op).smartMode();
 						((PRVO)mutant_op).setOP(Mutant.PRVOL_SMART);
 						comp_unit.accept(mutant_op);
-						NotDirBasedMutantsGenerator.prvoMutators.put(Mutant.PRVOL_SMART, mutant_op);
 					}
 					
 					if (mutOps.contains(Mutant.PRVOR)) {
@@ -213,7 +210,6 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 						((PRVO)mutant_op).dumbMode();
 						((PRVO)mutant_op).setOP(Mutant.PRVOR);
 						comp_unit.accept(mutant_op);
-						NotDirBasedMutantsGenerator.prvoMutators.put(Mutant.PRVOR, mutant_op);
 					}
 					
 					if (mutOps.contains(Mutant.PRVOR_SMART)) {
@@ -223,7 +219,6 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 						((PRVO)mutant_op).smartMode();
 						((PRVO)mutant_op).setOP(Mutant.PRVOR_SMART);
 						comp_unit.accept(mutant_op);
-						NotDirBasedMutantsGenerator.prvoMutators.put(Mutant.PRVOR_SMART, mutant_op);
 					}
 					
 					if (mutOps.contains(Mutant.PRVOR_REFINED)) {
@@ -234,7 +229,6 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 						((PRVO)mutant_op).smartMode();
 						((PRVO)mutant_op).setOP(Mutant.PRVOR_REFINED);
 						comp_unit.accept(mutant_op);
-						NotDirBasedMutantsGenerator.prvoMutators.put(Mutant.PRVOR_REFINED, mutant_op);
 					}
 					
 					if (mutOps.contains(Mutant.PRVOU)) {
@@ -244,7 +238,6 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 						((PRVO)mutant_op).dumbMode();
 						((PRVO)mutant_op).setOP(Mutant.PRVOU);
 						comp_unit.accept(mutant_op);
-						NotDirBasedMutantsGenerator.prvoMutators.put(Mutant.PRVOU, mutant_op);
 					}
 					
 					if (mutOps.contains(Mutant.PRVOU_SMART)) {
@@ -254,7 +247,6 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 						((PRVO)mutant_op).smartMode();
 						((PRVO)mutant_op).setOP(Mutant.PRVOU_SMART);
 						comp_unit.accept(mutant_op);
-						NotDirBasedMutantsGenerator.prvoMutators.put(Mutant.PRVOU_SMART, mutant_op);
 					}
 					
 					if (mutOps.contains(Mutant.PRVOU_REFINED)) {
@@ -265,7 +257,6 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 						((PRVO)mutant_op).smartMode();
 						((PRVO)mutant_op).setOP(Mutant.PRVOU_REFINED);
 						comp_unit.accept(mutant_op);
-						NotDirBasedMutantsGenerator.prvoMutators.put(Mutant.PRVOU_REFINED, mutant_op);
 					}
 					
 					if (mutOps.contains(Mutant.AMC)) {

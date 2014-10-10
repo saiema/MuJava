@@ -112,27 +112,27 @@ public class COI extends MethodLevelMutator {
 
 	private void outputToFile(UnaryExpression original, UnaryExpression mutant) {
 		if (comp_unit == null) return;
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.COI, original, mutant);
 	}
 	
 	private void outputToFile(Variable original, UnaryExpression mutant) {
 		if (comp_unit == null) return;
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.COI, original, mutant);
 	}
 	
 	private void outputToFile(Literal original, UnaryExpression mutant) {
 		if (comp_unit == null) return;
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.COI, original, mutant);
 	}
 	
 	private void outputToFile(FieldAccess original, UnaryExpression mutant) {
 		if (comp_unit == null) return;
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.COI, original, mutant);
 	}
 	
 	private void outputToFile(BinaryExpression original, UnaryExpression mutant) {
 		if (comp_unit == null) return;
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.COI, original, mutant);
 	}
 	
 }

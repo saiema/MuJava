@@ -60,7 +60,7 @@ public class JSI extends mujava.op.util.Mutator {
 	}
 
 	private void outputToFile(FieldDeclaration original, FieldDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.JSI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.JSI, original, mutant);
 	}
 	
 	public void visit(MethodDeclaration p) throws ParseTreeException {
@@ -102,7 +102,7 @@ public class JSI extends mujava.op.util.Mutator {
 	}
 	
 	private void outputToFile(MethodDeclaration original,MethodDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.JSI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.JSI, original, mutant);
 	}
 
 }

@@ -141,7 +141,7 @@ public class ROR extends Arithmetic_OP {
 		if (comp_unit == null) 
 			return;
 		
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.ROR, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.ROR, original, mutant);
 
 	}
 	
@@ -149,7 +149,7 @@ public class ROR extends Arithmetic_OP {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.ROR, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.ROR, original, mutant);
 	}
 	
 }

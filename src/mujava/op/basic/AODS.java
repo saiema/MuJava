@@ -60,7 +60,7 @@ public class AODS extends MethodLevelMutator {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AODS, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AODS, original, (ParseTreeObject) mutant);
 
 	}
 }

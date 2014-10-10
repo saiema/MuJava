@@ -169,7 +169,7 @@ public class EMM extends mujava.op.util.Mutator {
 	 * @param mutant
 	 */
 	public void outputToFile(MethodCall original, MethodCall mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.EMM, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.EMM, original, mutant);
 	}
 
 }

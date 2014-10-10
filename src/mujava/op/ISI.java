@@ -233,15 +233,15 @@ public class ISI extends mujava.op.util.Mutator {
 
 
 	private void outputToFile(Variable original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(this.smartMode?Mutant.ISI_SMART:Mutant.ISI, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(this.smartMode?Mutant.ISI_SMART:Mutant.ISI, original, (ParseTreeObject) mutant);
 	}
 
 	private void outputToFile(FieldAccess original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(this.smartMode?Mutant.ISI_SMART:Mutant.ISI, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(this.smartMode?Mutant.ISI_SMART:Mutant.ISI, original, (ParseTreeObject) mutant);
 	}
 
 	private void outputToFile(MethodCall original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(this.smartMode?Mutant.ISI_SMART:Mutant.ISI, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(this.smartMode?Mutant.ISI_SMART:Mutant.ISI, original, (ParseTreeObject) mutant);
 	}
 	
 	public void visit(BinaryExpression p) throws ParseTreeException {

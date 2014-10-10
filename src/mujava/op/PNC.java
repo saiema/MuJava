@@ -146,7 +146,7 @@ public class PNC extends mujava.op.util.Mutator {
 
 	
 	private void outputToFile(AllocationExpression original, AllocationExpression mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PNC, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.PNC, original, mutant);
 	}
 
 }

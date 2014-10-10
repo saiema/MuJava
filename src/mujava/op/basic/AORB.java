@@ -126,7 +126,7 @@ public class AORB extends Arithmetic_OP
 
 		//********** MUJAVA++ MODIFICATION **********//
 		//********** date: 7 Feb 2012     **********//
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AORB,original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AORB,original, mutant);
 		return;
 		//*******************************************//
 

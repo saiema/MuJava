@@ -180,11 +180,11 @@ public class EOA extends mujava.op.util.Mutator {
 
 	private void outputToFile(AssignmentExpression original, AssignmentExpression mutant) {
 		Mutant eoa_variant = isInNormalMode()?Mutant.EOA:(isInStrictMode()?Mutant.EOA_STRICT:Mutant.EOA_DUMB);
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(eoa_variant, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(eoa_variant, original, mutant);
 	}
 	
 	private void outputToFile(VariableDeclarator original, VariableDeclarator mutant) {
 		Mutant eoa_variant = isInNormalMode()?Mutant.EOA:(isInStrictMode()?Mutant.EOA_STRICT:Mutant.EOA_DUMB);
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(eoa_variant, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(eoa_variant, original, mutant);
 	}
 }

@@ -180,7 +180,7 @@ public class ASRS extends MethodLevelMutator
 
 		//********** MUJAVA++ MODIFICATION **********//
 		//********** date: 7 Feb 2012     **********//
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.ASRS,
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.ASRS,
 				original, mutant);
 		return;
 		//*******************************************//

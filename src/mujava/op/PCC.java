@@ -78,7 +78,7 @@ public class PCC extends Mutator {
 	}
 
 	private void outputToFile(CastExpression original, CastExpression mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PCC, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.PCC, original, mutant);
 	}
 	
 	public void visit(MethodCall p) throws ParseTreeException {

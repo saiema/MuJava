@@ -41,7 +41,7 @@ public class IHD_Writer extends MutantCodeWriter {
 		String f2Name = fd2.getName();
 		String f1Type = fd1.getTypeSpecifier().getName();
 		String f2Type = fd2.getTypeSpecifier().getName();
-		if (f1Name.equals(f2Name) && Mutator.compareNamesWithoutGenerics(f1Type, f2Type, false)/*f1Type.equals(f2Type)*/) {
+		if (f1Name.equals(f2Name) && Mutator.compareNamesWithoutGenerics(f1Type, f2Type, false)) {
 			return true;
 		}
 		return false;

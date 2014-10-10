@@ -98,14 +98,14 @@ public class AOIU extends Arithmetic_OP {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AOIU, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AOIU, original, mutant);
 	}
 	
 	public void outputToFile(UnaryExpression original, UnaryExpression mutant) {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AOIU, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AOIU, original, mutant);
 	}
 	
 	
@@ -113,14 +113,14 @@ public class AOIU extends Arithmetic_OP {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AOIU, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AOIU, original, mutant);
 	}
 
 	public void outputToFile(Variable original, UnaryExpression mutant) {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AOIU, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AOIU, original, mutant);
 	}
 
 

@@ -690,20 +690,18 @@ public class PRVO extends mujava.op.util.Mutator {
 			return fnm;
 		}
 		boolean addVariables = (t.getName().compareTo(getSelfType().getName()) == 0) && !forceIgnoreVariables;
-		// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		// modified (06/10/14) [simon] {fixed conditions to use only public methods|fields}
 		String publicCheck = "";
-		boolean tPackageSameAsThisPackage = t.isInSamePackage(getSelfType());// t.getPackage().equals(getSelfType().getPackage());
-		publicCheck += tPackageSameAsThisPackage ? 1 : 0;
+		boolean tPackageSameAsThisPackage = t.isInSamePackage(getSelfType());//t.getPackage().equals(getSelfType().getPackage());
+		publicCheck += tPackageSameAsThisPackage?1:0;
 		boolean tIsInnerClassOfThis = isInnerClassOf(getSelfType(), t, true);
-		publicCheck += tIsInnerClassOfThis ? 1 : 0;
+		publicCheck += tIsInnerClassOfThis?1:0;
 		boolean canUseProtectedAndDefault = tPackageSameAsThisPackage || tIsInnerClassOfThis;
-		publicCheck += canUseProtectedAndDefault ? 1 : 0;
+		publicCheck += canUseProtectedAndDefault?1:0;
 		boolean onlyPublic = !canUseProtectedAndDefault;
-		if (this.fieldsAndMethodsPerClass.containsKey(t.getName() + addVariables + publicCheck)) {
-			return this.fieldsAndMethodsPerClass.get(t.getName() + addVariables + publicCheck);
+		//boolean onlyPublic = t.getPackage() == null || !(t.getPackage().contains(getSelfType().getPackage()));
+		if (this.fieldsAndMethodsPerClass.containsKey(t.getName()+addVariables+publicCheck)) {
+			return this.fieldsAndMethodsPerClass.get(t.getName()+addVariables+publicCheck);
 		}
-		// ---------------------------------------------------------------------------------
 		for (OJField f : t.getDeclaredFields()) {
             if ((onlyPublic && f.getModifiers().isPublic()) || !onlyPublic) {
                 fnm.add(f);
@@ -731,7 +729,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					if (!fnm.contains(v)) fnm.add(v);
 			}
 		}
-		this.fieldsAndMethodsPerClass.put(t.getName()+addVariables+publicCheck, fnm); //modified (06/10/14) [simon]
+		this.fieldsAndMethodsPerClass.put(t.getName()+addVariables+publicCheck, fnm);
 		return fnm;
 	}
 	
@@ -817,7 +815,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					}
 					if (retType.isPrimitive() && next != null) continue;
 					if (lor && prev==null && !getType(current).isPrimitive() && retType.isPrimitive()) continue;
-					if ((next == null) && (lor?compatibleAssignType(retType, rtype):compatibleAssignType(ltype, retType))) {
+					if ((next == null) && (lor?compatibleAssignType(retType, rtype):compatibleAssignType(ltype, retType, !refined))) {
 						Expression prevCopy = prev==null?null:((Expression) prev.makeRecursiveCopy_keepOriginalID());
 						if (m instanceof OJField) {
 							FieldAccess mutantField = new FieldAccess(prevCopy==null?(this.isInherited((OJField)m)?(SelfAccess.constantSuper()):(SelfAccess.constantThis())):(prevCopy), ((OJField)m).getName());
@@ -1620,7 +1618,7 @@ public class PRVO extends mujava.op.util.Mutator {
 				if (complyWith != null) {
 					OJClass typeToComply = getType(complyWith);
 					OJClass litType = getType(lit);
-					if (!compatibleAssignType(typeToComply, litType)) {
+					if (!compatibleAssignType(typeToComply, litType, false)) {
 						continue;
 					}
 				}
@@ -1774,7 +1772,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		} catch (ParseTreeException pte) {
 			pte.printStackTrace();
 		}
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(this.op, original, (ParseTreeObject) modifiedMutant);
+		MutantsInformationHolder.mainHolder().addMutation(this.op, original, (ParseTreeObject) modifiedMutant);
 	}
 
 	

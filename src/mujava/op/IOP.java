@@ -148,7 +148,7 @@ public class IOP extends Mutator {
 	}
 	
 	private void outputToFile(MethodDeclaration original, MethodDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.IOP, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.IOP, original, mutant);
 	}
 
 	private boolean isSuperCallOfSameMethod(MethodCall mc, MethodDeclaration md) throws ParseTreeException {

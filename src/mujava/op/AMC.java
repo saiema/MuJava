@@ -106,6 +106,6 @@ public class AMC extends mujava.op.util.Mutator {
 	 * @param mutant
 	 */
 	public void outputToFile(ModifierList original, ModifierList mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AMC, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AMC, original, mutant);
 	}
 }

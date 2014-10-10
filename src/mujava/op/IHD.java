@@ -101,7 +101,7 @@ public class IHD extends mujava.op.util.Mutator {
 	}
 
 	private void outputToFile(ClassDeclaration original, FieldDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.IHD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.IHD, original, mutant);
 	}
 
 }

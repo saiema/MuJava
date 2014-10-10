@@ -87,6 +87,6 @@ public class LOR extends MethodLevelMutator {
 		if (comp_unit == null) 
 			return;
 		
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.LOR, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.LOR, original, mutant);
 	}
 }

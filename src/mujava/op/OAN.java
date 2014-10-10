@@ -15,6 +15,7 @@ import openjava.ptree.ExpressionList;
 import openjava.ptree.MethodCall;
 import openjava.ptree.ParseTreeException;
 import openjava.ptree.ReturnStatement;
+import openjava.ptree.SelfAccess;
 import openjava.ptree.VariableDeclarator;
 import mujava.api.Mutant;
 import mujava.api.MutantsInformationHolder;
@@ -52,16 +53,35 @@ public class OAN extends Mutator {
 	}
 	
 	private void outputToFile(MethodCall original, MethodCall mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(this.relaxed?Mutant.OAN_RELAXED:Mutant.OAN, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(this.relaxed?Mutant.OAN_RELAXED:Mutant.OAN, original, mutant);
 	}
 	
 	
 	private List<ExpressionList> getCompatibleOverloadingCalls(MethodCall mc) throws ParseTreeException {
 		List<ExpressionList> result = new LinkedList<ExpressionList>();
-		OJClass mcType = lookupType(mc, getSelfType());
+		OJClass mcType = null;
+		OJClass declaringClass = null;
+		Expression refExpr = mc.getReferenceExpr();
+		if (refExpr == null) {
+			//search definition begining in this class
+			mcType = lookupType(mc, getSelfType());
+			declaringClass = getSelfType();
+		} else if (refExpr instanceof SelfAccess  && ((SelfAccess)refExpr).isSuperAccess()) {
+			//search definition begining in this class superclass
+			mcType = lookupType(mc, getSelfType().getSuperclass());
+			declaringClass = getSelfType().getSuperclass();
+		} else if (refExpr instanceof SelfAccess) {
+			//search definition begining in this class
+			mcType = lookupType(mc, getSelfType());
+			declaringClass = getSelfType();
+		} else {
+			//the method is not declared in this class, use getType() instead
+			mcType = getType(mc);
+			declaringClass = getType(refExpr);
+		}
 		String mcName = mc.getName();
 		ExpressionList args = mc.getArguments();
-		OJMethod[] allMethods = getAllMethods(getSelfType());
+		OJMethod[] allMethods = getAllMethods(declaringClass);
 		for (OJMethod m : allMethods) {
 			String methodName = m.getName();
 			if (!compareNamesWithoutPackage(mcName, methodName)) {

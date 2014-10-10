@@ -120,7 +120,7 @@ public class AOIS extends Arithmetic_OP {
 			return;
 
 		
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AOIS, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AOIS, original, mutant);
 		
 	}
 	
@@ -129,7 +129,7 @@ public class AOIS extends Arithmetic_OP {
 			return;
 
 		
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AOIS, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AOIS, original, mutant);
 		
 	}
 
@@ -138,7 +138,7 @@ public class AOIS extends Arithmetic_OP {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AOIS, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AOIS, original, mutant);
 	
 	}
 

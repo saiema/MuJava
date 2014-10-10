@@ -183,11 +183,11 @@ public class ISD extends Mutator {
 	
 
 	private void outputToFile(FieldAccess original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(this.smartMode?Mutant.ISD_SMART:Mutant.ISD, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(this.smartMode?Mutant.ISD_SMART:Mutant.ISD, original, (ParseTreeObject) mutant);
 	}
 
 	private void outputToFile(MethodCall original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(this.smartMode?Mutant.ISD_SMART:Mutant.ISD, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(this.smartMode?Mutant.ISD_SMART:Mutant.ISD, original, (ParseTreeObject) mutant);
 	}
 	
 	public void visit(BinaryExpression p) throws ParseTreeException {

@@ -137,7 +137,7 @@ public class IOD extends mujava.op.util.Mutator {
 	}
 
 	private void outputToFile(ClassDeclaration original, MethodDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.IOD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.IOD, original, mutant);
 	}
 
 }

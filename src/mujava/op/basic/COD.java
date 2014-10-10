@@ -68,6 +68,6 @@ public class COD extends MethodLevelMutator {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.COD,original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.COD,original, (ParseTreeObject) mutant);
 	}
 }

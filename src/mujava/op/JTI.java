@@ -85,7 +85,7 @@ public class JTI extends mujava.op.util.Mutator {
 	}
 
 	private void outputToFile(Variable original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(this.smartMode?Mutant.JTI_SMART:Mutant.JTI, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(this.smartMode?Mutant.JTI_SMART:Mutant.JTI, original, (ParseTreeObject) mutant);
 	}
 	
 	public void visit(BinaryExpression p) throws ParseTreeException {

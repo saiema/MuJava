@@ -83,7 +83,7 @@ public class AORU extends MethodLevelMutator
 
 		//********** MUJAVA++ MODIFICATION **********//
 		//********** date: 6 Dic 2011     **********//
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.AORU,
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.AORU,
 				original, mutant);
 		return;
 		//*******************************************//

@@ -71,7 +71,7 @@ public class JDC extends mujava.op.util.Mutator {
 
 
 	private void outputToFile(ClassDeclaration original, ConstructorDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.JDC,original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.JDC,original, mutant);
 	}
 	
 }

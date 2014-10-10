@@ -110,34 +110,34 @@ public class LOI extends Arithmetic_OP {
 		if (comp_unit == null) 
 			return;
 		
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.LOI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.LOI, original, mutant);
 	}
 
 	private void outputToFile(UnaryExpression original, UnaryExpression mutant) {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.LOI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.LOI, original, mutant);
 	}
 
 	private void outputToFile(Literal original, UnaryExpression mutant) {
 		if (comp_unit == null) 
 			return;
 		
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.LOI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.LOI, original, mutant);
 	}
 
 	public void outputToFile(FieldAccess original, UnaryExpression mutant) {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.LOI, original, mutant);	
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.LOI, original, mutant);	
 	}
 
 	public void outputToFile(Variable original, UnaryExpression mutant) {
 		if (comp_unit == null) 
 			return;
 		
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.LOI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.LOI, original, mutant);
 	}
 }

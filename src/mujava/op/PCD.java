@@ -29,7 +29,7 @@ public class PCD extends Mutator {
 	}
 
 	private void outputToFile(CastExpression original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutantIdentifier(Mutant.PCD, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(Mutant.PCD, original, (ParseTreeObject) mutant);
 	}
 	
 	public void visit(MethodCall p) throws ParseTreeException {
