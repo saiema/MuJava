@@ -34,7 +34,7 @@ public class IPC extends mujava.op.util.Mutator {
 
 	public void visit(ConstructorDeclaration p) throws ParseTreeException {
 		super.visit(p);
-		if (Api.usingApi() && !p.getName().equals(Api.getMethodUnderConsideration())) {
+		if (Api.usingApi() && (!Api.insideClassToMutate() || !p.getName().equals(Api.getMethodUnderConsideration()))) {
 			return;
 		}
 		if (!(getMutationsLeft(p)>0)) return;

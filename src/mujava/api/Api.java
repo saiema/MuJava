@@ -37,7 +37,11 @@ public class Api {
 	 * then the inner class defined here will be mutated
 	 * @TODO: fix this comment
 	 */
-	private static Stack<String> innerClass = new Stack<String>();
+	private static Stack<String> expectedClasses = new Stack<String>();
+	
+	private static Stack<String> visitedClasses = new Stack<String>();
+	
+	private static int expectedVisitedClasses;
 	
 	/**
 	 * Generates mutants for the given java file, considering only the method
@@ -61,7 +65,7 @@ public class Api {
 		Api.methodToConsider = methodToConsider;
 		Debug.setDebugLevel(0);
 		NotDirBasedMutantsGenerator gen = new NotDirBasedMutantsGenerator(javaFile, mutOps);
-		MutationSystem.CLASS_NAME = className;
+		MutationSystem.CLASS_NAME = Api.getMainClassName(className);
 		gen.makeMutants();
 		MutantsInformationHolder ret = MutantsInformationHolder.mainHolder();
 		MutantsInformationHolder.resetMainHolder();
@@ -83,39 +87,92 @@ public class Api {
 		return writer.write(mutation);
 	}
 
+	/**
+	 * This method is used in several parts of muJava code to do additional checks if the api is in use
+	 * 
+	 * @return if the Api is currently in use	:	{@code boolean}
+	 */
 	public static boolean usingApi() {
 		return usingApi;
 	}
 
+	/**
+	 * @return the method to mutate	:	{@code String}
+	 * <hr>
+	 * <b>note: this just returns a method's name, it doesn't differentiate between methods with the same name but different signature</b>
+	 */
 	public static String getMethodUnderConsideration() {
 		return methodToConsider;
 	}
 	
+	/*
+	 * This method takes a class name, splits the name with &
+	 * and pushes every name into innerClass
+	 * 
+	 * e.g.: for a&b&c it will split with & and generate [a, b, c]
+	 * and will push the names as [c, b, a]
+	 */
 	private static void parseClassName(String className) {
+		Api.expectedVisitedClasses = 0;
+		Api.expectedClasses.clear();
+		Api.visitedClasses.clear();
 		if (className != null && !className.isEmpty()) {
 			String[] splitAtDollar = className.split("&");
 			for (int is = splitAtDollar.length - 1; is >= 0 ; is--) {
-				Api.innerClass.push(splitAtDollar[is]);
+				Api.expectedClasses.push(splitAtDollar[is]);
 			}
+			Api.expectedVisitedClasses = splitAtDollar.length;
 		}
 	}
 	
-	public static void enterInnerClass(String ic) {
-		if (!Api.innerClass.isEmpty() && Api.innerClass.peek().compareTo(ic)==0) {
-			Api.innerClass.pop();
-		}
+	/**
+	 * @return the class to load, regardless of the class to mutate
+	 */
+	public static String getMainClassName(String className) {
+		String[] splitAtDollar = className.split("&");
+		return splitAtDollar[0];
 	}
 	
+	/**
+	 * This method takes a class name and checks if that name is on top of the stack of {@code Api#innerClass}
+	 * and if it does then it will pop the value at the top of the stack 
+	 * 
+	 * @param ic	:	the name to check	:	{@code String}
+	 */
+	public static boolean enterInnerClass(String ic) {
+		Api.visitedClasses.push(ic);
+		if (!Api.expectedClasses.isEmpty() && Api.expectedClasses.peek().compareTo(ic)==0) {
+			Api.expectedClasses.pop();
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * pushes a class name to {@code Api.innerClass} stack
+	 * 
+	 * @param ic	:	the class name to push	:	{@code String}
+	 */
+	public static void leaveInnerClass(String ic, boolean pushExpectedClass) {
+		if (pushExpectedClass) Api.expectedClasses.push(ic);
+		if (!Api.visitedClasses.isEmpty()) Api.visitedClasses.pop();
+	}
+	
+	/**
+	 * @return {@code true} if {@code Api.innerClass} is empty
+	 */
 	public static boolean insideClassToMutate() {
-		return Api.innerClass.isEmpty();
+		return Api.expectedClasses.isEmpty() && Api.visitedClasses.size() == Api.expectedVisitedClasses;
 	}
 	
-	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	// +++++++++++++++++++++++++++++++++++added (06/10/14) [simon]
+	/**
+	 * Sets whether or not {@code OJSystem#clean()} will be called when calling {@code Api#generateMutants(File, String, String, Set<Mutant>)}
+	 * 
+	 * @param b	:	whether or not to call {@code OJSystem#clean()}	:	{@code boolean}
+	 */
 	public static void cleanOJSystemBeforeGenerating(boolean b) {
 		cleanOJSystemBeforeGenerating = b;
 	}
-	// -----------------------------------------------------------
 	
 	//The following methods are used when there's need bypass the method under consideration check
 	

@@ -570,8 +570,11 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	}
 
 	public void visit(AllocationExpression p) throws ParseTreeException {
+		String annonClassName = "";															//added (14/10/14) [simon]
+		boolean enterInnerClass = false;
 		if (Api.usingApi() && p.getClassBody() != null && !p.getClassBody().isEmpty()) {	//added (15/09/14) [simon]
-			Api.enterInnerClass(Integer.toString(this.nextAnnonymousClassID()));			//added (15/09/14) [simon]
+			annonClassName = Integer.toString(this.nextAnnonymousClassID());				//added (14/10/14) [simon]
+			enterInnerClass = Api.enterInnerClass(annonClassName);											//added (15/09/14) [simon] //modified (14/10/14) [simon]
 		}																					//added (15/09/14) [simon]
 		Expression newp = this.evaluateDown(p);
 		if (newp != p) {
@@ -581,6 +584,9 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 		this.pushLevel();			//added (15/09/14) [simon]
 		p.childrenAccept(this);
 		this.popLevel();			//added (15/09/14) [simon]
+		if (Api.usingApi()) {										//added (14/10/14) [simon]
+			Api.leaveInnerClass(annonClassName, enterInnerClass);					//added (14/10/14) [simon]
+		}															//added (14/10/14) [simon]
 		newp = this.evaluateUp(p);
 		if (newp != p)
 			p.replace(newp);
@@ -749,8 +755,9 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	}
 
 	public void visit(ClassDeclaration p) throws ParseTreeException {
+		boolean enterInnerClass = false;
 		if (Api.usingApi()) {									//added (15/09/14) [simon]
-			Api.enterInnerClass(p.toFlattenString());			//added (15/09/14) [simon]
+			enterInnerClass = Api.enterInnerClass(p.getName());					//added (15/09/14) [simon] //modified (14/10/14) [simon] {changed p.toFlattenedString to p.getName}
 		}														//added (15/09/14) [simon]
 		ClassDeclaration newp = this.evaluateDown(p);
 		if (newp != p) {
@@ -761,6 +768,9 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 		if (pushNewLevel) this.pushLevel();			//added (15/09/14) [simon]
 		p.childrenAccept(this);
 		if (pushNewLevel) this.popLevel();			//added (15/09/14) [simon]
+		if (Api.usingApi()) {						//added (15/10/14) [simon]
+			Api.leaveInnerClass(p.getName(), enterInnerClass);		//added (15/10/14) [simon]
+		}											//added (15/10/14) [simon]
 		newp = this.evaluateUp(p);
 		if (newp != p)
 			p.replace(newp);
@@ -815,7 +825,7 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	}
 
 	public void visit(ConstructorDeclaration p) throws ParseTreeException {
-		if (Api.usingApi() && !p.getName().equals(Api.getMethodUnderConsideration())) {			//added (15/09/14) [simon]
+		if (Api.usingApi() && (!Api.insideClassToMutate() || !p.getName().equals(Api.getMethodUnderConsideration()))) {			//added (15/09/14) [simon]
 			return;																				//added (15/09/14) [simon]
 		}																						//added (15/09/14) [simon]
 		MemberDeclaration newp = this.evaluateDown(p);
@@ -881,8 +891,9 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	 * Added for Java 1.5 Enumeration
 	 */
 	public void visit(EnumDeclaration p) throws ParseTreeException {
+		boolean enterInnerClass = false;
 		if (Api.usingApi()) {						//added (15/09/14) [simon]
-			Api.enterInnerClass(p.getName());		//added (15/09/14) [simon]
+			enterInnerClass = Api.enterInnerClass(p.getName());		//added (15/09/14) [simon]
 		}											//added (15/09/14) [simon]
 		MemberDeclaration newp = this.evaluateDown(p);
 		if (newp != p) {
@@ -893,6 +904,9 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 		if (pushNewLevel) this.pushLevel();			//added (15/09/14) [simon]
 		p.childrenAccept(this);
 		if (pushNewLevel) this.popLevel();			//added (15/09/14) [simon]
+		if (Api.usingApi()) {						//added (15/10/14) [simon]
+			Api.leaveInnerClass(p.getName(), enterInnerClass);		//added (15/10/14) [simon]
+		}											//added (15/10/14) [simon]
 		newp = this.evaluateUp(p);
 		if (newp != p)
 			p.replace(newp);
@@ -1069,7 +1083,7 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	}
 
 	public void visit(MethodDeclaration p) throws ParseTreeException {
-		if (Api.usingApi() && !p.getName().equals(Api.getMethodUnderConsideration())) {		//added (15/09/14) [simon]
+		if (Api.usingApi() && (!Api.insideClassToMutate() || !p.getName().equals(Api.getMethodUnderConsideration()))) {		//added (15/09/14) [simon]
 			return;																			//added (15/09/14) [simon]
 		}																					//added (15/09/14) [simon]
 		MemberDeclaration newp = this.evaluateDown(p);

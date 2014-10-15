@@ -226,7 +226,7 @@ public class Mutator implements Runnable{
 			pak += paks[i] + Core.SEPARATOR;
 		}
 		className = paks[paks.length-1];
-		String fileToMutateName = className + ".java";
+		String fileToMutateName = Api.getMainClassName(className) + ".java";
 		File fileToMutate = new File(request.inputDir + pak + fileToMutateName);
 		if (!fileToMutate.exists()) {
 			throw new IllegalArgumentException("The specified file "
@@ -336,7 +336,7 @@ public class Mutator implements Runnable{
 			pak += paks[i] + Core.SEPARATOR;
 		}
 		className = paks[paks.length-1];
-		String fileToMutateName = className + ".java";
+		String fileToMutateName = Api.getMainClassName(className) + ".java";
 		File fileToMutate = new File(request.inputDir + pak + fileToMutateName);
 		if (!fileToMutate.exists()) {
 			throw new IllegalArgumentException("The specified file "
@@ -601,7 +601,7 @@ public class Mutator implements Runnable{
 			pak += paks[i] + Core.SEPARATOR;
 		}
 		className = paks[paks.length-1];
-		String fileToMutateName = className + ".java";
+		String fileToMutateName = Api.getMainClassName(className) + ".java";
 		if (!applyAllMutantsToSameFile) Mutator.index = 0;
 		//--IF MUTANTS WILL BE APPLIED TO THE SAME FILE THEN THE FOLLOWING OBJECTS WILL BE 
 		//--INSTANCIATED ONLY ONCE

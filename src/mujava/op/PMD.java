@@ -50,7 +50,7 @@ public class PMD extends Mutator {
 	}
 	
 	public void visit(FieldDeclaration fd) throws ParseTreeException {
-		if (Api.usingApi() && (Api.getMethodUnderConsideration().compareTo(MutationRequest.MUTATE_FIELDS)!=0)) {
+		if (Api.usingApi() && (!Api.insideClassToMutate() || (Api.getMethodUnderConsideration().compareTo(MutationRequest.MUTATE_FIELDS)!=0))) {
 			return;
 		}
 		if (getMutationsLeft(fd) <= 0) return;
@@ -69,7 +69,7 @@ public class PMD extends Mutator {
 	}
 	
 	public void visit(MethodDeclaration md) throws ParseTreeException {
-		if (Api.usingApi() && !md.getName().equals(Api.getMethodUnderConsideration())) {
+		if (Api.usingApi() && (!Api.insideClassToMutate() || !md.getName().equals(Api.getMethodUnderConsideration()))) {
 			return;
 		}
 		super.visit(md.getBody());
@@ -93,7 +93,7 @@ public class PMD extends Mutator {
 	}
 	
 	public void visit( ConstructorDeclaration cd ) throws ParseTreeException {
-		if (Api.usingApi() && !cd.getName().equals(Api.getMethodUnderConsideration())) {
+		if (Api.usingApi() && (!Api.insideClassToMutate() || !cd.getName().equals(Api.getMethodUnderConsideration()))) {
 			return;
 		}
 		super.visit(cd.getBody());

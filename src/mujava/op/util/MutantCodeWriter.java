@@ -33,13 +33,17 @@ import openjava.ptree.util.ParseTreeVisitor;
 
 public class MutantCodeWriter extends ParseTreeVisitor {
 	
-	protected Mutation mi;	//added (12/09/14) [simon]
+	/**
+	 * The mutation to write
+	 */
+	protected Mutation mi;
 	
+	/**
+	 * The printer that will be used to write
+	 */
 	protected PrintWriter out;
-	// public static String NEWLINE;
 
 	public String class_name = null;
-	// public String target_name = null;
 
 	public int line_num = 1;
 	public int mutated_line = -1;

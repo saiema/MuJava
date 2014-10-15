@@ -43,12 +43,16 @@ public class OMR extends Mutator {
 	
 	public void visit(ClassDeclaration cs) throws ParseTreeException {
 		super.visit(cs);
+		boolean enterInnerClass = false;
+		if (Api.usingApi()) {
+			enterInnerClass = Api.enterInnerClass(cs.getName());
+		}
 		MemberDeclarationList members = cs.getBody();
 		for (int m = 0; m < members.size(); m++) {
 			MemberDeclaration member = members.get(m);
 			if (member instanceof MethodDeclaration) {
 				MethodDeclaration method = (MethodDeclaration) member;
-				if (Api.getMethodUnderConsideration().compareTo(method.getName())==0) {
+				if (Api.insideClassToMutate() && Api.getMethodUnderConsideration().compareTo(method.getName())==0) {
 					//get only the methods with the same name as the method under consideration
 					methods.add((MethodDeclaration) member);
 				}
@@ -57,10 +61,13 @@ public class OMR extends Mutator {
 		for (int m = 0; m < members.size(); m++) {
 			visit(members.get(m));
 		}
+		if (Api.usingApi()) {
+			Api.leaveInnerClass(cs.getName(), enterInnerClass);
+		}
 	}
 	
 	public void visit(MethodDeclaration md) throws ParseTreeException {
-		if (Api.getMethodUnderConsideration().compareTo(md.getName()) != 0) {
+		if (Api.usingApi() && (!Api.insideClassToMutate() || Api.getMethodUnderConsideration().compareTo(md.getName()) != 0)) {
 			return;
 		}
 		if (!(getMutationsLeft(md) > 0)) return;

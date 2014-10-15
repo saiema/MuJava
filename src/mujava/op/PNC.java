@@ -129,7 +129,7 @@ public class PNC extends mujava.op.util.Mutator {
 	}
 	
 	public void visit(MethodDeclaration md) throws ParseTreeException {
-		if (Api.usingApi() && !md.getName().equals(Api.getMethodUnderConsideration())) {
+		if (Api.usingApi() && (!Api.insideClassToMutate() || !md.getName().equals(Api.getMethodUnderConsideration()))) {
 			return;
 		}
 		bindLocalVariables(md.getBody());

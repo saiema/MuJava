@@ -34,13 +34,29 @@ public class IHD extends mujava.op.util.Mutator {
 	public void visit(ClassDeclaration cs) throws ParseTreeException {
 		super.visit(cs);
 
+		boolean enterInnerClass = false;
+		if (Api.usingApi()) {
+			enterInnerClass = Api.enterInnerClass(cs.getName());
+		}
+		
 		if (Api.usingApi()
-				&& (Api.getMethodUnderConsideration().compareTo(
-						MutationRequest.MUTATE_CLASS) != 0)) {
+				&& 
+				(		!Api.insideClassToMutate()
+						||
+						(Api.getMethodUnderConsideration().compareTo(
+						MutationRequest.MUTATE_CLASS) != 0
+				))) {
+			if (Api.usingApi()) {
+				Api.leaveInnerClass(cs.getName(), enterInnerClass);
+			}
 			return;
 		}
-		if (!(getMutationsLeft(cs) > 0))
+		if (!(getMutationsLeft(cs) > 0)) {
+			if (Api.usingApi()) {
+				Api.leaveInnerClass(cs.getName(), enterInnerClass);
+			}
 			return;
+		}
 
 		OJField[] localFields = getSelfType().getDeclaredFields();
 		OJField[] inheritedFields = filterInheritable(getSelfType()
@@ -66,10 +82,17 @@ public class IHD extends mujava.op.util.Mutator {
 							tname, name, null);
 					outputToFile(cs, mutant);
 				} catch (Exception ex) {
+					if (Api.usingApi()) {
+						Api.leaveInnerClass(cs.getName(), enterInnerClass);
+					}
 					System.err.println("[Exception]  " + ex);
 				}
 
 			}
+		}
+		
+		if (Api.usingApi()) {
+			Api.leaveInnerClass(cs.getName(), enterInnerClass);
 		}
 
 	}

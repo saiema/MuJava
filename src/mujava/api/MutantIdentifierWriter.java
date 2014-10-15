@@ -48,197 +48,213 @@ import openjava.ptree.NonLeaf;
 
 /**
  * Used for converting mutant identifiers into java files
+ * 
+ * This class will call the specific {@code MutantCodeWriter} for each {@code Mutation}
  */
 public class MutantIdentifierWriter {
 
 	private CompilationUnit source;
 	private PrintWriter output;
 
+	/**
+	 * Constructor
+	 * 
+	 * @param source	:	the original compilation unit				:	{@code CompilationUnit}
+	 * @param output	:	the printer to write the compilation unit	:	{@code PrintWriter}
+	 */
 	public MutantIdentifierWriter(CompilationUnit source, PrintWriter output) {
 		this.source = source;
 		this.output = output;
 	}
-
-	public int write(Mutation mutant) throws ParseTreeException {
+	
+	/**
+	 * This method writes the compilation unit defined in this class constructor
+	 * and when it reaches the original node in the mutation it will write the mutant node instead
+	 * 
+	 * @param mutation	:	the mutation which contains the original and the mutated node	:	{@code Mutation}
+	 * @return	the line number where the mutation was written or {@code -1} if the mutation couldn't be written	:	{@code int}
+	 * @throws ParseTreeException
+	 */
+	public int write(Mutation mutation) throws ParseTreeException {
 		MutantCodeWriter writer_generic;
 		int ret = -1;
 		boolean ihiOp = false;
-		if (mutant.getMutOp().equals(Mutant.AODS)) {
+		if (mutation.getMutOp().equals(Mutant.AODS)) {
 			
-			writer_generic = new AODS_Writer(null, output, mutant);
+			writer_generic = new AODS_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.AODU)) {
+		} else if (mutation.getMutOp().equals(Mutant.AODU)) {
 			
-			writer_generic = new AODU_Writer(null, output, mutant);
+			writer_generic = new AODU_Writer(null, output, mutation);
 
-		} else if (mutant.getMutOp().equals(Mutant.AOIS)) {
+		} else if (mutation.getMutOp().equals(Mutant.AOIS)) {
 			
-			writer_generic = new AOIS_Writer(null, output, mutant);
+			writer_generic = new AOIS_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.AOIU)) {
+		} else if (mutation.getMutOp().equals(Mutant.AOIU)) {
 			
-			writer_generic = new AOIU_Writer(null, output, mutant);
+			writer_generic = new AOIU_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.AORB)) {
+		} else if (mutation.getMutOp().equals(Mutant.AORB)) {
 			
-			writer_generic = new AORB_Writer(null, output, mutant);
+			writer_generic = new AORB_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.AORS)) {
+		} else if (mutation.getMutOp().equals(Mutant.AORS)) {
 			
-			writer_generic = new AORS_Writer(null, output, mutant);
+			writer_generic = new AORS_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.AORU)) {
+		} else if (mutation.getMutOp().equals(Mutant.AORU)) {
 			
-			writer_generic = new AORU_Writer(null, output, mutant);
+			writer_generic = new AORU_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.ROR)) {
+		} else if (mutation.getMutOp().equals(Mutant.ROR)) {
 					
-			writer_generic = new ROR_Writer(null, output, mutant);
+			writer_generic = new ROR_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.LOD)){
+		} else if (mutation.getMutOp().equals(Mutant.LOD)){
 			
-			writer_generic = new LOD_Writer(null, output, mutant);
+			writer_generic = new LOD_Writer(null, output, mutation);
 
-		} else if (mutant.getMutOp().equals(Mutant.LOI)){
+		} else if (mutation.getMutOp().equals(Mutant.LOI)){
 
-			writer_generic = new LOI_Writer(null, output, mutant);	
+			writer_generic = new LOI_Writer(null, output, mutation);	
 
-		} else if (mutant.getMutOp().equals(Mutant.LOR)){
+		} else if (mutation.getMutOp().equals(Mutant.LOR)){
 			
-			writer_generic = new LOR_Writer(null, output, mutant);
+			writer_generic = new LOR_Writer(null, output, mutation);
 
-		} else if (mutant.getMutOp().equals(Mutant.SOR)){
+		} else if (mutation.getMutOp().equals(Mutant.SOR)){
 				
-			writer_generic = new SOR_Writer(null, output, mutant);
+			writer_generic = new SOR_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.PRVOR) || mutant.getMutOp().equals(Mutant.PRVOR_SMART) || mutant.getMutOp().equals(Mutant.PRVOR_REFINED)){
+		} else if (mutation.getMutOp().equals(Mutant.PRVOR) || mutation.getMutOp().equals(Mutant.PRVOR_SMART) || mutation.getMutOp().equals(Mutant.PRVOR_REFINED)){
 			
-			writer_generic = new PRVO_Writer(null, output, mutant);
+			writer_generic = new PRVO_Writer(null, output, mutation);
 
-		} else if (mutant.getMutOp().equals(Mutant.PRVOL) || mutant.getMutOp().equals(Mutant.PRVOL_SMART)) {
+		} else if (mutation.getMutOp().equals(Mutant.PRVOL) || mutation.getMutOp().equals(Mutant.PRVOL_SMART)) {
 			
-			writer_generic = new PRVO_Writer(null, output, mutant);
+			writer_generic = new PRVO_Writer(null, output, mutation);
 
-		} else if (mutant.getMutOp().equals(Mutant.PRVOU) || mutant.getMutOp().equals(Mutant.PRVOU_SMART) || mutant.getMutOp().equals(Mutant.PRVOU_REFINED)) {
+		} else if (mutation.getMutOp().equals(Mutant.PRVOU) || mutation.getMutOp().equals(Mutant.PRVOU_SMART) || mutation.getMutOp().equals(Mutant.PRVOU_REFINED)) {
 			
-			writer_generic = new PRVO_Writer(null, output, mutant);
+			writer_generic = new PRVO_Writer(null, output, mutation);
 
-		} else if (mutant.getMutOp().equals(Mutant.ASRS)) {
+		} else if (mutation.getMutOp().equals(Mutant.ASRS)) {
 			
-			writer_generic = new ASRS_Writer(null, output, mutant);
+			writer_generic = new ASRS_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.COD)) {
+		} else if (mutation.getMutOp().equals(Mutant.COD)) {
 			
-			writer_generic = new COD_Writer(null, output, mutant);
+			writer_generic = new COD_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.COI)) {
+		} else if (mutation.getMutOp().equals(Mutant.COI)) {
 			
-			writer_generic = new COI_Writer(null, output, mutant);
+			writer_generic = new COI_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.COR)) {
+		} else if (mutation.getMutOp().equals(Mutant.COR)) {
 			
-			writer_generic = new COR_Writer(null, output, mutant);
+			writer_generic = new COR_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.AMC)) {
+		} else if (mutation.getMutOp().equals(Mutant.AMC)) {
 			
-			writer_generic = new AMC_Writer(null, output, mutant);
+			writer_generic = new AMC_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.IHI)) {
+		} else if (mutation.getMutOp().equals(Mutant.IHI)) {
 			
-			writer_generic = new IHI_Writer(null, output, mutant);
+			writer_generic = new IHI_Writer(null, output, mutation);
 			ihiOp = true;
 			
-		} else if(mutant.getMutOp().equals(Mutant.EMM)) { 
+		} else if(mutation.getMutOp().equals(Mutant.EMM)) { 
 			
-			writer_generic = new EMM_Writer(null, output, mutant);
+			writer_generic = new EMM_Writer(null, output, mutation);
 			
-		} else if(mutant.getMutOp().equals(Mutant.EAM)) { 
+		} else if(mutation.getMutOp().equals(Mutant.EAM)) { 
 			
-			writer_generic = new EMM_Writer(null, output, mutant);
+			writer_generic = new EMM_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.EOC)) {
+		} else if (mutation.getMutOp().equals(Mutant.EOC)) {
 			
-			writer_generic = new EOC_Writer(null, output, mutant);
+			writer_generic = new EOC_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.IHD)) {
+		} else if (mutation.getMutOp().equals(Mutant.IHD)) {
 			
-			writer_generic = new IHD_Writer(null, output, mutant);
+			writer_generic = new IHD_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.JDC)) {
+		} else if (mutation.getMutOp().equals(Mutant.JDC)) {
 			
-			writer_generic = new JDC_Writer(null, output, mutant);
+			writer_generic = new JDC_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.EOA) || mutant.getMutOp().equals(Mutant.EOA_DUMB) || mutant.getMutOp().equals(Mutant.EOA_STRICT)) {
+		} else if (mutation.getMutOp().equals(Mutant.EOA) || mutation.getMutOp().equals(Mutant.EOA_DUMB) || mutation.getMutOp().equals(Mutant.EOA_STRICT)) {
 			
-			writer_generic = new EOA_Writer(null, output, mutant);
+			writer_generic = new EOA_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.IPC)) {
+		} else if (mutation.getMutOp().equals(Mutant.IPC)) {
 			
-			writer_generic = new IPC_Writer(null, output, mutant);
+			writer_generic = new IPC_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.ISI) || mutant.getMutOp().equals(Mutant.ISI_SMART) || mutant.getMutOp().equals(Mutant.OAN) || mutant.getMutOp().equals(Mutant.OAN_RELAXED)) {
+		} else if (mutation.getMutOp().equals(Mutant.ISI) || mutation.getMutOp().equals(Mutant.ISI_SMART) || mutation.getMutOp().equals(Mutant.OAN) || mutation.getMutOp().equals(Mutant.OAN_RELAXED)) {
 			
-			writer_generic = new ISI_Writer(null, output, mutant);
+			writer_generic = new ISI_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.ISD) || mutant.getMutOp().equals(Mutant.ISD_SMART) || mutant.getMutOp().equals(Mutant.JTD)) {
+		} else if (mutation.getMutOp().equals(Mutant.ISD) || mutation.getMutOp().equals(Mutant.ISD_SMART) || mutation.getMutOp().equals(Mutant.JTD)) {
 			
-			writer_generic = new ISD_Writer(null, output, mutant);
+			writer_generic = new ISD_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.IOD)) {
+		} else if (mutation.getMutOp().equals(Mutant.IOD)) {
 			
-			writer_generic = new IOD_Writer(null, output, mutant);
+			writer_generic = new IOD_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.IOP)) {
+		} else if (mutation.getMutOp().equals(Mutant.IOP)) {
 			
-			writer_generic = new IOP_Writer(null, output, mutant);
+			writer_generic = new IOP_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.JID)) {
+		} else if (mutation.getMutOp().equals(Mutant.JID)) {
 			
-			writer_generic = new JID_Writer(null, output, mutant);
+			writer_generic = new JID_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.JSD) || mutant.getMutOp().equals(Mutant.JSI)) {
+		} else if (mutation.getMutOp().equals(Mutant.JSD) || mutation.getMutOp().equals(Mutant.JSI)) {
 			
-			writer_generic = new JSD_Writer(null, output, mutant);
+			writer_generic = new JSD_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.JTI) || mutant.getMutOp().equals(Mutant.JTI_SMART)) {
+		} else if (mutation.getMutOp().equals(Mutant.JTI) || mutation.getMutOp().equals(Mutant.JTI_SMART)) {
 			
-			writer_generic = new JTI_Writer(null, output, mutant);
+			writer_generic = new JTI_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.PCC)) {
+		} else if (mutation.getMutOp().equals(Mutant.PCC)) {
 			
-			writer_generic = new PCC_Writer(null, output, mutant);
+			writer_generic = new PCC_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.PCD)) {
+		} else if (mutation.getMutOp().equals(Mutant.PCD)) {
 			
-			writer_generic = new PCD_Writer(null, output, mutant);
+			writer_generic = new PCD_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.PCI)) {
+		} else if (mutation.getMutOp().equals(Mutant.PCI)) {
 			
-			writer_generic = new PCI_Writer(null, output, mutant);
+			writer_generic = new PCI_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.PMD) || mutant.getMutOp().equals(Mutant.PPD)) {
+		} else if (mutation.getMutOp().equals(Mutant.PMD) || mutation.getMutOp().equals(Mutant.PPD)) {
 			
-			writer_generic = new PMD_Writer(null, output, mutant);
+			writer_generic = new PMD_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.OMR)) {
+		} else if (mutation.getMutOp().equals(Mutant.OMR)) {
 			
-			writer_generic = new OMR_Writer(null, output, mutant);
+			writer_generic = new OMR_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.PNC)) {
+		} else if (mutation.getMutOp().equals(Mutant.PNC)) {
 			
-			writer_generic = new PNC_Writer(null, output, mutant);
+			writer_generic = new PNC_Writer(null, output, mutation);
 			
-		} else if (mutant.getMutOp().equals(Mutant.MULTI)) {
+		} else if (mutation.getMutOp().equals(Mutant.MULTI)) {
 			
 			writer_generic = new MutantCodeWriter(null, output, null);
 			
 		} else {
-			throw new IllegalStateException("The mutant " + mutant.getMutOp() + " isn't writable");
+			throw new IllegalStateException("The mutant " + mutation.getMutOp() + " isn't writable");
 		}
-		if (mutant.getMutOp().equals(Mutant.MULTI)) {
+		if (mutation.getMutOp().equals(Mutant.MULTI)) {
 			writeAST(source, writer_generic);
 		} else {
-			ret = writeMutant(source, writer_generic, mutant);
+			ret = writeMutant(source, writer_generic, mutation);
 			if (ihiOp) {
 				((IHI_Writer)writer_generic).restore();
 			}

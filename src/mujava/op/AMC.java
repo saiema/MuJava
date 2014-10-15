@@ -84,7 +84,7 @@ public class AMC extends mujava.op.util.Mutator {
 	}
 
 	public void visit(MethodDeclaration p) throws ParseTreeException {
-		if (Api.usingApi() && !p.getName().equals(Api.getMethodUnderConsideration())) {
+		if (Api.usingApi() && (!Api.insideClassToMutate() || !p.getName().equals(Api.getMethodUnderConsideration()))) {
 			return;
 		}
 		if (getMutationsLeft(p) <= 0) return;
@@ -92,7 +92,7 @@ public class AMC extends mujava.op.util.Mutator {
 	}
 
 	public void visit(FieldDeclaration p) throws ParseTreeException {
-		if (Api.usingApi() && (Api.getMethodUnderConsideration().compareTo(MutationRequest.MUTATE_FIELDS)!=0)) {
+		if (Api.usingApi() && (!Api.insideClassToMutate() || (Api.getMethodUnderConsideration().compareTo(MutationRequest.MUTATE_FIELDS)!=0))) {
 			return;
 		}
 		if (getMutationsLeft(p) <= 0) return;

@@ -38,11 +38,23 @@ public class JDC extends mujava.op.util.Mutator {
 	public void visit(ClassDeclaration cs) throws ParseTreeException {
 		super.visit(cs);
 
-		if (Api.usingApi() && (Api.getMethodUnderConsideration().compareTo(MutationRequest.MUTATE_CLASS) != 0)) {
+		boolean enterInnerClass = false;
+		if (Api.usingApi()) {
+			enterInnerClass = Api.enterInnerClass(cs.getName());
+		}
+		
+		if (Api.usingApi() && (!Api.insideClassToMutate() || (Api.getMethodUnderConsideration().compareTo(MutationRequest.MUTATE_CLASS) != 0))) {
+			if (Api.usingApi()) {
+				Api.leaveInnerClass(cs.getName(), enterInnerClass);
+			}
 			return;
 		}
-		if (!(getMutationsLeft(cs) > 0))
+		if (!(getMutationsLeft(cs) > 0)) {
+			if (Api.usingApi()) {
+				Api.leaveInnerClass(cs.getName(), enterInnerClass);
+			}
 			return;
+		}
 
 		OJConstructor[] constructors = getSelfType().getDeclaredConstructors();
 		for (int i = 0; i < constructors.length; i++) {
@@ -60,6 +72,9 @@ public class JDC extends mujava.op.util.Mutator {
 					ConstructorDeclaration mutant = new ConstructorDeclaration(modlist,name, null, null, null, null);
 					outputToFile(cs, mutant);
 				} catch (Exception ex) {
+					if (Api.usingApi()) {
+						Api.leaveInnerClass(cs.getName(), enterInnerClass);
+					}
 					System.err.println("[Exception]  " + ex);
 				}
 
