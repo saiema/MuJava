@@ -22,12 +22,9 @@ public class JDC_Writer extends MutantCodeWriter {
 	@Override
 	public void visit(ConstructorDeclaration fd) throws ParseTreeException {
 		if (this.mutant != null && compare(fd, this.mutant)) {
-			String mutantString = this.mutant.toFlattenString();
 			this.mutant = null;
 	        // -----------------------------------------------------------
 	        mutated_line = line_num;
-	        String log_str = "removed  => " + mutantString;
-	        writeLog(removeNewline(log_str));
 	        // -----------------------------------------------------------
 		} else {
 			super.visit(fd);

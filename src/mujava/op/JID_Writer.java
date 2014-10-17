@@ -39,13 +39,10 @@ public class JID_Writer extends MutantCodeWriter {
 
 	public void visit(FieldDeclaration p) throws ParseTreeException {
 		if (isSameObject(p, original)) {
-			String originalString = this.original.toFlattenString();
 			this.original = null;
 			this.mutant.setMutGenLimit(p.getMutGenLimit());
 	        super.visit(mutant);
 	        mutated_line = line_num;
-	        String log_str = originalString + " => " + mutant.toFlattenString();
-	        writeLog(removeNewline(log_str));
 		} else {
 			super.visit(p);
 		}

@@ -44,7 +44,6 @@ public class PNC_Writer extends MutantCodeWriter {
 			super.visit(this.mutant);
 			// -------------------------------------------------------------
 			mutated_line = line_num;
-			writeLog(removeNewline(this.original.toString() + " => " + this.mutant.toString()));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);

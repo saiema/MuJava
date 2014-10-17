@@ -39,8 +39,6 @@ public class IPC_Writer extends MutantCodeWriter {
 		if (isSameObject(p, mutant)) {
 			 // -----------------------------------------------------------
 	        mutated_line = line_num;
-	        String log_str = "removed  => " + mutant.toFlattenString();
-	        writeLog(removeNewline(log_str));
 	        // -----------------------------------------------------------
 		} else {
 			super.visit(p);

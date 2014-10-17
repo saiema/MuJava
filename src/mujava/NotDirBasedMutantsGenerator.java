@@ -5,7 +5,6 @@ import java.util.Set;
 
 import mujava.api.Mutant;
 import mujava.api.MutantsInformationHolder;
-import mujava.op.util.CodeChangeLog;
 import mujava.op.AMC;
 import mujava.op.EAM;
 import mujava.op.EMM;
@@ -91,9 +90,7 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 			return;
 		}
 		if (mutOps != null && mutOps.size() > 0) {
-			CodeChangeLog.openLogFile();
 			generateMutants(cdecls);
-			CodeChangeLog.closeLogFile();
 		}
 
 	}

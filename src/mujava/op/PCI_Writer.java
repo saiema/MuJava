@@ -43,13 +43,10 @@ public class PCI_Writer extends MutantCodeWriter {
 
 	public void visit(Variable p) throws ParseTreeException {
 		if (this.original_var != null && isSameObject(p, this.original_var)) {
-			String originalString = this.original_var.toFlattenString();
 			this.original_var = null;
 			super.visit(this.mutant);
 			// -----------------------------------------------------------
 			mutated_line = line_num;
-			String log_str = originalString + " => " + this.mutant.toFlattenString();
-			writeLog(removeNewline(log_str));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);
@@ -58,13 +55,10 @@ public class PCI_Writer extends MutantCodeWriter {
 	
 	public void visit(FieldAccess p) throws ParseTreeException {
 		if (this.original_fa != null && isSameObject(p, this.original_fa)) {
-			String originalString = this.original_fa.toFlattenString();
 			this.original_fa = null;
 			super.visit(this.mutant);
 			// -----------------------------------------------------------
 			mutated_line = line_num;
-			String log_str = originalString + " => " + this.mutant.toFlattenString();
-			writeLog(removeNewline(log_str));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);

@@ -46,18 +46,13 @@ public class ROR_Writer extends MutantCodeWriter {
 
 	public void visit(BinaryExpression p) throws ParseTreeException {
 		if (isSameObject(p, this.original)) {
-			String mutantS = "";
 			if (this.mutantL != null) {
-				mutantS = this.mutantL.toFlattenString();
 				super.visit(this.mutantL);
 			} else {
-				mutantS = this.mutant.toFlattenString();
 				super.visit(this.mutant);
 			}
 			// -----------------------------------------------------------
 			mutated_line = line_num;
-			String log_str = p.toFlattenString() + "  =>  " + mutantS;
-			writeLog(removeNewline(log_str));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);

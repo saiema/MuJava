@@ -55,12 +55,10 @@ public class EOA_Writer extends MutantCodeWriter {
 
 	public void visit(AssignmentExpression p) throws ParseTreeException {
 		if (this.original_ae != null && isSameObject(p, this.original_ae)) {
-			String originalString = this.original_ae.toFlattenString();
 			this.original_ae = null;
 			super.visit(this.mutant_ae);
 			// -------------------------------------------------------------
 			mutated_line = line_num;
-			writeLog(removeNewline(originalString + " => " + this.mutant_ae.toString()));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);
@@ -69,12 +67,10 @@ public class EOA_Writer extends MutantCodeWriter {
 	
 	public void visit(VariableDeclarator p) throws ParseTreeException {
 		if (this.original_vd != null && isSameObject(p, this.original_vd)) {
-			String originalString = this.original_vd.toFlattenString();
 			this.original_vd = null;
 			super.visit(this.mutant_vd);
 			// -------------------------------------------------------------
 			mutated_line = line_num;
-			writeLog(removeNewline(originalString + " => " + this.mutant_vd.toString()));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);

@@ -70,28 +70,20 @@ public class PRVO_Writer extends MutantCodeWriter {
 
 	public void visit(FieldAccess o) throws ParseTreeException {
 		if(isSameObject(o, this.original_fa) ){
-			String mut = "";
-			String originalString = this.original_fa.toFlattenString();
 			this.original_fa = null;
 			if (this.mutant_fa != null) {
 				super.visit(this.mutant_fa);
-				mut = this.mutant_fa.toString();
 			} else if (this.mutant_lit != null) {
 				super.visit(this.mutant_lit);
-				mut = this.mutant_lit.toString();
 			} else if (this.mutant_mc != null) {
 				super.visit(this.mutant_mc);
-				mut = this.mutant_mc.toString();
 			} else if (this.mutant_sa != null) {
 				super.visit(this.mutant_sa);
-				mut = this.mutant_sa.toString();
 			} else if (this.mutant_var != null) {
 				super.visit(this.mutant_var);
-				mut = this.mutant_var.toString();
 			}
 			// -------------------------------------------------------------
 		    mutated_line = line_num;
-			writeLog(removeNewline(originalString + " => " + mut));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(o);
@@ -100,28 +92,20 @@ public class PRVO_Writer extends MutantCodeWriter {
 	
 	public void visit(MethodCall o) throws ParseTreeException {
 		if(isSameObject(o, this.original_mc) ){
-			String mut = "";
-			String originalString = this.original_mc.toFlattenString();
 			this.original_mc = null;
 			if (this.mutant_fa != null) {
 				super.visit(this.mutant_fa);
-				mut = this.mutant_fa.toString();
 			} else if (this.mutant_lit != null) {
 				super.visit(this.mutant_lit);
-				mut = this.mutant_lit.toString();
 			} else if (this.mutant_mc != null) {
 				super.visit(this.mutant_mc);
-				mut = this.mutant_mc.toString();
 			} else if (this.mutant_sa != null) {
 				super.visit(this.mutant_sa);
-				mut = this.mutant_sa.toString();
 			} else if (this.mutant_var != null) {
 				super.visit(this.mutant_var);
-				mut = this.mutant_var.toString();
 			}
 			// -------------------------------------------------------------
 		    mutated_line = line_num;
-			writeLog(removeNewline(originalString + " => " + mut));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(o);
@@ -130,28 +114,20 @@ public class PRVO_Writer extends MutantCodeWriter {
 	
 	public void visit(Variable o) throws ParseTreeException {
 		if(isSameObject(o, this.original_var) ){
-			String mut = "";
-			String originalString = this.original_var.toFlattenString();
 			this.original_var = null;
 			if (this.mutant_fa != null) {
 				super.visit(this.mutant_fa);
-				mut = this.mutant_fa.toString();
 			} else if (this.mutant_lit != null) {
 				super.visit(this.mutant_lit);
-				mut = this.mutant_lit.toString();
 			} else if (this.mutant_mc != null) {
 				super.visit(this.mutant_mc);
-				mut = this.mutant_mc.toString();
 			} else if (this.mutant_sa != null) {
 				super.visit(this.mutant_sa);
-				mut = this.mutant_sa.toString();
 			} else if (this.mutant_var != null) {
 				super.visit(this.mutant_var);
-				mut = this.mutant_var.toString();
 			}
 			// -------------------------------------------------------------
 		    mutated_line = line_num;
-			writeLog(removeNewline(originalString + " => " + mut));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(o);
@@ -160,28 +136,20 @@ public class PRVO_Writer extends MutantCodeWriter {
 	
 	public void visit(Literal o) throws ParseTreeException {
 		if(isSameObject(o, this.original_lit) ){
-			String mut = "";
-			String originalString = this.original_lit.toFlattenString();
 			this.original_lit = null;
 			if (this.mutant_fa != null) {
 				super.visit(this.mutant_fa);
-				mut = this.mutant_fa.toString();
 			} else if (this.mutant_lit != null) {
 				super.visit(this.mutant_lit);
-				mut = this.mutant_lit.toString();
 			} else if (this.mutant_mc != null) {
 				super.visit(this.mutant_mc);
-				mut = this.mutant_mc.toString();
 			} else if (this.mutant_sa != null) {
 				super.visit(this.mutant_sa);
-				mut = this.mutant_sa.toString();
 			} else if (this.mutant_var != null) {
 				super.visit(this.mutant_var);
-				mut = this.mutant_var.toString();
 			}
 			// -------------------------------------------------------------
 		    mutated_line = line_num;
-			writeLog(removeNewline(originalString + " => " + mut));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(o);
@@ -190,28 +158,20 @@ public class PRVO_Writer extends MutantCodeWriter {
 	
 	public void visit(SelfAccess o) throws ParseTreeException {
 		if(isSameObject(o, this.original_sa) ){
-			String mut = "";
-			String originalString = this.original_sa.toFlattenString();
 			this.original_sa = null;
 			if (this.mutant_fa != null) {
 				super.visit(this.mutant_fa);
-				mut = this.mutant_fa.toString();
 			} else if (this.mutant_lit != null) {
 				super.visit(this.mutant_lit);
-				mut = this.mutant_lit.toString();
 			} else if (this.mutant_mc != null) {
 				super.visit(this.mutant_mc);
-				mut = this.mutant_mc.toString();
 			} else if (this.mutant_sa != null) {
 				super.visit(this.mutant_sa);
-				mut = this.mutant_sa.toString();
 			} else if (this.mutant_var != null) {
 				super.visit(this.mutant_var);
-				mut = this.mutant_var.toString();
 			}
 			// -------------------------------------------------------------
 		    mutated_line = line_num;
-			writeLog(removeNewline(originalString + " => " + mut));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(o);

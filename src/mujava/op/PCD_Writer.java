@@ -31,8 +31,6 @@ public class PCD_Writer extends MutantCodeWriter {
 			super.visit(this.mutant);
 			// -----------------------------------------------------------
 			mutated_line = line_num;
-			String log_str = this.original.toFlattenString() + " => " + this.mutant.toFlattenString();
-			writeLog(removeNewline(log_str));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);

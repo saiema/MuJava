@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
 import openjava.ptree.*;
 import mujava.MutationSystem;
 import mujava.api.Mutation;
-import mujava.op.util.CodeChangeLog;
 import openjava.ptree.util.ParseTreeVisitor;
 
 /**
@@ -1514,17 +1513,6 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			out.println();
 			line_num++;
 		}
-	}
-
-	protected void writeLog() {
-		CodeChangeLog.writeLog(class_name + MutationSystem.LOG_IDENTIFIER
-				+ mutated_line);
-	}
-
-	protected void writeLog(String changed_content) {
-		CodeChangeLog.writeLog(class_name + MutationSystem.LOG_IDENTIFIER
-				+ mutated_line + MutationSystem.LOG_IDENTIFIER
-				+ changed_content);
 	}
 
 	protected String removeNewline(String str) {

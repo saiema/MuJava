@@ -72,8 +72,6 @@ public class AOIU_Writer extends MutantCodeWriter {
 		   super.visit(this.mutant);
 		   // -----------------------------------------------------------
 		   mutated_line = line_num;
-		   String log_str = p.toString() + " => " + this.mutant.toString();
-		   writeLog(removeNewline(log_str));
 		   // -------------------------------------------------------------
       } else {
     	  super.visit(p);
@@ -86,8 +84,6 @@ public class AOIU_Writer extends MutantCodeWriter {
 		   super.visit(this.mutant);
 		   // -----------------------------------------------------------
 		   mutated_line = line_num;
-		   String log_str = p.toString() + " => " + this.mutant.toString();
-		   writeLog(removeNewline(log_str));
 		   // -------------------------------------------------------------
       } else {
     	  super.visit(p);
@@ -100,8 +96,6 @@ public class AOIU_Writer extends MutantCodeWriter {
 		   super.visit(this.mutant);
 		   // -----------------------------------------------------------
 		   mutated_line = line_num;
-		   String log_str = p.toString() + " => " + this.mutant.toString();
-		   writeLog(removeNewline(log_str));
 		   // -------------------------------------------------------------
       } else {
     	  super.visit(p);
@@ -114,8 +108,6 @@ public class AOIU_Writer extends MutantCodeWriter {
 		   super.visit(this.mutant);
 		   // -----------------------------------------------------------
 		   mutated_line = line_num;
-		   String log_str = p.toString() + " => " + this.mutant.toString();
-		   writeLog(removeNewline(log_str));
 		   // -------------------------------------------------------------
       } else {
     	  super.visit(p);

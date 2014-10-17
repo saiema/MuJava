@@ -44,8 +44,6 @@ public class ASRS_Writer extends MutantCodeWriter {
 			super.visit(this.assign_mutant);
 			// -----------------------------------------------------------
 			mutated_line = line_num;
-			String log_str = p.toString() + " => " + this.assign_mutant.toString();
-			writeLog(removeNewline(log_str));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);

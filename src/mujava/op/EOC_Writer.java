@@ -40,11 +40,9 @@ public class EOC_Writer extends MutantCodeWriter {
 
 	public void visit(BinaryExpression p) throws ParseTreeException {
 		if (isSameObject(p, this.original_bexp)) {
-			String originalString = this.original_bexp.toFlattenString();
 			this.original_bexp = null;
 			super.visit(this.mutant);
 			mutated_line = line_num;
-			writeLog(originalString + " => " + this.mutant.toString());
 		} else {
 			super.visit(p);
 		}

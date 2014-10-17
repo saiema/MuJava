@@ -39,12 +39,10 @@ public class EMM_Writer extends MutantCodeWriter {
 
 	public void visit(MethodCall p) throws ParseTreeException {
 		if (isSameObject(p, this.original)) {
-			String originalString = this.original.toFlattenString();
 			this.original = null;
 			super.visit(this.mutant);
 			// -------------------------------------------------------------
 			mutated_line = line_num;
-			writeLog(removeNewline(originalString + " => " + this.mutant.toString()));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);

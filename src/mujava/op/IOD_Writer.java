@@ -28,8 +28,6 @@ public class IOD_Writer extends MutantCodeWriter {
 		if (compare(fd, this.mutant)) {
 	        // -----------------------------------------------------------
 	        mutated_line = line_num;
-	        String log_str = "removed  => " + mutant.toFlattenString();
-	        writeLog(removeNewline(log_str));
 	        // -----------------------------------------------------------
 		} else {
 			super.visit(fd);

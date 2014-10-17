@@ -44,8 +44,6 @@ public class IOP_Writer extends MutantCodeWriter {
 			super.visit(this.mutant);
 			// -----------------------------------------------------------
 	        mutated_line = line_num;
-	        String log_str = this.original.toString() + " => " + mutant.toFlattenString();
-	        writeLog(removeNewline(log_str));
 	        // -----------------------------------------------------------
 		} else {
 			super.visit(fd);

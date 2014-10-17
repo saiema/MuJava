@@ -55,8 +55,6 @@ public class JSD_Writer extends MutantCodeWriter {
 	public void visit(FieldDeclaration p) throws ParseTreeException {
 		if (isSameObject(p, this.original_field)) {
 			this.mutant_field.setMutGenLimit(this.original_field.getMutGenLimit());
-			String log_str = this.original_field.toFlattenString() + " => " + this.mutant_field.toFlattenString();
-		    writeLog(removeNewline(log_str));
 		    this.original_field = null;
 		    super.visit(this.mutant_field);
 		    mutated_line = line_num;
@@ -68,8 +66,6 @@ public class JSD_Writer extends MutantCodeWriter {
 	public void visit(MethodDeclaration p) throws ParseTreeException {
 		if (isSameObject(p, this.original_method)) {
 			this.mutant_method.setMutGenLimit(this.original_method.getMutGenLimit());
-			String log_str = this.original_method.toFlattenString() + " => " + this.mutant_method.toFlattenString();
-		    writeLog(removeNewline(log_str));
 		    this.original_method = null;
 		    super.visit(this.mutant_method);
 		    mutated_line = line_num;

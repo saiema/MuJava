@@ -39,12 +39,10 @@ public class JTI_Writer extends MutantCodeWriter {
 
 	public void visit(Variable p) throws ParseTreeException {
 		if (isSameObject(p, this.original)) {
-			String originalString = this.original.toFlattenString();
 			this.original = null;
 			super.visit(this.mutant);
 			// -------------------------------------------------------------
 			mutated_line = line_num;
-			writeLog(removeNewline(originalString + " ==> " + this.mutant.toFlattenString()));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);

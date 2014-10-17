@@ -61,7 +61,6 @@ public class PMD_Writer extends MutantCodeWriter {
 			super.visit(mutant_var);
 			// -------------------------------------------------------------
 			mutated_line = line_num;
-			writeLog(removeNewline(original_var.toString() + " => "+ mutant_var.toString()));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);
@@ -74,7 +73,6 @@ public class PMD_Writer extends MutantCodeWriter {
 			super.visit(mutant_field);
 			// -------------------------------------------------------------
 			mutated_line = line_num;
-			writeLog(removeNewline(original_field.toString() + " => "+ mutant_field.toString()));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);
@@ -87,7 +85,6 @@ public class PMD_Writer extends MutantCodeWriter {
 			super.visit(mutant_method);
 			// -------------------------------------------------------------
 			mutated_line = line_num;
-			writeLog(removeNewline(original_method.toString() + " => "+ mutant_method.toString()));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);
@@ -100,7 +97,6 @@ public class PMD_Writer extends MutantCodeWriter {
 			super.visit(this.mutant_constructor);
 			// -------------------------------------------------------------
 			mutated_line = line_num;
-			writeLog(removeNewline(this.original_constructor.toString() + " => "+ this.mutant_constructor.toString()));
 			// -------------------------------------------------------------
 		} else {
 			super.visit(p);

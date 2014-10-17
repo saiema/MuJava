@@ -30,8 +30,6 @@ public class AODU_Writer extends MutantCodeWriter {
          super.visit((Expression) this.mi.getMutant());
          // -----------------------------------------------------------
          mutated_line = line_num;
-         String log_str = ((UnaryExpression) this.mi.getOriginal()).toString() + " => " + ((Expression) this.mi.getMutant()).toString();
-         writeLog(removeNewline(log_str));
          // -------------------------------------------------------------
       } 
       else {
