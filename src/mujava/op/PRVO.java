@@ -39,6 +39,7 @@ import openjava.ptree.IfStatement;
 import openjava.ptree.Literal;
 import openjava.ptree.MethodCall;
 import openjava.ptree.MethodDeclaration;
+import openjava.ptree.ModifierList;
 import openjava.ptree.NonLeaf;
 import openjava.ptree.ParseTreeException;
 import openjava.ptree.ParseTreeObject;
@@ -78,6 +79,8 @@ public class PRVO extends mujava.op.util.Mutator {
 	public static final String ENABLE_THIS = "prvo_enable_this";
 
 	ParseTreeObject parent = null;
+	
+	private boolean allowNonStatic = true;
 
 	private Set<OJField> fields = new HashSet<OJField>(); // Collection of ALL fields (not the local ones, which are variables)
 
@@ -703,24 +706,32 @@ public class PRVO extends mujava.op.util.Mutator {
 			return this.fieldsAndMethodsPerClass.get(t.getName()+addVariables+publicCheck);
 		}
 		for (OJField f : t.getDeclaredFields()) {
-            if ((onlyPublic && f.getModifiers().isPublic()) || !onlyPublic) {
+			boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
+            boolean isNonStatic = !f.getModifiers().isStatic();
+			if (((onlyPublic && f.getModifiers().isPublic()) || !onlyPublic) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
                 fnm.add(f);
             }
         }
         for (OJMethod m : t.getDeclaredMethods()) {
-            if (m.getReturnType().getName().compareToIgnoreCase("void") == 0) continue;
-            if (m.signature().getParameterTypes().length == 0 && ((onlyPublic && m.getModifiers().isPublic())||(!onlyPublic))) {
+        	boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
+            boolean isNonStatic = !m.getModifiers().isStatic();
+        	if (m.getReturnType().getName().compareToIgnoreCase("void") == 0) continue;
+            if ((m.signature().getParameterTypes().length == 0 && ((onlyPublic && m.getModifiers().isPublic())||(!onlyPublic))) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
                 fnm.add(m);
             }
         }
         for (OJField inheritedField : t.getAllFields()) {
-            if ((!inheritedField.getModifiers().isPrivate() && !onlyPublic) || inheritedField.getModifiers().isPublic() && onlyPublic) {
+        	boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
+            boolean isNonStatic = !inheritedField.getModifiers().isStatic();
+        	if (((!inheritedField.getModifiers().isPrivate() && !onlyPublic) || inheritedField.getModifiers().isPublic() && onlyPublic) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
                 if (!fnm.contains(inheritedField)) fnm.add(inheritedField);
             }
         }
         for (OJMethod inheritedMethod : t.getAllMethods()) {
-            if (inheritedMethod.getReturnType().getName().compareToIgnoreCase("void") == 0) continue;
-            if (((inheritedMethod.getModifiers().isProtected() && !onlyPublic) || inheritedMethod.getModifiers().isPublic()) && inheritedMethod.signature().getParameterTypes().length == 0) {
+        	boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
+            boolean isNonStatic = !inheritedMethod.getModifiers().isStatic();
+        	if (inheritedMethod.getReturnType().getName().compareToIgnoreCase("void") == 0) continue;
+            if ((((inheritedMethod.getModifiers().isProtected() && !onlyPublic) || inheritedMethod.getModifiers().isPublic()) && inheritedMethod.signature().getParameterTypes().length == 0) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
                 if (!fnm.contains(inheritedMethod)) fnm.add(inheritedMethod);
             }
         }
@@ -1290,6 +1301,17 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	//=========================VISIT METHODS================================
+	
+	public void visit(MethodDeclaration md) throws ParseTreeException {
+		if (Api.usingApi() && (!Api.insideClassToMutate() || !md.getName().equals(Api.getMethodUnderConsideration()))) {
+			return;
+		} else {
+			if (md.getModifiers().contains(ModifierList.STATIC)) {
+				this.allowNonStatic = false;
+			}
+			super.visit(md);
+		}
+	}
 	
 	public void visit(StatementList p) throws ParseTreeException {
 		for (int s = 0; s < p.size(); s++) {
