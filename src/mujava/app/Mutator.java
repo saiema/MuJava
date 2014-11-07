@@ -367,7 +367,6 @@ public class Mutator implements Runnable{
 					olmo = new OLMO(mi);
 					olmo.visit(mih.getCompUnit());
 					mi.setAffectedLine(olmo.getAffectedLine());
-					if (mi.isGuardMutation()) mi.setMutGenLimitLine(olmo.getGuardMutationMutGenLimitLine());
 				} else if (affectsOneLine) {
 					mi.setAffectedLine(Mutation.SINGLE_LINE_OUTSIDE_METHOD_DECLARATION);
 				}

@@ -71,13 +71,20 @@ import java.util.List;
  * @author Matías Williams
  * <hr> rewritten by
  * @author Simón Emmanuel Gutiérrez Brida
- * @version 2.5
+ * @version 2.6
  */
 public class PRVO extends mujava.op.util.Mutator {
 	
 	public static final String ENABLE_SUPER = "prvo_enable_super";
 	public static final String ENABLE_THIS = "prvo_enable_this";
-
+	public static final String ENABLE_LITERAL_NULL = "prvo_enable_literal_null";
+	public static final String ENABLE_LITERAL_TRUE = "prvo_enable_literal_true";
+	public static final String ENABLE_LITERAL_FALSE = "prvo_enable_literal_false";
+	public static final String ENABLE_LITERAL_EMPTY_STRING = "prvo_enable_literal_empty_string";
+	public static final String ENABLE_LITERAL_ZERO = "prvo_enable_literal_zero";
+	public static final String ENABLE_LITERAL_ONE = "prvo_enable_literal_one";
+	public static final String ENABLE_LITERAL_STRINGS = "prvo_enable_literal_strings";
+	
 	ParseTreeObject parent = null;
 	
 	private boolean allowNonStatic = true;
@@ -670,7 +677,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		} else if (elem == null) {
 			t = getSelfType();
 		}
-		return fieldsMethodsAndVars(limit, t, ignoreVars, true, true);
+		return fieldsMethodsAndVars(limit, t, ignoreVars, true, true, this.allowNonStatic);
 	}
 	
 	private java.util.List<Object> fieldAndMethods(Expression e) throws ParseTreeException {
@@ -798,7 +805,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			Expression prev = null;
 			Expression next = null;
 			Expression rightPart = null;
-			if (!lor && (e2 instanceof Variable) && compatibleAssignType(ltype, null) && ((refined && this.refModeAllowNullStack.peek()) || !refined)) outputToFile((ParseTreeObject)(lor?e1:e2), Literal.constantNull());
+			if (!lor && (e2 instanceof Variable) && compatibleAssignType(ltype, null) && this.allowLiteralNull() && ((refined && this.refModeAllowNullStack.peek()) || !refined)) outputToFile((ParseTreeObject)(lor?e1:e2), Literal.constantNull());
 			do {
 				prev = getPreviousExpression(current);
 				java.util.List<Object> fnm = this.smartMode?fieldAndMethods(orig, prev, false):fieldAndMethods(prev);
@@ -978,6 +985,58 @@ public class PRVO extends mujava.op.util.Mutator {
 	private boolean allowThis() {
 		if (Configuration.argumentExist(ENABLE_THIS)) {
 			return (Boolean) Configuration.getValue(ENABLE_THIS);
+		}
+		return true;
+	}
+	
+	private boolean allowLiteralOne() {
+		if (Configuration.argumentExist(ENABLE_LITERAL_ONE)) {
+			return (Boolean) Configuration.getValue(ENABLE_LITERAL_ONE);
+		}
+		return true;
+	}
+	
+	private boolean allowLiteralZero() {
+		if (Configuration.argumentExist(ENABLE_LITERAL_ZERO)) {
+			return (Boolean) Configuration.getValue(ENABLE_LITERAL_ZERO);
+		}
+		return true;
+	}
+	
+	private boolean allowLiteralFalse() {
+		if (Configuration.argumentExist(ENABLE_LITERAL_FALSE)) {
+			return (Boolean) Configuration.getValue(ENABLE_LITERAL_FALSE);
+		}
+		return true;
+	}
+	
+	private boolean allowLiteralTrue() {
+		if (Configuration.argumentExist(ENABLE_LITERAL_TRUE)) {
+			return (Boolean) Configuration.getValue(ENABLE_LITERAL_TRUE);
+		}
+		return true;
+	}
+	
+	private boolean allowLiteralNull() {
+		if (Configuration.argumentExist(ENABLE_LITERAL_NULL)) {
+			return (Boolean) Configuration.getValue(ENABLE_LITERAL_NULL);
+		}
+		return true;
+	}
+	
+	private boolean allowLiteralEmptyString() {
+		if (!allowLiteralStrings()) {
+			return false;
+		}
+		if (Configuration.argumentExist(ENABLE_LITERAL_EMPTY_STRING)) {
+			return (Boolean) Configuration.getValue(ENABLE_LITERAL_EMPTY_STRING);
+		}
+		return true;
+	}
+	
+	private boolean allowLiteralStrings() {
+		if (Configuration.argumentExist(ENABLE_LITERAL_STRINGS)) {
+			return (Boolean) Configuration.getValue(ENABLE_LITERAL_STRINGS);
 		}
 		return true;
 	}
@@ -1664,12 +1723,12 @@ public class PRVO extends mujava.op.util.Mutator {
 			current = current.getParent();
 		}
 		searchForLiterals(current);
-		this.literals.add(Literal.constantEmptyString());
-		this.literals.add(Literal.constantFalse());
-		if (this.refModeAllowNullStack.peek()) this.literals.add(Literal.constantNull());
-		this.literals.add(Literal.constantOne());
-		this.literals.add(Literal.constantTrue());
-		this.literals.add(Literal.constantZero());
+		if (this.allowLiteralEmptyString()) this.literals.add(Literal.constantEmptyString());
+		if (this.allowLiteralFalse()) this.literals.add(Literal.constantFalse());
+		if (this.allowLiteralNull() && this.refModeAllowNullStack.peek()) this.literals.add(Literal.constantNull());
+		if (this.allowLiteralOne()) this.literals.add(Literal.constantOne());
+		if (this.allowLiteralTrue()) this.literals.add(Literal.constantTrue());
+		if (this.allowLiteralZero()) this.literals.add(Literal.constantZero());
 	}
 	
 	/**
@@ -1778,7 +1837,25 @@ public class PRVO extends mujava.op.util.Mutator {
 			VariableDeclarator vd = (VariableDeclarator) node;
 			searchForLiterals((ParseTreeObject) vd.getInitializer());
 		} else if (node instanceof Literal) {
-			if ((((Literal)node).getLiteralType()==Literal.NULL && this.refModeAllowNullStack.peek()) || ((Literal)node).getLiteralType()!=Literal.NULL) this.literals.add((Literal)node);
+			boolean isNull = ((Literal)node).getLiteralType()==Literal.NULL;
+			boolean nullCheck = (isNull && this.allowLiteralNull() && this.refModeAllowNullStack.peek()) || !isNull;
+			boolean isString = ((Literal)node).getLiteralType()==Literal.STRING;
+			boolean stringCheck = (isString && this.allowLiteralStrings()) || !isString;
+			boolean isEmptyString = isString && ((Literal)node).toFlattenString().compareTo("") == 0;
+			boolean emptyStringCheck = ((isEmptyString && this.allowLiteralEmptyString()) || !isEmptyString);
+			boolean isBoolean = ((Literal)node).getLiteralType()==Literal.BOOLEAN;
+			boolean isFalse = isBoolean && ((Literal)node).toFlattenString().compareToIgnoreCase("false") == 0;
+			boolean isTrue = isBoolean && ((Literal)node).toFlattenString().compareToIgnoreCase("true") == 0;
+			boolean falseCheck = (isFalse && this.allowLiteralFalse()) || !isFalse;
+			boolean trueCheck = (isTrue && this.allowLiteralTrue()) || !isTrue;
+			boolean isNumber = ((Literal)node).getLiteralType()==Literal.INTEGER || ((Literal)node).getLiteralType()==Literal.DOUBLE || ((Literal)node).getLiteralType()==Literal.FLOAT || ((Literal)node).getLiteralType()==Literal.LONG;
+			boolean isOne = isNumber && ((Literal)node).toFlattenString().compareTo("1") == 0;
+			boolean isZero = isNumber && ((Literal)node).toFlattenString().compareTo("0") == 0;
+			boolean oneCheck = (isOne && this.allowLiteralOne()) || !isOne;
+			boolean zeroCheck = (isZero && this.allowLiteralZero()) || !isZero;
+			if (nullCheck && stringCheck && emptyStringCheck && falseCheck && trueCheck && oneCheck && zeroCheck) {
+				this.literals.add((Literal)node);
+			}
 		}
 	}
 	

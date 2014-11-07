@@ -60,8 +60,6 @@ public class Mutation {
 	public static final int SINGLE_LINE_OUTSIDE_METHOD_DECLARATION = Integer.MIN_VALUE;
 	
 	private int affectedLine = -1;
-	
-	private int mutGenLimitLine = -1;
 
 	// The original object from the parse tree to be mutated, the mutant and
 	// some additional information that is necessary for some mutant operators
@@ -272,15 +270,6 @@ public class Mutation {
 	}
 	
 	/**
-	 * Sets the {@code //mutGenLimit} line, this should only be used when both {@code isGuardMutation()} and {@code isOneLineInMethodOp()} return {@code true}
-	 * 
-	 * @param mutGenLimitLine : the {@code //mutGenLimit} line {@code int}
-	 */
-	public void setMutGenLimitLine(int mutGenLimitLine) {
-		this.mutGenLimitLine = mutGenLimitLine;
-	}
-	
-	/**
 	 * @return the affected line or {@code -1} if {@code isOneLineInMethodOp()} returns {@code false}
 	 */
 	public int getAffectedLine() {
@@ -291,7 +280,7 @@ public class Mutation {
 	 * @return the line where the corresponding {@code //mutGenLimit} is for a guard mutation, if {@code isGuardMutation()} or {@code isOneLineInMethodOp()} return {@code false}, then this method will return {@code -1} : {@code int}
 	 */
 	public int getMutGenLimitLine() {
-		return this.mutGenLimitLine;
+		return this.affectedLine;
 	}
 
 	private boolean checkOp(Mutant mutOp) {

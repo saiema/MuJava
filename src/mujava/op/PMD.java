@@ -40,6 +40,7 @@ public class PMD extends Mutator {
 		try {
 			OJClass varType = OJClass.forName(vd.getTypeSpecifier().getName());
 			OJClass parentsType = varType.getSuperclass();
+			if (parentsType == null) return;
 			VariableDeclaration copy = (VariableDeclaration) vd.makeRecursiveCopy_keepOriginalID();
 			copy.setTypeSpecifier(TypeName.forOJClass(parentsType));
 			outputToFile(vd, copy);
@@ -58,6 +59,7 @@ public class PMD extends Mutator {
 		try {
 			OJClass varType = OJClass.forName(fd.getTypeSpecifier().getName());
 			OJClass parentsType = varType.getSuperclass();
+			if (parentsType == null) return;
 			FieldDeclaration copy = (FieldDeclaration) fd.makeRecursiveCopy_keepOriginalID();
 			copy.setTypeSpecifier(TypeName.forOJClass(parentsType));
 			outputToFile(fd, copy);
@@ -81,6 +83,7 @@ public class PMD extends Mutator {
 			try {
 				OJClass varType = OJClass.forName(param.getTypeSpecifier().getName());
 				OJClass parentsType = varType.getSuperclass();
+				if (parentsType == null) return;
 				MethodDeclaration copy = (MethodDeclaration) md.makeRecursiveCopy_keepOriginalID();
 				copy.getParameters().get(p).setTypeSpecifier(TypeName.forOJClass(parentsType));
 				outputToFile(md, copy);
@@ -105,6 +108,7 @@ public class PMD extends Mutator {
 			try {
 				OJClass varType = OJClass.forName(param.getTypeSpecifier().getName());
 				OJClass parentsType = varType.getSuperclass();
+				if (parentsType == null) return;
 				ConstructorDeclaration copy = (ConstructorDeclaration) cd.makeRecursiveCopy_keepOriginalID();
 				copy.getParameters().get(p).setTypeSpecifier(TypeName.forOJClass(parentsType));
 				outputToFile(cd, copy);

@@ -304,11 +304,12 @@ public class GenerationsInformation {
 					if (mi.severalMutationsApplied()) {
 						res += "\n";
 						for (Mutation mid : mi.getMutations()) {
-							res += "\t\t\t" + mid.getOriginal().toFlattenString() + " => " + mid.getMutant().toFlattenString() + "\n";
+							res += "\t\t\t" + mid.getOriginal().toFlattenString() + " => " + mid.getMutant().toFlattenString();
 						}
 					} else {
-						res += "\t\t\t" + mi.getMutation().getOriginal().toFlattenString() + " => " + mi.getMutation().getMutant().toFlattenString() + "\n";
+						res += "\t\t\t" + mi.getMutation().getOriginal().toFlattenString() + " => " + mi.getMutation().getMutant().toFlattenString();
 					}
+					res += "\t\t" + " affected line: " + mi.getMutation().getAffectedLine() + "\n";
 				}
 			}
 		}

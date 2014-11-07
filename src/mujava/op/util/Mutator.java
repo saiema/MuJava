@@ -151,7 +151,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder
     */
    public String getClassName()
    {
-      Class cc = this.getClass();
+      Class<?> cc = this.getClass();
       return exclude(cc.getName(),cc.getPackage().getName());
    }
 
@@ -554,39 +554,63 @@ public class Mutator extends mujava.openjava.extension.VariableBinder
 		return filtered.toArray(new OJField[filtered.size()]);
 	}
 	
-	public OJField[] getAllFields(OJClass clazz) {
+	public OJField[] getAllFields(OJClass clazz, boolean allowNonStatic) {
 		OJField[] declaredFields = clazz.getDeclaredFields();
 		Map<Signature, OJField> table = new HashMap<Signature, OJField>();
 		for (OJField f : declaredFields) {
+			boolean isNonStatic = !f.getModifiers().isStatic();
+			if (!allowNonStatic && isNonStatic) {
+				continue;
+			}
 			table.put(f.signature(), f);
 		}
 		OJField[] inheritedFields = getInheritedFields(clazz);
 		for (OJField f : inheritedFields) {
+			boolean isNonStatic = !f.getModifiers().isStatic();
+			if (!allowNonStatic && isNonStatic) {
+				continue;
+			}
 			if (!table.containsKey(f.signature())) table.put(f.signature(), f);
 		}
 		return table.values().toArray(new OJField[table.size()]);
 	}
 	
-	public OJMethod[] getAllMethods(OJClass clazz) {
+	public OJField[] getAllFields(OJClass clazz) {
+		return getAllFields(clazz, true);
+	}
+	
+	public OJMethod[] getAllMethods(OJClass clazz, boolean allowNonStatic) {
 		OJMethod[] declaredMethods = clazz.getDeclaredMethods();
 		Map<Signature, OJMethod> table = new HashMap<Signature, OJMethod>();
 		for (OJMethod m : declaredMethods) {
+			boolean isNonStatic = !m.getModifiers().isStatic();
+			if (!allowNonStatic && isNonStatic) {
+				continue;
+			}
 			table.put(m.signature(), m);
 		}
 		OJMethod[] inheritedMethods = getInheritedMethods(clazz);
 		for (OJMethod m : inheritedMethods) {
+			boolean isNonStatic = !m.getModifiers().isStatic();
+			if (!allowNonStatic && isNonStatic) {
+				continue;
+			}
 			if (!table.containsKey(m.signature())) table.put(m.signature(), m);
 		}
 		return table.values().toArray(new OJMethod[table.size()]);
 	}
 	
-	public List<Object> fieldsMethodsAndVars(ParseTreeObject limit, OJClass t, boolean ignoreVars, boolean ignoreVoidMethods, boolean ignoreMethodsWithParams) throws ParseTreeException {
+	public OJMethod[] getAllMethods(OJClass clazz) {
+		return getAllMethods(clazz, true);
+	}
+	
+	public List<Object> fieldsMethodsAndVars(ParseTreeObject limit, OJClass t, boolean ignoreVars, boolean ignoreVoidMethods, boolean ignoreMethodsWithParams, boolean allowNonStatic) throws ParseTreeException {
 		List<Object> result = new LinkedList<Object>();
 		if (t != null) {
 			if (!ignoreVoidMethods && !ignoreMethodsWithParams) {
-				result.addAll(Arrays.asList(getAllMethods(t)));
+				result.addAll(Arrays.asList(getAllMethods(t, allowNonStatic)));
 			} else {
-				OJMethod[] allMethods = getAllMethods(t);
+				OJMethod[] allMethods = getAllMethods(t, allowNonStatic);
 				for (OJMethod m : allMethods) {
 					if (ignoreVoidMethods && m.getReturnType().getName().compareToIgnoreCase("void")==0) {
 						continue;
@@ -597,7 +621,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder
 					result.add(m);
 				}
 			}
-			result.addAll(Arrays.asList(getAllFields(t)));
+			result.addAll(Arrays.asList(getAllFields(t, allowNonStatic)));
 		}
 		if (!ignoreVars) {
 			for (List<Variable> vars : getReachableVariables(limit).values()) {
@@ -716,7 +740,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder
 	}
 	
 	public OJMethod getMethod(String name, OJClass from, ExpressionList complyWith) throws ParseTreeException {
-		OJMethod[] allMethods = getAllMethods(from);
+		OJMethod[] allMethods = getAllMethods(from, true);
 		for (OJMethod m : allMethods) {
 			if (compareNamesWithoutPackage(m.getName(), name)) {
 				int formalArgs = m.getParameterTypes().length;
