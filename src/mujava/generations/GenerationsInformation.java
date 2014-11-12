@@ -300,7 +300,7 @@ public class GenerationsInformation {
 			for (Entry<Mutant, List<MutantInfo>> mpo : mpopl.getValue().entrySet()) {
 				res += "\tmutations for operator " + (mpo.getKey()==null?"N/A":mpo.getKey().name()) + " : " + mpo.getValue().size() + "\n"; 
 				for (MutantInfo mi : mpo.getValue()) {
-					res += "\t\tmutation: ";
+//					res += "\t\tmutation: ";
 					if (mi.severalMutationsApplied()) {
 						res += "\n";
 						for (Mutation mid : mi.getMutations()) {

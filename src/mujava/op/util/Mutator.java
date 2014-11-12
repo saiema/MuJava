@@ -383,8 +383,8 @@ public class Mutator extends mujava.openjava.extension.VariableBinder
    public Map<OJClass, List<Variable>> getReachableVariables(ParseTreeObject exp) throws ParseTreeException {
 	   	Map<OJClass, List<Variable>> variables = new HashMap<OJClass, List<Variable>>();
 		List<Variable> allVars = new LinkedList<Variable>();
-		ParseTreeObject current = exp.getParent();
-		ParseTreeObject limit = getStatement(exp);
+		ParseTreeObject current = getStatement(exp, -1);
+		ParseTreeObject limit = current;
 		while (current != null && !(current instanceof MethodDeclaration)) {
 			if (current instanceof VariableDeclarator) {
 				addVar(variables, allVars, new Variable(((VariableDeclarator)current).getVariable()));
@@ -411,8 +411,9 @@ public class Mutator extends mujava.openjava.extension.VariableBinder
 			if (!(current instanceof StatementList)) limit = current;
 			current = current.getParent();
 		}
-		if (current instanceof MethodDeclaration) {
-			ParameterList params = ((MethodDeclaration)current).getParameters();
+		ParseTreeObject methodDeclaration = getMethodDeclaration(exp);
+		if (methodDeclaration != null) {
+			ParameterList params = ((MethodDeclaration)methodDeclaration).getParameters();
 			for (int p = 0; p < params.size(); p++) {
 				Parameter param = params.get(p);
 				addVar(variables, allVars, new Variable(param.getVariable()));
@@ -804,6 +805,61 @@ public class Mutator extends mujava.openjava.extension.VariableBinder
 			current = current.getParent();
 		}
 		return current;
+	}
+	
+	public static ParseTreeObject getStatement(ParseTreeObject node, int offset) {
+		ParseTreeObject currentWithOffset = getStatement(node);
+		ParseTreeObject limit = currentWithOffset;
+		boolean found = false;
+		ParseTreeObject current = currentWithOffset;
+		StatementList stmtList = (StatementList)getStatementList(current);
+		while (current != null && !found) {
+			int idx;
+			for (idx = 0; idx < stmtList.size(); idx++) {
+				Statement currSt = stmtList.get(idx);
+				if (currSt == limit) {
+					break;
+				}
+			}
+			if (idx+offset < 0) {
+				ParseTreeObject decl = stmtList.getParent();
+				stmtList = getStatementList(decl);
+				if (stmtList == null) {
+					return null;
+				} else {
+					offset += idx;
+				}
+			} else if (idx+offset >= stmtList.size()) {
+				return null;
+			} else {
+				currentWithOffset = (ParseTreeObject) stmtList.get(idx+offset);
+				found = true;
+			}
+		}
+		return currentWithOffset;
+	}
+	
+	public static StatementList getStatementList(ParseTreeObject node) {
+		if (node == null) return null;
+		ParseTreeObject st = (node instanceof Statement)?node:getStatement(node);
+		ParseTreeObject current = st;
+		while (current != null && !(current instanceof StatementList)) {
+			current = current.getParent();
+		}
+		return (StatementList) current;
+	}
+	
+	public static ParseTreeObject getMethodDeclaration(ParseTreeObject node) {
+		ParseTreeObject nodeAsStatement = getStatement(node);
+		ParseTreeObject current = nodeAsStatement;
+		while (current != null && !(current instanceof MethodDeclaration)) {
+			current = current.getParent();
+		}
+		if (current != null) {
+			return current;
+		} else {
+			return null;
+		}
 	}
    
 }
