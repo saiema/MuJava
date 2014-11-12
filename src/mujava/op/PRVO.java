@@ -1513,7 +1513,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		if (this.unary && getMutationsLeft(p) > 0) unaryVisit(p,rexp, false);
 		
-		if (this.unary && this.canBeRefined(rexp) && getMutationsLeft(p) > 0) {
+		if (this.unary && this.refinedMode/*this.canBeRefined(rexp)*/ && getMutationsLeft(p) > 0) {
 			Variable returnAuxVar = Variable.generateUniqueVariable();
 			getEnvironment().bindVariable(returnAuxVar.toString(), getMethodUnderConsiderationType());
 			Expression e1 = returnAuxVar;
@@ -1611,6 +1611,8 @@ public class PRVO extends mujava.op.util.Mutator {
 		replaceByLiteral(this.refModeComplyTypeStack.peek(), p);
 	}
 	
+	//TODO: check if this method is really needed
+	@SuppressWarnings("unused")
 	private boolean canBeRefined(Expression exp) {
 		boolean isJustLiteral = (exp instanceof Literal);
 		boolean isJustFieldAccess = (exp instanceof FieldAccess);
