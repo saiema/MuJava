@@ -383,6 +383,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder
    public Map<OJClass, List<Variable>> getReachableVariables(ParseTreeObject exp) throws ParseTreeException {
 	   	Map<OJClass, List<Variable>> variables = new HashMap<OJClass, List<Variable>>();
 		List<Variable> allVars = new LinkedList<Variable>();
+		addForVariables(exp, variables, allVars);
 		ParseTreeObject current = getStatement(exp, -1);
 		ParseTreeObject limit = current;
 		while (current != null && !(current instanceof MethodDeclaration)) {
@@ -422,6 +423,35 @@ public class Mutator extends mujava.openjava.extension.VariableBinder
 		return variables;
 	}
 	
+	private void addForVariables(ParseTreeObject exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars) throws ParseTreeException {
+		ParseTreeObject current = getStatement(exp);
+		if (current instanceof ForStatement) {
+			VariableDeclarator[] init = ((ForStatement)current).getInitDecls();
+			boolean found = false;
+			for (int i = 0; i < init.length && !found; i++) {
+				VariableDeclarator vd = init[i];
+				if (vd == exp) {
+					found = true;
+				} else {
+					ParseTreeObject curr = current;
+					while (curr != null && !found && !(curr instanceof VariableDeclarator)) {
+						if (curr instanceof Statement) {
+							curr = null;
+						} else {
+							found = vd == exp;
+							curr = curr.getParent();
+						}
+					}
+				}
+			}
+			if (!found) {
+				for (VariableDeclarator vd : ((ForStatement)current).getInitDecls()) {
+					addVar(variables, allVars, new Variable(vd.getVariable()));
+				}
+			}
+		}
+	}
+
 	private void addVar(Map<OJClass, List<Variable>> map, List<Variable> allVars, Variable var) throws ParseTreeException {
 		if (!find(allVars, var)) {
 			OJClass varType = getType(var);

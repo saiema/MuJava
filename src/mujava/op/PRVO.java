@@ -1389,7 +1389,13 @@ public class PRVO extends mujava.op.util.Mutator {
 		p.getStatements().accept(this);
 	}
 	
+	@Override
+	public Statement evaluateUp(ForStatement p) {
+		return p;
+	}
+	
 	public void visit(ForStatement p) throws ParseTreeException {
+		super.visit(p);
 		if (this.refinedMode && getMutationsLeft(p) > 0) {
 			ExpressionList init = p.getInit();
 			for (int i = 0; init != null && i < init.size(); i++) {
@@ -1462,6 +1468,16 @@ public class PRVO extends mujava.op.util.Mutator {
 			popAllowNull(p);
 			popComplyType(p);
 		}
+	}
+	
+//	@Override
+//	public ExpressionList evaluateUp(ExpressionList p) {
+//		return p;
+//	}
+	
+	@Override
+	public Expression evaluateUp(AssignmentExpression p) {
+		return p;
 	}
 	
 	public void visit(AssignmentExpression p) throws ParseTreeException {
