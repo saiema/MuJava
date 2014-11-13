@@ -854,10 +854,11 @@ public class Mutator extends mujava.openjava.extension.VariableBinder
 			if (idx+offset < 0) {
 				ParseTreeObject decl = stmtList.getParent();
 				stmtList = getStatementList(decl);
+				limit = decl;
 				if (stmtList == null) {
 					return null;
 				} else {
-					offset += idx;
+					offset += Math.max(idx, 1);
 				}
 			} else if (idx+offset >= stmtList.size()) {
 				return null;
