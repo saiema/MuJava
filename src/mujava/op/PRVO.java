@@ -1437,13 +1437,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 	}
 	
-	@Override
-	public Statement evaluateUp(IfStatement p) {
-		return p;
-	}
-	
 	public void visit(IfStatement p) throws ParseTreeException {
-		super.visit(p);
 		if (this.unary && this.refinedMode && getMutationsLeft(p) > 0) {
 			pushAllowNull(p, false);
 			pushComplyType(p, p.getExpression());
