@@ -86,10 +86,6 @@ public class PRVOTests {
 		
 		
 		/*
-		 * MUTANTES NO INCLUIDOS EN LOS TESTS	        
-	        java.lang.Object test = equalVal; //mutGenLimit 0
-		 */
-		/*
 		 * ORIGINAL
 		 * Object test = current;
 		 */
@@ -106,7 +102,7 @@ public class PRVOTests {
 		mceSLLVD_0.add(Pattern.compile("Object test = super\\.clone\\(\\)\\.getClass\\(\\); //mutGenLimit 0"));
 		mcneSLLVD_0.add(Pattern.compile("Object !test = [a-zA-Z_0-9]+; //mutGenLimit 0"));
 		mcneSLLVD_0.add(Pattern.compile(".+//mutGenLimit [^0]+"));
-		Property propSLLVariableDeclaration_0 = new Property(Mutant.PRVOU, "list/SinglyLinkedListVariableDeclaration", "contains", 86, 73, mceSLLVD_0, mcneSLLVD_0);
+		Property propSLLVariableDeclaration_0 = new Property(Mutant.PRVOU, "list/SinglyLinkedListVariableDeclaration", "contains", 85, 73, mceSLLVD_0, mcneSLLVD_0);
 		
 		List<Pattern> mceSLLVD_1 = new LinkedList<Pattern>();
 		List<Pattern> mcneSLLVD_1 = new LinkedList<Pattern>();
@@ -453,6 +449,7 @@ public class PRVOTests {
 		mcneSLLBEVarFieldWhile_right.add(Pattern.compile(".+//mutGenLimit [^0]+"));
 		Property propSLLBEVarFieldWhile_right = new Property(Mutant.PRVOR, "list/SinglyLinkedListBinaryExpressionVarFieldWhile", "contains", 5, 5, mceSLLBEVarFieldWhile_right, mcneSLLBEVarFieldWhile_right);
 		
+		
 		List<Pattern> mceSLLBEVarFieldWhile_left = new LinkedList<Pattern>();
 		List<Pattern> mcneSLLBEVarFieldWhile_left = new LinkedList<Pattern>();
 		mceSLLBEVarFieldWhile_left.add(Pattern.compile("current\\.next = current\\.next; //mutGenLimit 0"));
@@ -488,11 +485,10 @@ public class PRVOTests {
 		mceSLLBEFieldVarFor_right.add(Pattern.compile("current\\.value = super\\.clone\\(\\); //mutGenLimit 0"));
 		mceSLLBEFieldVarFor_right.add(Pattern.compile("current\\.value = super\\.hashCode\\(\\); //mutGenLimit 0"));
 		mceSLLBEFieldVarFor_right.add(Pattern.compile("current\\.value = test; //mutGenLimit 0"));
-		mceSLLBEFieldVarFor_right.add(Pattern.compile("current\\.value = equalVal; //mutGenLimit 0"));
 		
 		mcneSLLBEFieldVarFor_right.add(Pattern.compile(".+//mutGenLimit [^0]+"));
 		mcneSLLBEFieldVarFor_right.add(Pattern.compile("current\\.value = header; //mutGenLimit 0"));
-		Property propSLLBEFieldVarFor_right = new Property(Mutant.PRVOR, "list/SinglyLinkedListBinaryExpressionFieldVarFor", "contains", 12, 8, mceSLLBEFieldVarFor_right, mcneSLLBEFieldVarFor_right);
+		Property propSLLBEFieldVarFor_right = new Property(Mutant.PRVOR, "list/SinglyLinkedListBinaryExpressionFieldVarFor", "contains", 11, 8, mceSLLBEFieldVarFor_right, mcneSLLBEFieldVarFor_right);
 		
 		/*
 		 * ORIGINAL

@@ -1,10 +1,10 @@
 package mujava.op;
 
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
@@ -14,7 +14,6 @@ import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.Mutant;
 import mujava.api.MutantsInformationHolder;
-import mujava.openjava.extension.ExtendedClosedEnvironment;
 import openjava.mop.*;
 import openjava.ptree.AllocationExpression;
 import openjava.ptree.ArrayAccess;
@@ -25,7 +24,6 @@ import openjava.ptree.Block;
 import openjava.ptree.CaseGroup;
 import openjava.ptree.CaseGroupList;
 import openjava.ptree.CastExpression;
-import openjava.ptree.CatchList;
 import openjava.ptree.ClassDeclaration;
 import openjava.ptree.CompilationUnit;
 import openjava.ptree.ConditionalExpression;
@@ -84,17 +82,14 @@ public class PRVO extends mujava.op.util.Mutator {
 	public static final String ENABLE_LITERAL_ZERO = "prvo_enable_literal_zero";
 	public static final String ENABLE_LITERAL_ONE = "prvo_enable_literal_one";
 	public static final String ENABLE_LITERAL_STRINGS = "prvo_enable_literal_strings";
+	public static final String PROHIBITED_METHODS = "prvo_prohibited_methods";
 	
 	ParseTreeObject parent = null;
 	
 	private boolean allowNonStatic = true;
-
-	private Set<OJField> fields = new HashSet<OJField>(); // Collection of ALL fields (not the local ones, which are variables)
-
-	private Set<OJMethod> methods = new HashSet<OJMethod>(); // Collection of ALL parameterless methods, including local p'less methods
 	
-	private Set<Variable> variables = new HashSet<Variable>(); // Collection of ALL variables (local fields, parameters and variables in the
-	                                                           // method of interest, i.e., that to be mutated)
+	private boolean justEvaluating = false;
+
 	private Set<Literal> literals = new TreeSet<Literal>(
 			new Comparator<Literal>() {
 				
@@ -117,11 +112,22 @@ public class PRVO extends mujava.op.util.Mutator {
 	
 	private HashMap<String, java.util.List<Object>> fieldsAndMethodsPerClass = new HashMap<String, java.util.List<Object>>();
 	
-	private boolean computedAccessibleVariables = false;
-	
+	@SuppressWarnings("unchecked")
 	public PRVO(FileEnvironment file_env, ClassDeclaration cdecl,CompilationUnit comp_unit) {
 		super(file_env, comp_unit);
 		this.smartMode = false;
+		if (Configuration.argumentExist(PROHIBITED_METHODS)) {
+			Object configValue = Configuration.getValue(PROHIBITED_METHODS);
+			try {
+				this.prohibitedMethodsPerClass = (Map<String, List<String>>) configValue;
+			} catch (ClassCastException e) {
+				try {
+					this.prohibitedMethods = (List<String>) configValue;
+				} catch (ClassCastException ex) {
+					throw new IllegalStateException("The value for PROHIBITED_METHODS it's not a Map<String, List<String>> nor a List<String>");
+				}
+			}
+		}
 	}
 	
 	public void smartMode() {
@@ -253,7 +259,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	
 	private boolean isInherited(OJMember m) throws ParseTreeException {
 		OJMember[] declaredMembers = (m instanceof OJMethod)?getSelfType().getDeclaredMethods():getSelfType().getDeclaredFields();
-		OJMember[] inheritedMembers = (m instanceof OJMethod)?getInheritedMethods(getSelfType(), false):getInheritedFields(getSelfType(), false);
+		OJMember[] inheritedMembers = (m instanceof OJMethod)?getInheritedMethods(getSelfType(), ALLOW_FINAL):getInheritedFields(getSelfType(), ALLOW_FINAL);
 		if (findMember(m, declaredMembers)) {
 			return false;
 		} else {
@@ -278,7 +284,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	
 	private boolean isInherited(FieldAccess m) throws ParseTreeException {
 		OJField[] declaredFields = getSelfType().getDeclaredFields();
-		OJField[] inheritedFields = getInheritedFields(getSelfType(), false);
+		OJField[] inheritedFields = getInheritedFields(getSelfType(), ALLOW_FINAL);
 		if (findField(m, declaredFields)) {
 			return false;
 		} else {
@@ -316,7 +322,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	
 	private boolean isInherited(MethodCall m) throws ParseTreeException {
 		OJMethod[] declaredMethods = getSelfType().getDeclaredMethods();
-		OJMethod[] inheritedMethods = getInheritedMethods(getSelfType(), false);
+		OJMethod[] inheritedMethods = getInheritedMethods(getSelfType(), ALLOW_FINAL);
 		if (findMethod(m, declaredMethods)) {
 			return false;
 		} else {
@@ -350,261 +356,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			return variableFixed;
 		}
 	}
-	
-	
-	/**
-	 * Calculates the variables local to a statement list. As a side effect, variables are bound to their corresponding types in the environment.
-	 * @param st is the statement list for which the local variables are calculated
-	 * @return the list of all local variables declared in the statement list
-	 * @throws ParseTreeException
-	 */
-	private String[] getLocalVariables(StatementList statList) throws ParseTreeException {
-		Enumeration<?> st = statList.elements();
-		HashSet<String> result = new HashSet<String>();
-		try {
-			while (st.hasMoreElements()) {
-				Object current = st.nextElement();
-				if (VariableDeclaration.class.getName().equals(current.getClass().getName()) ){
-					VariableDeclaration var = (VariableDeclaration) current;
-					result.add(var.getVariable());
-					getEnvironment().bindVariable(var.getVariable(), OJClass.forName(var.getTypeSpecifier().toString()));
-				}
-				else if (ForStatement.class.getName().equals(current.getClass().getName())) {
-					ForStatement f = (ForStatement) current;
-					if (f.getInitDeclType()!=null) {
-						VariableDeclarator[] vars = f.getInitDecls();
-						for (int i=0; i<vars.length; i++) {
-							result.add(vars[i].getVariable());
-							getEnvironment().bindVariable(vars[i].getVariable(), OJClass.forName(f.getInitDeclType().toString()));
-						}
-					}
-					String[] blockLocalVars = getLocalVariables(f.getStatements());
-					for (int i=0; i<blockLocalVars.length; i++) {
-						result.add(blockLocalVars[i]);
-					}
-				}
-				else if (WhileStatement.class.getName().equals(current.getClass().getName())) {
-					WhileStatement f = (WhileStatement) current;
-					String[] blockLocalVars = getLocalVariables(f.getStatements());
-					for (int i=0; i<blockLocalVars.length; i++) {
-						result.add(blockLocalVars[i]);
-					}
-				}
-				else if (DoWhileStatement.class.getName().equals(current.getClass().getName())) {
-					DoWhileStatement f = (DoWhileStatement) current;
-					String[] blockLocalVars = getLocalVariables(f.getStatements());
-					for (int i=0; i<blockLocalVars.length; i++) {
-						result.add(blockLocalVars[i]);
-					}
-				}
-				else if (IfStatement.class.getName().equals(current.getClass().getName())) {
-					IfStatement f = (IfStatement) current;
-					String[] blockLocalVars = getLocalVariables(f.getStatements());
-					for (int i=0; i<blockLocalVars.length; i++) {
-						result.add(blockLocalVars[i]);
-					}
-					blockLocalVars = getLocalVariables(f.getElseStatements());
-					for (int i=0; i<blockLocalVars.length; i++) {
-						result.add(blockLocalVars[i]);
-					}
-				}
-				else if (SwitchStatement.class.getName().equals(current.getClass().getName())) {
-					SwitchStatement f = (SwitchStatement) current;
-					CaseGroupList list = f.getCaseGroupList();
-					for (int x=0; x<list.size(); x++) {
-						String[] blockLocalVars = getLocalVariables(list.get(x).getStatements());
-						for (int i=0; i<blockLocalVars.length; i++) {
-							result.add(blockLocalVars[i]);
-						}
-					}
-				}
-				else if (TryStatement.class.getName().equals(current.getClass().getName())) {
-					TryStatement f = (TryStatement) current;
-					String[] blockLocalVars = getLocalVariables(f.getBody());
-					for (int i=0; i<blockLocalVars.length; i++) {
-						result.add(blockLocalVars[i]);
-					}
-					CatchList list = f.getCatchList();
-					for (int x=0; x<list.size(); x++) {
-						blockLocalVars = getLocalVariables(list.get(x).getBody());
-						for (int i=0; i<blockLocalVars.length; i++) {
-							result.add(blockLocalVars[i]);
-						}
-					}
-					blockLocalVars = getLocalVariables(f.getFinallyBody());
-					for (int i=0; i<blockLocalVars.length; i++) {
-						result.add(blockLocalVars[i]);
-					}
-				}
-				
 
-
-			}
-		}
-		catch (OJClassNotFoundException e) {
-			throw new ParseTreeException(e);
-		}
-
-
-		return result.toArray(new String[result.size()]);
-
-	}
-
-	
-	/**
-	 * Retrieves all the variables available in the class, its superclasses, attributes, and variables local to the method under consideration. 
-	 * These variables are used for mutating expressions (e.g., right hand side of assignments). As side effects, every variable is bound to
-	 * its corresponding type in the environment. Also, fields are stored in attribute this.fields, parameterless methods are stored in 
-	 * this.methods, and variables (all of them, local to method, parameters, etc.) are stored in attribute this.variables.
-	 * Finally, if these expressions have been computed previously, they are reproduced from this.fields, this.variables and this.methods, as
-	 * opposed to recalculating them.
-	 * @return an array containing all the variables names (only the names, as strings, not their types).
-	 * @throws ParseTreeException
-	 */
-	private String[] getAccessibleVariables(ParseTreeObject elem) throws ParseTreeException {
-		HashSet<String> var_set = new HashSet<String>();
-
-		if (!computedAccessibleVariables) {
-
-			computedAccessibleVariables = true;
-
-			if (env instanceof ClosedEnvironment) {
-				ExtendedClosedEnvironment mujava_env = new ExtendedClosedEnvironment(env);
-				var_set.addAll(mujava_env.getAccessibleVariables());
-				mujava_env = null;
-			}
-
-			for (int i = (env_nest.size() - 1); i >= 0; i--) {
-				Environment temp_env = env_nest.get(i);
-				if (temp_env instanceof ClosedEnvironment) {
-					ExtendedClosedEnvironment mujava_env = new ExtendedClosedEnvironment(temp_env);
-					var_set.addAll(mujava_env.getAccessibleVariables());
-					mujava_env = null;
-				}
-			}
-
-			// add all fields of the class to var_set
-			OJClass clazz = getSelfType();
-//			OJField[] fs = clazz.getAllFields();//.getDeclaredFields();
-//			if (fs != null) {
-//				for (int k = 0; k < fs.length; k++) {
-//					var_set.add(fs[k].getName());
-//				}
-//			}
-
-			try {
-				// obtain method under consideration (method)
-				// It's used to get all variables locally declared in the method
-				OJMethod[] methods = clazz.getMethods();
-				OJMethod method = null;
-				for(OJMethod m : methods) {
-					if(m.getName().equalsIgnoreCase(Api.getMethodUnderConsideration())) {
-						method = m;
-						break;
-					}
-				}
-				if(method != null) {
-					// add variables locally declared in method under consideration, to var_set
-					
-					//get method parameters and do the bind stuff
-					String param;
-					OJClass type;
-					int m = 0;
-					while (m < method.getParameterVariables().size()) {
-						param = method.getParameters()[m];
-						type = method.getParameterTypes()[m];
-						var_set.add(method.getParameterVariables().get(m).toString());
-						getEnvironment().bindVariable(param, type);
-						m++;
-					}
-					//-----------------------------------------------------
-					
-					String[] methodVars = getLocalVariables(method.getBody());
-					for (int i=0; i<methodVars.length; i++) {
-						var_set.add(methodVars[i]);
-					}
-				}
-			} catch (CannotAlterException e) {
-				throw new ParseTreeException(e);
-			} 
-
-
-			Set<String> fieldVars = new HashSet<String>();
-			Set<String> methodVars = new HashSet<String>();
-			/* Field access */
-			for(String var: var_set){
-				// add every variable in var_set, as an expression, to this.variables
-				Variable v = new Variable(var);
-				variables.add(v);
-
-
-				// for every variable already in var_set, compute
-				// fields and parameterless methods, and put in fieldVars and methodVars, resp.
-				OJClass type = getType(v);
-				boolean isArray = type.isArray();
-				OJField[] fields = type.getFields();
-				OJMethod[] methods = isArray?new OJMethod[]{}:type.getMethods();
-				
-				
-
-				for(OJField field: fields){
-					this.fields.add(field);
-					String fieldAccessName = var + "." + field.getName();
-					getEnvironment().bindVariable(fieldAccessName, field.getType());
-					fieldVars.add(fieldAccessName);
-				}
-
-				for(OJMethod method: methods){
-					/* Only consider methods with no parameters: i.e.: getters*/
-					if( method.getParameterTypes().length == 0 ){
-						this.methods.add(method);
-						String methodAccessName = var + "." + method.getName() + "()";
-						getEnvironment().bindVariable(methodAccessName, method.getReturnType());
-						methodVars.add(methodAccessName);
-					}
-				}
-			}
-
-			// add all local parameterless methods to this.methods
-			for (OJMethod m: getSelfType().getDeclaredMethods()) {
-				if (m.getParameterTypes().length==0) {
-					this.methods.add(m);
-				}
-			}
-
-			// add all fields and parameterless methods of variables in var_set, to var_set
-			var_set.addAll(fieldVars);
-			var_set.addAll(methodVars);
-
-
-			Set<String> unwantedPrimitiveVariables = new HashSet<String>();
-			for(String var: var_set){
-				Variable v = new Variable(var);
-				OJClass type = getType(v);
-				if( type.isPrimitive() || type.isPrimitiveWrapper() ){
-					unwantedPrimitiveVariables.add(var);
-					variables.remove(v);
-				}
-			}
-
-			var_set.removeAll(unwantedPrimitiveVariables);
-			fieldVars.removeAll(unwantedPrimitiveVariables);
-			return var_set.toArray(new String[var_set.size()]);
-		}
-		else {
-			for (Variable v: variables) {
-				var_set.add(v.toString());
-			}
-			for (OJMethod m: methods) {
-				var_set.add(m.toString());
-			}
-			for (OJField f: fields) {
-				var_set.add(f.toString());
-			}
-		}
-		return var_set.toArray(new String[var_set.size()]);
-	}
-	
 	
 	private Expression getPreviousExpression(Expression e) {
 		if (e instanceof MethodCall) {
@@ -677,10 +429,14 @@ public class PRVO extends mujava.op.util.Mutator {
 		} else if (elem == null) {
 			t = getSelfType();
 		}
-		return fieldsMethodsAndVars(limit, t, ignoreVars, true, true, this.allowNonStatic);
+		int options = 0;
+		options += ignoreVars?0:VARIABLES;
+		options += this.allowNonStatic?ALLOW_NON_STATIC:0;
+		boolean filterMethods = this.prohibitedMethods != null || this.prohibitedMethodsPerClass != null;
+		return fieldsMethodsAndVars(limit, t, options, filterMethods);
 	}
 	
-	private java.util.List<Object> fieldAndMethods(Expression e) throws ParseTreeException {
+	private java.util.List<Object> fieldAndMethods(Expression e, ParseTreeObject limit) throws ParseTreeException {
 		OJClass t = null;
 		boolean forceIgnoreVariables = false;
 		if (e instanceof MethodCall || e instanceof FieldAccess || e instanceof Variable) {
@@ -691,10 +447,11 @@ public class PRVO extends mujava.op.util.Mutator {
 		} else if (e == null) {
 			t = getSelfType();
 		}
-		return fieldAndMethods(t,forceIgnoreVariables);
+		return fieldAndMethods(t,(ParseTreeObject) (forceIgnoreVariables?null:limit));
 	}
 	
-	private java.util.List<Object> fieldAndMethods(OJClass t, boolean forceIgnoreVariables) throws ParseTreeException {
+	private java.util.List<Object> fieldAndMethods(OJClass t, ParseTreeObject limit) throws ParseTreeException {
+		boolean forceIgnoreVariables = limit == null;
 		java.util.List<Object> fnm = new LinkedList<Object>();
 		if (t == null) {
 			return fnm;
@@ -703,7 +460,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		String publicCheck = "";
 		boolean tPackageSameAsThisPackage = t.isInSamePackage(getSelfType());//t.getPackage().equals(getSelfType().getPackage());
 		publicCheck += tPackageSameAsThisPackage?1:0;
-		boolean tIsInnerClassOfThis = isInnerClassOf(getSelfType(), t, true);
+		boolean tIsInnerClassOfThis = isInnerClassOf(getSelfType(), t, 0);
 		publicCheck += tIsInnerClassOfThis?1:0;
 		boolean canUseProtectedAndDefault = tPackageSameAsThisPackage || tIsInnerClassOfThis;
 		publicCheck += canUseProtectedAndDefault?1:0;
@@ -743,8 +500,35 @@ public class PRVO extends mujava.op.util.Mutator {
             }
         }
 		if (addVariables) {
-			for (Variable v : this.variables) {
-					if (!fnm.contains(v)) fnm.add(v);
+			if (this.smartMode) {
+				Map<OJClass, List<Variable>> reachableVars = getReachableVariables(limit);
+				for (Entry<OJClass, List<Variable>> vars : reachableVars.entrySet()) {
+					for (Variable v : vars.getValue()) {
+						if (!fnm.contains(v)) fnm.add(v);
+					}
+				}
+			} else {
+				ParseTreeObject lastStatement = getStatement(limit, LAST_STATEMENT);
+				ParseTreeObject currentStatement = getStatement(limit);
+				ParseTreeObject nextStatement = getStatement(limit, 1);
+				Map<OJClass, List<Variable>> reachableVarsFromLastStatement = getReachableVariables(lastStatement);
+				for (Entry<OJClass, List<Variable>> vars : reachableVarsFromLastStatement.entrySet()) {
+					for (Variable v : vars.getValue()) {
+						if (!fnm.contains(v)) fnm.add(v);
+					}
+				}
+				Map<OJClass, List<Variable>> reachableVarsFromCurrentStatement = getReachableVariables(currentStatement);
+				for (Entry<OJClass, List<Variable>> vars : reachableVarsFromCurrentStatement.entrySet()) {
+					for (Variable v : vars.getValue()) {
+						if (!fnm.contains(v)) fnm.add(v);
+					}
+				}
+				Map<OJClass, List<Variable>> reachableVarsFromNextStatement = getReachableVariables(nextStatement);
+				for (Entry<OJClass, List<Variable>> vars : reachableVarsFromNextStatement.entrySet()) {
+					for (Variable v : vars.getValue()) {
+						if (!fnm.contains(v)) fnm.add(v);
+					}
+				}
 			}
 		}
 		this.fieldsAndMethodsPerClass.put(t.getName()+addVariables+publicCheck, fnm);
@@ -765,7 +549,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		String e2Name = null;
 		if (e2 instanceof MethodCall) e2Name = ((MethodCall) e2).getName();
 		if (e2 instanceof FieldAccess) e2Name = ((FieldAccess) e2).getName();
-		for (Object m : fieldAndMethods(e1c, false)) {
+		for (Object m : fieldAndMethods(e1c, null)) {
 			if (m instanceof OJField || m instanceof OJMethod) {
 				if (((OJMember) m).getName().compareTo(e2Name)==0) return true;
 			}
@@ -782,7 +566,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		String e2Name = null;
 		if (e2 instanceof MethodCall) e2Name = ((MethodCall) e2).getName();
 		if (e2 instanceof FieldAccess) e2Name = ((FieldAccess) e2).getName();
-		for (Object m : fieldAndMethods(e1c, false)) {
+		for (Object m : fieldAndMethods(e1c, null)) {
 			if (m instanceof OJField || m instanceof OJMethod) {
 				if (((OJMember) m).getName().compareTo(e2Name)==0) return true;
 			}
@@ -800,7 +584,6 @@ public class PRVO extends mujava.op.util.Mutator {
 		OJClass rtype = getType(e2);
 		boolean methodApplicable = (lor && !(e1 instanceof Literal)) || (!lor && (e2 instanceof Variable || e2 instanceof FieldAccess || e2 instanceof MethodCall || e2 instanceof Literal));
 		if (methodApplicable) {
-			if (!this.smartMode) getAccessibleVariables(orig);
 			Expression current = lor?e1:e2;
 			Expression prev = null;
 			Expression next = null;
@@ -808,7 +591,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			if (!lor && (e2 instanceof Variable) && compatibleAssignType(ltype, null) && this.allowLiteralNull() && ((refined && this.refModeAllowNullStack.peek()) || !refined)) outputToFile((ParseTreeObject)(lor?e1:e2), Literal.constantNull());
 			do {
 				prev = getPreviousExpression(current);
-				java.util.List<Object> fnm = this.smartMode?fieldAndMethods(orig, prev, false):fieldAndMethods(prev);
+				java.util.List<Object> fnm = this.smartMode?fieldAndMethods(orig, prev, false):fieldAndMethods(prev, (ParseTreeObject) (lor?e1:e2));
 				for (Object m : fnm) {
 					boolean fieldSpecialCase = prev == null && m instanceof OJMember;
 					if (!fieldSpecialCase && ((m instanceof OJMember && ((OJMember)m).getName().compareTo(convertExpressionToString(current,false))==0)
@@ -898,7 +681,6 @@ public class PRVO extends mujava.op.util.Mutator {
 		boolean methodIsApplicable = ((lor && ((e1 instanceof FieldAccess) || (e1 instanceof MethodCall))) || (!lor && ((e2 instanceof FieldAccess) || (e2 instanceof MethodCall)))); 
 		if (methodIsApplicable) {
 			//decrease by 1
-			if (!this.smartMode) getAccessibleVariables(orig);
 			Expression current = lor?e1:e2; //e1 it's an expression like xs.x, current will first take x value and try to eliminate it and then move throug xs doing the same
 			Expression prev = null;
 			Expression next = null;
@@ -1101,14 +883,13 @@ public class PRVO extends mujava.op.util.Mutator {
 		boolean methodIsApplicableNLor = !(e2 instanceof Literal) && (e2 instanceof Variable) || (e2 instanceof MethodCall) || (e2 instanceof FieldAccess);
 		boolean methodIsApplicable = (lor && methodIsApplicableLor) || (!lor && methodIsApplicableNLor);
 		if (methodIsApplicable) {
-			if (!this.smartMode) getAccessibleVariables(orig);
 			Expression current = lor?e1:e2;
 			Expression next = null;
 			Expression rightPart = null;
 			boolean stop = false;
 			do {
 				stop = current == null;
-				java.util.List<Object> fnm = this.smartMode?fieldAndMethods(orig, current, false):fieldAndMethods(current);
+				java.util.List<Object> fnm = this.smartMode?fieldAndMethods(orig, current, false):fieldAndMethods(current, (ParseTreeObject) (lor?e1:e2));
 				for (Object m : fnm) {
 					OJClass retType = null;
 					boolean nextTypeCheck = false;
@@ -1182,7 +963,6 @@ public class PRVO extends mujava.op.util.Mutator {
 		OJClass rtype = getType(e2);
 		boolean methodIsApplicable = (lor && !((e1 instanceof Literal) || (e1 instanceof Variable))) || ((!lor && (e2 instanceof FieldAccess || e2 instanceof MethodCall)));
 		if (methodIsApplicable) {
-			if (!this.smartMode) getAccessibleVariables(orig);
 			Expression current = lor?e1:e2;
 			Expression next = null;
 			Expression prev = null;
@@ -1190,7 +970,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			do {
 				prev = getPreviousExpression(current);
 				Expression prevPrev = getPreviousExpression(prev);
-				java.util.List<Object> fnm = this.smartMode?fieldAndMethods(orig, prevPrev, false):fieldAndMethods(prevPrev);
+				java.util.List<Object> fnm = this.smartMode?fieldAndMethods(orig, prevPrev, false):fieldAndMethods(prevPrev, (ParseTreeObject) (lor?e1:e2));
 				for (Object m : fnm) {
 					OJClass retType = null;
 					if (m instanceof OJMethod) {
@@ -1259,20 +1039,19 @@ public class PRVO extends mujava.op.util.Mutator {
 		OJClass rtype = getType(e2);
 		boolean methodIsApplicable = (lor && !(e1 instanceof Literal) && !ltype.isPrimitive()) || (!lor && (e2 instanceof Variable || e2 instanceof FieldAccess || e2 instanceof MethodCall) && !rtype.isPrimitive());
 		if (methodIsApplicable) {
-			if (!this.smartMode) getAccessibleVariables(orig);
 			Expression current = lor?e1:e2;
 			Expression next = null;
 			Expression prev = null;
 			Expression rightPart = null;
 			do {
 				prev = getPreviousExpression(current);
-				java.util.List<Object> fnm = this.smartMode?fieldAndMethods(orig, prev, false):fieldAndMethods(prev);;
+				java.util.List<Object> fnm = this.smartMode?fieldAndMethods(orig, prev, false):fieldAndMethods(prev, (ParseTreeObject) (lor?e1:e2));
 				for (Object m : fnm) {
 					java.util.List<Object> fnm2 = new LinkedList<Object>();
 					if (this.smartMode) {
 						fnm2 = fieldAndMethods(null, m, true);
 					} else {
-						fnm2 = (m instanceof OJMethod)?fieldAndMethods(((OJMethod)m).getReturnType(),false):(m instanceof OJField)?fieldAndMethods(((OJField)m).getType(),false):(m instanceof Variable)?fieldAndMethods((Variable)m):fnm2;
+						fnm2 = (m instanceof OJMethod)?fieldAndMethods(((OJMethod)m).getReturnType(),null):(m instanceof OJField)?fieldAndMethods(((OJField)m).getType(),null):(m instanceof Variable)?fieldAndMethods((Variable)m, (ParseTreeObject) (lor?e1:e2)):fnm2;
 					}
 					for (Object m2 : fnm2) {
 						OJClass retType = null;
@@ -1341,7 +1120,6 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	private void binaryVisit(NonLeaf orig, Expression e1, Expression e2, boolean lor) throws ParseTreeException {
-		if (!this.smartMode) getAccessibleVariables(orig);
 		sameLength(orig, e1, e2, lor, false);
 		decreaseLenght(orig, e1, e2, lor);
 		increaseLenght(orig, e1, e2, lor);
@@ -1368,6 +1146,9 @@ public class PRVO extends mujava.op.util.Mutator {
 			if (md.getModifiers().contains(ModifierList.STATIC)) {
 				this.allowNonStatic = false;
 			}
+			this.justEvaluating = true;
+			super.visit(md);
+			this.justEvaluating = false;
 			super.visit(md);
 		}
 	}
@@ -1384,7 +1165,10 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	public void visit(WhileStatement p) throws ParseTreeException {
-		super.visit(p);
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		if (this.unary && this.refinedMode && getMutationsLeft(p) > 0) {
 			pushComplyType(p, p.getExpression());
 			pushAllowNull(p, false);
@@ -1401,7 +1185,10 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	public void visit(ForStatement p) throws ParseTreeException {
-		super.visit(p);
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		if (this.refinedMode && getMutationsLeft(p) > 0) {
 			ExpressionList init = p.getInit();
 			for (int i = 0; init != null && i < init.size(); i++) {
@@ -1427,6 +1214,10 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	public void visit(DoWhileStatement p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		p.getStatements().accept(this);
 		if (this.unary && this.refinedMode && getMutationsLeft(p) > 0) {
 			pushComplyType(p, p.getExpression());
@@ -1438,6 +1229,10 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	public void visit(IfStatement p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		if (this.unary && this.refinedMode && getMutationsLeft(p) > 0) {
 			pushAllowNull(p, false);
 			pushComplyType(p, p.getExpression());
@@ -1451,6 +1246,10 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	public void visit(ConditionalExpression p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		if (this.refinedMode && getMutationsLeft(p) > 0) {
 			pushAllowNull(p, false);
 			pushComplyType(p, p.getCondition());
@@ -1476,17 +1275,16 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 	}
 	
-//	@Override
-//	public ExpressionList evaluateUp(ExpressionList p) {
-//		return p;
-//	}
-	
 	@Override
 	public Expression evaluateUp(AssignmentExpression p) {
 		return p;
 	}
 	
 	public void visit(AssignmentExpression p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		if (!this.unary && getMutationsLeft(p) > 0) {
 			Expression lexp = p.getLeft();
 			Expression rexp = p.getRight();
@@ -1508,6 +1306,9 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 
 	public void visit(BinaryExpression p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+		}
 		Expression lexp = p.getLeft();
 		Expression rexp = p.getRight();
 		if (this.refinedMode) {
@@ -1527,6 +1328,10 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	public void visit(ReturnStatement p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		Expression rexp = p.getExpression();
 			
 		if( rexp == null ){
@@ -1575,6 +1380,10 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 
 	public void visit(VariableDeclarator p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		Expression	rexp = (Expression) p.getInitializer();
 		
 		if( rexp == null ){
@@ -1596,6 +1405,10 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 
 	public void visit(UnaryExpression p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		if (!this.refinedMode) return;
 		pushAllowNull(p, false);
 		pushComplyType(p, p);
@@ -1606,6 +1419,10 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	public void visit(MethodCall p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
 		if (p.getParent() instanceof Statement) {
 			return;
@@ -1630,6 +1447,10 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	public void visit(ArrayAccess p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
 		pushAllowNull(p, false);
 		pushComplyType(p, p);
@@ -1639,11 +1460,19 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	public void visit(FieldAccess p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
 		unaryVisit(p, p, true);
 	}
 	
 	public void visit(Variable p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
 		sameLength((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false, true);
 		increaseLenght((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false);
@@ -1652,6 +1481,10 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	public void visit(Literal p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
 		sameLength((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false, true);
 		increaseLenght((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false);
@@ -1711,7 +1544,6 @@ public class PRVO extends mujava.op.util.Mutator {
 	
 	private void unaryVisit(NonLeaf p, Expression rexp, boolean refined) throws ParseTreeException {
 		if (rexp==null) throw new IllegalArgumentException("rexp is null in PRVO.unaryVisit invokation.");		
-		if (!this.smartMode) getAccessibleVariables(p);
 		Expression e1 = null;
 		if (p instanceof VariableDeclarator) {
 			e1 = new Variable(((VariableDeclarator) p).getVariable());
