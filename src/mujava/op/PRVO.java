@@ -72,7 +72,7 @@ import java.util.List;
  * @version 2.6
  */
 public class PRVO extends mujava.op.util.Mutator {
-	
+
 	public static final String ENABLE_SUPER = "prvo_enable_super";
 	public static final String ENABLE_THIS = "prvo_enable_this";
 	public static final String ENABLE_LITERAL_NULL = "prvo_enable_literal_null";
@@ -83,23 +83,23 @@ public class PRVO extends mujava.op.util.Mutator {
 	public static final String ENABLE_LITERAL_ONE = "prvo_enable_literal_one";
 	public static final String ENABLE_LITERAL_STRINGS = "prvo_enable_literal_strings";
 	public static final String PROHIBITED_METHODS = "prvo_prohibited_methods";
-	
+
 	ParseTreeObject parent = null;
-	
+
 	private boolean allowNonStatic = true;
-	
+
 	private boolean justEvaluating = false;
 
 	private Set<Literal> literals = new TreeSet<Literal>(
 			new Comparator<Literal>() {
-				
+
 				public int compare(Literal l1, Literal l2) {
 					return l1.toString().compareTo(l2.toString());
 				}
-				
+
 			}
-	);
-	
+			);
+
 	private boolean left = false;
 	private boolean right = false;
 	private boolean unary = false;
@@ -109,9 +109,9 @@ public class PRVO extends mujava.op.util.Mutator {
 	private Stack<Expression> refModeComplyTypeStack = new Stack<Expression>();
 	private boolean smartMode;
 	private Mutant op;
-	
+
 	private HashMap<String, java.util.List<Object>> fieldsAndMethodsPerClass = new HashMap<String, java.util.List<Object>>();
-	
+
 	@SuppressWarnings("unchecked")
 	public PRVO(FileEnvironment file_env, ClassDeclaration cdecl,CompilationUnit comp_unit) {
 		super(file_env, comp_unit);
@@ -129,19 +129,19 @@ public class PRVO extends mujava.op.util.Mutator {
 			}
 		}
 	}
-	
+
 	public void smartMode() {
 		this.smartMode = true;
 	}
-	
+
 	public void dumbMode() {
 		this.smartMode = false;
 	}
-	
+
 	public void useLiterals(boolean l) {
 		this.useLiterals = l;
 	}
-	
+
 	public void setRefinedMode(boolean r) {
 		this.refinedMode = r;
 		useLiterals(r);
@@ -149,34 +149,34 @@ public class PRVO extends mujava.op.util.Mutator {
 			smartMode();
 		}
 	}
-	
+
 	public void setOP(Mutant op) {
 		this.op = op;
 	}
-	
+
 	public void setLeft() {
 		this.left = true;
 		this.right = false;
 		this.unary = false;
 	}
-	
+
 	public void setRight() {
 		this.left = false;
 		this.right = true;
 		this.unary = false;
 	}
-	
+
 	public void setUnary() {
 		this.left = false;
 		this.right = false;
 		this.unary = true;
 	}
-	
+
 	private Expression prepend(Expression original, Expression toAdd) throws ParseTreeException {
 		Expression modified = null;
-		
+
 		if (toAdd == null) return (Expression) original.makeRecursiveCopy_keepOriginalID();
-		
+
 		//first, get last part of toAdd
 		Expression toAddCopy = (Expression) toAdd.makeRecursiveCopy_keepOriginalID();
 		if (toAddCopy instanceof FieldAccess) {
@@ -185,17 +185,17 @@ public class PRVO extends mujava.op.util.Mutator {
 			((MethodCall)toAddCopy).setReferenceExpr(null);
 		}
 		//-------------------------------------
-		
+
 		if (original == null) return toAddCopy;
-		
+
 		Expression originalCopy = (Expression) original.makeRecursiveCopy_keepOriginalID();
-		
+
 		//second, if originalCopy is a Variable, change it to a FieldAccess
 		if (originalCopy instanceof Variable) {
 			originalCopy = fixStupidVariable((Variable)originalCopy);
 		}
 		//----------------------------------------------------------------
-		
+
 		Expression current = (Expression) originalCopy.makeRecursiveCopy_keepOriginalID();
 		List<Expression> parts = new LinkedList<Expression>();
 		while (current != null) {
@@ -209,7 +209,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			current = getPreviousExpression(current);
 		}
 		parts.add(0, toAddCopy);
-		
+
 		for (Expression elem : parts) {
 			if (modified == null) {
 				modified = elem;
@@ -224,10 +224,10 @@ public class PRVO extends mujava.op.util.Mutator {
 				modified = elemCopy;
 			}
 		}
-		
+
 		return modified;
 	}
-	
+
 	private boolean findMember(OJMember m, OJMember[] members) {
 		for (OJMember im : members) {
 			String imName = im.getName();
@@ -256,7 +256,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return false;
 	}
-	
+
 	private boolean isInherited(OJMember m) throws ParseTreeException {
 		OJMember[] declaredMembers = (m instanceof OJMethod)?getSelfType().getDeclaredMethods():getSelfType().getDeclaredFields();
 		OJMember[] inheritedMembers = (m instanceof OJMethod)?getInheritedMethods(getSelfType(), ALLOW_FINAL):getInheritedFields(getSelfType(), ALLOW_FINAL);
@@ -266,7 +266,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			return findMember(m, inheritedMembers);
 		}
 	}
-	
+
 	private boolean findField(FieldAccess m, OJField[] fields) throws ParseTreeException {
 		for (OJField im : fields) {
 			String imName = im.getName();
@@ -281,7 +281,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return false;
 	}
-	
+
 	private boolean isInherited(FieldAccess m) throws ParseTreeException {
 		OJField[] declaredFields = getSelfType().getDeclaredFields();
 		OJField[] inheritedFields = getInheritedFields(getSelfType(), ALLOW_FINAL);
@@ -290,9 +290,9 @@ public class PRVO extends mujava.op.util.Mutator {
 		} else {
 			return findField(m, inheritedFields);
 		}
-		
+
 	}
-	
+
 	private boolean findMethod(MethodCall m, OJMethod[] methods) throws ParseTreeException {
 		for (OJMethod im : methods) {
 			String imName = im.getName();
@@ -319,7 +319,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return false;
 	}
-	
+
 	private boolean isInherited(MethodCall m) throws ParseTreeException {
 		OJMethod[] declaredMethods = getSelfType().getDeclaredMethods();
 		OJMethod[] inheritedMethods = getInheritedMethods(getSelfType(), ALLOW_FINAL);
@@ -329,7 +329,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			return findMethod(m, inheritedMethods);
 		}
 	}
-	
+
 	private Expression fixStupidVariable(Variable v) throws ParseTreeException {
 		Map<OJClass, List<Variable>> reachableVars = getReachableVariables(v.getParent());
 		boolean found = false;
@@ -357,7 +357,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 	}
 
-	
+
 	private Expression getPreviousExpression(Expression e) {
 		if (e instanceof MethodCall) {
 			return ((MethodCall) e).getReferenceExpr();
@@ -373,7 +373,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			return null;
 		}
 	}
-	
+
 	private String convertExpressionToString(Expression e, boolean recursive) {
 		String conversion = "";
 		Expression current = e;
@@ -395,7 +395,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return conversion;
 	}
-	
+
 	private OJClass expressionDeclaringClass(Expression e) throws ParseTreeException {
 		if (e instanceof MethodCall) {
 			return getType(((MethodCall) e).getReferenceExpr());
@@ -410,7 +410,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			return null;
 		}
 	}
-	
+
 	private List<Object> fieldAndMethods(ParseTreeObject limit, Object elem, boolean forceIgnoreVars) throws ParseTreeException{
 		boolean ignoreVars = forceIgnoreVars;
 		OJClass t = null;
@@ -435,7 +435,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		boolean filterMethods = this.prohibitedMethods != null || this.prohibitedMethodsPerClass != null;
 		return fieldsMethodsAndVars(limit, t, options, filterMethods);
 	}
-	
+
 	private java.util.List<Object> fieldAndMethods(Expression e, ParseTreeObject limit) throws ParseTreeException {
 		OJClass t = null;
 		boolean forceIgnoreVariables = false;
@@ -449,7 +449,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return fieldAndMethods(t,(ParseTreeObject) (forceIgnoreVariables?null:limit));
 	}
-	
+
 	private java.util.List<Object> fieldAndMethods(OJClass t, ParseTreeObject limit) throws ParseTreeException {
 		boolean forceIgnoreVariables = limit == null;
 		java.util.List<Object> fnm = new LinkedList<Object>();
@@ -471,34 +471,34 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		for (OJField f : t.getDeclaredFields()) {
 			boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
-            boolean isNonStatic = !f.getModifiers().isStatic();
+			boolean isNonStatic = !f.getModifiers().isStatic();
 			if (((onlyPublic && f.getModifiers().isPublic()) || !onlyPublic) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
-                fnm.add(f);
-            }
-        }
-        for (OJMethod m : t.getDeclaredMethods()) {
-        	boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
-            boolean isNonStatic = !m.getModifiers().isStatic();
-        	if (m.getReturnType().getName().compareToIgnoreCase("void") == 0) continue;
-            if ((m.signature().getParameterTypes().length == 0 && ((onlyPublic && m.getModifiers().isPublic())||(!onlyPublic))) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
-                fnm.add(m);
-            }
-        }
-        for (OJField inheritedField : t.getAllFields()) {
-        	boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
-            boolean isNonStatic = !inheritedField.getModifiers().isStatic();
-        	if (((!inheritedField.getModifiers().isPrivate() && !onlyPublic) || inheritedField.getModifiers().isPublic() && onlyPublic) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
-                if (!fnm.contains(inheritedField)) fnm.add(inheritedField);
-            }
-        }
-        for (OJMethod inheritedMethod : t.getAllMethods()) {
-        	boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
-            boolean isNonStatic = !inheritedMethod.getModifiers().isStatic();
-        	if (inheritedMethod.getReturnType().getName().compareToIgnoreCase("void") == 0) continue;
-            if ((((inheritedMethod.getModifiers().isProtected() && !onlyPublic) || inheritedMethod.getModifiers().isPublic()) && inheritedMethod.signature().getParameterTypes().length == 0) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
-                if (!fnm.contains(inheritedMethod)) fnm.add(inheritedMethod);
-            }
-        }
+				fnm.add(f);
+			}
+		}
+		for (OJMethod m : t.getDeclaredMethods()) {
+			boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
+			boolean isNonStatic = !m.getModifiers().isStatic();
+			if (m.getReturnType().getName().compareToIgnoreCase("void") == 0) continue;
+			if ((m.signature().getParameterTypes().length == 0 && ((onlyPublic && m.getModifiers().isPublic())||(!onlyPublic))) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
+				fnm.add(m);
+			}
+		}
+		for (OJField inheritedField : t.getAllFields()) {
+			boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
+			boolean isNonStatic = !inheritedField.getModifiers().isStatic();
+			if (((!inheritedField.getModifiers().isPrivate() && !onlyPublic) || inheritedField.getModifiers().isPublic() && onlyPublic) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
+				if (!fnm.contains(inheritedField)) fnm.add(inheritedField);
+			}
+		}
+		for (OJMethod inheritedMethod : t.getAllMethods()) {
+			boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
+			boolean isNonStatic = !inheritedMethod.getModifiers().isStatic();
+			if (inheritedMethod.getReturnType().getName().compareToIgnoreCase("void") == 0) continue;
+			if ((((inheritedMethod.getModifiers().isProtected() && !onlyPublic) || inheritedMethod.getModifiers().isPublic()) && inheritedMethod.signature().getParameterTypes().length == 0) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
+				if (!fnm.contains(inheritedMethod)) fnm.add(inheritedMethod);
+			}
+		}
 		if (addVariables) {
 			if (this.smartMode) {
 				Map<OJClass, List<Variable>> reachableVars = getReachableVariables(limit);
@@ -534,7 +534,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		this.fieldsAndMethodsPerClass.put(t.getName()+addVariables+publicCheck, fnm);
 		return fnm;
 	}
-	
+
 	private boolean isFieldMethodOf(OJMember e1, Expression e2) throws ParseTreeException {
 		if (e2 instanceof Variable) return false;
 		if (e2 instanceof Literal) return false;
@@ -556,7 +556,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return false;
 	}
-	
+
 	private boolean isFieldMethodOf(Expression e1, Expression e2) throws ParseTreeException {
 		if (e2 instanceof Variable) return false;
 		if (e2 instanceof Literal) return false;
@@ -573,7 +573,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return false;
 	}
-	
+
 	/*
 	 * This method will modify expressions like a = b
 	 * if lor is set to true it will change a to x where x can be a variable or a field
@@ -595,8 +595,8 @@ public class PRVO extends mujava.op.util.Mutator {
 				for (Object m : fnm) {
 					boolean fieldSpecialCase = prev == null && m instanceof OJMember;
 					if (!fieldSpecialCase && ((m instanceof OJMember && ((OJMember)m).getName().compareTo(convertExpressionToString(current,false))==0)
-						|| m instanceof Variable && convertExpressionToString((Variable)m,false).compareTo(convertExpressionToString(current,false))==0)) {
-						
+							|| m instanceof Variable && convertExpressionToString((Variable)m,false).compareTo(convertExpressionToString(current,false))==0)) {
+
 						continue;
 					}
 					OJClass retType = null;
@@ -668,7 +668,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			} while (current != null);
 		}
 	}
-	
+
 	/*
 	 * This method will modify expresions like a = b
 	 * if lor is set to true and a it's an expression with lenght greater than 1 then it will decrease the expression lenght by 1
@@ -754,58 +754,58 @@ public class PRVO extends mujava.op.util.Mutator {
 				current = getPreviousExpression(current);
 			}
 		}
-		
+
 	}
-	
+
 	private boolean allowSuper() {
 		if (Configuration.argumentExist(ENABLE_SUPER)) {
 			return (Boolean) Configuration.getValue(ENABLE_SUPER);
 		}
 		return true;
 	}
-	
+
 	private boolean allowThis() {
 		if (Configuration.argumentExist(ENABLE_THIS)) {
 			return (Boolean) Configuration.getValue(ENABLE_THIS);
 		}
 		return true;
 	}
-	
+
 	private boolean allowLiteralOne() {
 		if (Configuration.argumentExist(ENABLE_LITERAL_ONE)) {
 			return (Boolean) Configuration.getValue(ENABLE_LITERAL_ONE);
 		}
 		return true;
 	}
-	
+
 	private boolean allowLiteralZero() {
 		if (Configuration.argumentExist(ENABLE_LITERAL_ZERO)) {
 			return (Boolean) Configuration.getValue(ENABLE_LITERAL_ZERO);
 		}
 		return true;
 	}
-	
+
 	private boolean allowLiteralFalse() {
 		if (Configuration.argumentExist(ENABLE_LITERAL_FALSE)) {
 			return (Boolean) Configuration.getValue(ENABLE_LITERAL_FALSE);
 		}
 		return true;
 	}
-	
+
 	private boolean allowLiteralTrue() {
 		if (Configuration.argumentExist(ENABLE_LITERAL_TRUE)) {
 			return (Boolean) Configuration.getValue(ENABLE_LITERAL_TRUE);
 		}
 		return true;
 	}
-	
+
 	private boolean allowLiteralNull() {
 		if (Configuration.argumentExist(ENABLE_LITERAL_NULL)) {
 			return (Boolean) Configuration.getValue(ENABLE_LITERAL_NULL);
 		}
 		return true;
 	}
-	
+
 	private boolean allowLiteralEmptyString() {
 		if (!allowLiteralStrings()) {
 			return false;
@@ -815,14 +815,14 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return true;
 	}
-	
+
 	private boolean allowLiteralStrings() {
 		if (Configuration.argumentExist(ENABLE_LITERAL_STRINGS)) {
 			return (Boolean) Configuration.getValue(ENABLE_LITERAL_STRINGS);
 		}
 		return true;
 	}
-	
+
 	private Expression addThisSuper(Expression exp) throws ParseTreeException {
 		if (exp == null) return null;
 		if (!allowSuper() && !allowThis()) return exp;
@@ -849,7 +849,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return modified;
 	}
-	
+
 	private Expression removeSuperOrThis(Expression exp, boolean remSuper) throws ParseTreeException {
 		if (exp == null) return null;
 		Expression modified = (Expression) exp.makeCopy_keepOriginalID();
@@ -872,7 +872,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return modified;
 	}
-	
+
 	/*
 	 * This method will modify expresions like a = b with a' and b', each with a lenght equals to |a|+1 and |b|+1 respectively
 	 */
@@ -936,7 +936,7 @@ public class PRVO extends mujava.op.util.Mutator {
 						} else {
 							outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject)addThisSuper(mutant));
 						}
-						
+
 					}
 				}
 				if (rightPart != null) {
@@ -954,7 +954,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			} while (!stop);
 		}
 	}
-	
+
 	/*
 	 * Replace chains of lenght 2 by chains with lenght 1
 	 */
@@ -1033,7 +1033,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			} while (current != null && !(current instanceof Variable) && !(current instanceof SelfAccess) );
 		}
 	}
-	
+
 	private void replaceOneByTwo(NonLeaf orig, Expression e1, Expression e2, boolean lor) throws ParseTreeException {
 		OJClass ltype = getType(e1);
 		OJClass rtype = getType(e2);
@@ -1118,7 +1118,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			} while (current != null);
 		}
 	}
-	
+
 	private void binaryVisit(NonLeaf orig, Expression e1, Expression e2, boolean lor) throws ParseTreeException {
 		sameLength(orig, e1, e2, lor, false);
 		decreaseLenght(orig, e1, e2, lor);
@@ -1126,19 +1126,19 @@ public class PRVO extends mujava.op.util.Mutator {
 		replaceTwoByOne(orig, e1, e2, lor);
 		replaceOneByTwo(orig, e1, e2, lor);
 	}
-	
+
 	private boolean binExprSupportsNull(int operator) {
 		boolean supportsNull;
 		switch (operator) {
-			case BinaryExpression.EQUAL : {supportsNull = true; break;}
-			case BinaryExpression.NOTEQUAL : {supportsNull = true; break;}
-			default : {supportsNull = false; break;}
+		case BinaryExpression.EQUAL : {supportsNull = true; break;}
+		case BinaryExpression.NOTEQUAL : {supportsNull = true; break;}
+		default : {supportsNull = false; break;}
 		}
 		return supportsNull;
 	}
-	
+
 	//=========================VISIT METHODS================================
-	
+
 	public void visit(MethodDeclaration md) throws ParseTreeException {
 		if (Api.usingApi() && (!Api.insideClassToMutate() || !md.getName().equals(Api.getMethodUnderConsideration()))) {
 			return;
@@ -1154,18 +1154,18 @@ public class PRVO extends mujava.op.util.Mutator {
 			super.visit(md);
 		}
 	}
-	
+
 	public void visit(StatementList p) throws ParseTreeException {
 		for (int s = 0; s < p.size(); s++) {
 			p.get(s).accept(this);
 		}
 	}
-	
+
 	@Override
 	public Statement evaluateUp(WhileStatement p) {
 		return p;
 	}
-	
+
 	public void visit(WhileStatement p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
@@ -1180,12 +1180,12 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		p.getStatements().accept(this);
 	}
-	
+
 	@Override
 	public Statement evaluateUp(ForStatement p) {
 		return p;
 	}
-	
+
 	public void visit(ForStatement p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
@@ -1217,12 +1217,12 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		p.getStatements().accept(this);
 	}
-	
+
 	@Override
 	public Statement evaluateUp(DoWhileStatement p) {
 		return p;
 	}
-	
+
 	public void visit(DoWhileStatement p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
@@ -1237,12 +1237,12 @@ public class PRVO extends mujava.op.util.Mutator {
 			popComplyType(p);
 		}
 	}
-	
+
 	@Override
 	public Statement evaluateUp(IfStatement p) {
 		return p;
 	}
-	
+
 	public void visit(IfStatement p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
@@ -1257,9 +1257,9 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		p.getStatements().accept(this);
 		p.getElseStatements().accept(this);
-		
+
 	}
-	
+
 	public void visit(ConditionalExpression p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
@@ -1289,12 +1289,12 @@ public class PRVO extends mujava.op.util.Mutator {
 			popComplyType(p);
 		}
 	}
-	
+
 	@Override
 	public Expression evaluateUp(AssignmentExpression p) {
 		return p;
 	}
-	
+
 	public void visit(AssignmentExpression p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
@@ -1303,7 +1303,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (!this.unary && getMutationsLeft(p) > 0) {
 			Expression lexp = p.getLeft();
 			Expression rexp = p.getRight();
-			
+
 			if (this.right) {
 				binaryVisit(p, lexp,rexp, false);
 				if (this.refinedMode/*this.canBeRefined(rexp)*/) {
@@ -1341,20 +1341,20 @@ public class PRVO extends mujava.op.util.Mutator {
 			popComplyType(p);
 		}
 	}
-	
+
 	public void visit(ReturnStatement p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
 			return;
 		}
 		Expression rexp = p.getExpression();
-			
+
 		if( rexp == null ){
 			super.visit(p);
 			return;
 		}
 		if (this.unary && getMutationsLeft(p) > 0) unaryVisit(p,rexp, false);
-		
+
 		if (this.unary && getMutationsLeft(p) > 0 && this.refinedMode && this.canBeReplacedByLiterals(rexp)) {
 			Variable returnAuxVar = Variable.generateUniqueVariable();
 			getEnvironment().bindVariable(returnAuxVar.toString(), getMethodUnderConsiderationType());
@@ -1365,7 +1365,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			popAllowNull(p);
 			popComplyType(p);
 		}
-		
+
 		if (this.unary && this.refinedMode && this.canBeRefined(rexp) && getMutationsLeft(p) > 0) {
 			Variable returnAuxVar = Variable.generateUniqueVariable();
 			getEnvironment().bindVariable(returnAuxVar.toString(), getMethodUnderConsiderationType());
@@ -1376,7 +1376,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			popAllowNull(p);
 			popComplyType(p);
 		}
-		
+
 	}
 
 	private boolean canBeReplacedByLiterals(Expression exp) {
@@ -1400,13 +1400,13 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		Expression	rexp = (Expression) p.getInitializer();
-		
+
 		if( rexp == null ){
 			super.visit(p);
 			return;
 		}
 		if (this.unary && getMutationsLeft(p) > 0) unaryVisit(p,rexp, false);
-		
+
 		if (this.unary && this.refinedMode && getMutationsLeft(p) > 0) {
 			OJClass varType = getEnvironment().lookupBind(p.getVariable());
 			pushAllowNull(p, varType==null?false:(compatibleAssignType(varType, null)));
@@ -1416,7 +1416,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			popComplyType(p);
 			popAllowNull(p);
 		}
-		
+
 	}
 
 	public void visit(UnaryExpression p) throws ParseTreeException {
@@ -1432,7 +1432,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		popComplyType(p);
 		popAllowNull(p);
 	}
-	
+
 	public void visit(MethodCall p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
@@ -1460,7 +1460,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			popAllowNull(p);
 		}
 	}
-	
+
 	public void visit(ArrayAccess p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
@@ -1473,7 +1473,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		popComplyType(p);
 		popAllowNull(p);
 	}
-	
+
 	public void visit(FieldAccess p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
@@ -1482,7 +1482,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
 		unaryVisit(p, p, true);
 	}
-	
+
 	public void visit(Variable p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
@@ -1494,7 +1494,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		replaceOneByTwo((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false);
 		replaceByLiteral(this.refModeComplyTypeStack.peek(), p);
 	}
-	
+
 	public void visit(Literal p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
@@ -1506,7 +1506,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		replaceOneByTwo((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false);
 		replaceByLiteral(this.refModeComplyTypeStack.peek(), p);
 	}
-	
+
 	private boolean canBeRefined(Expression exp) {
 		boolean isJustLiteral = (exp instanceof Literal);
 		boolean isJustFieldAccess = (exp instanceof FieldAccess);
@@ -1515,35 +1515,35 @@ public class PRVO extends mujava.op.util.Mutator {
 		boolean canBeRefined = !isJustLiteral && !isJustFieldAccess && !isJustVariable && !isJustMethodCall;
 		return canBeRefined;
 	}
-	
+
 	private void pushComplyType(ParseTreeObject p, Expression value) {
 		if (this.refinedMode && getMutationsLeft(p) > 0) {
 			this.refModeComplyTypeStack.push(value);
 		}
 	}
-	
+
 	private void popComplyType(ParseTreeObject p) {
 		if (this.refinedMode && getMutationsLeft(p) > 0) {
 			this.refModeComplyTypeStack.pop();
 		}
 	}
-	
+
 	private void pushAllowNull(ParseTreeObject p, boolean value) {
 		if (this.refinedMode && getMutationsLeft(p) > 0) {
 			this.refModeAllowNullStack.push(value);
 		}
 	}
-	
+
 	private void popAllowNull(ParseTreeObject p) {
 		if (this.refinedMode && getMutationsLeft(p) > 0) {
 			this.refModeAllowNullStack.pop();
 		}
 	}
-	
+
 	//=========================VISIT METHODS================================
-	
-	
-	
+
+
+
 	private OJClass getMethodUnderConsiderationType() throws ParseTreeException {
 		OJClass methodType = null;
 		String muc = Api.getMethodUnderConsideration();
@@ -1556,7 +1556,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		return methodType;
 	}
 
-	
+
 	private void unaryVisit(NonLeaf p, Expression rexp, boolean refined) throws ParseTreeException {
 		if (rexp==null) throw new IllegalArgumentException("rexp is null in PRVO.unaryVisit invokation.");		
 		Expression e1 = null;
@@ -1579,8 +1579,8 @@ public class PRVO extends mujava.op.util.Mutator {
 			replaceByLiteral(e1, rexp);
 		}
 	}
-	
-	
+
+
 	private void replaceByLiteral(Expression complyWith, Expression orig) throws ParseTreeException {
 		boolean mutGenLimitIsPositive = getMutationsLeft((ParseTreeObject)orig) > 0;
 		boolean mutatingRightOrUnary = this.right || this.unary;
@@ -1602,7 +1602,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			}
 		}
 	}
-	
+
 	private void searchForLiteralsInMethod(ParseTreeObject currentNode) {
 		if (this.literals != null && !literals.isEmpty()) {
 			if (this.refModeAllowNullStack.peek()) {
@@ -1625,7 +1625,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (this.allowLiteralTrue()) this.literals.add(Literal.constantTrue());
 		if (this.allowLiteralZero()) this.literals.add(Literal.constantZero());
 	}
-	
+
 	/**
 	 * Recursively searches for literals starting form a AST node
 	 * @param node
@@ -1753,7 +1753,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			}
 		}
 	}
-	
+
 	private void outputToFile(ParseTreeObject original, ParseTreeObject mutant) {
 		Expression modifiedMutant = (Expression) mutant.makeCopy_keepOriginalID();
 		try {
@@ -1769,5 +1769,5 @@ public class PRVO extends mujava.op.util.Mutator {
 		MutantsInformationHolder.mainHolder().addMutation(this.op, original, (ParseTreeObject) modifiedMutant);
 	}
 
-	
+
 }

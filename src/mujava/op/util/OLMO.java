@@ -577,7 +577,6 @@ public class OLMO extends ParseTreeVisitor {
 
 		Expression expr = p.getCondition();
 		acceptPTO(expr);
-		incrementAffectedLine();
 	
 		ExpressionList incr = p.getIncrement();
 		if (incr != null && (!incr.isEmpty())) {
@@ -585,6 +584,7 @@ public class OLMO extends ParseTreeVisitor {
 				acceptPTO(incr.get(i));
 			}
 		}
+		incrementAffectedLine();
 
 		StatementList stmts = p.getStatements();
 		acceptPTO(stmts);
