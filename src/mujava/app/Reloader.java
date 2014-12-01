@@ -4,12 +4,28 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 public class Reloader extends ClassLoader {
-	private List<String> classpath;
-	private List<Class<?>> cache;
+	protected List<String> classpath;
+	protected List<Class<?>> cache;
+	
+	public Reloader() {
+		String classpath = System.getProperty("java.class.path");
+		String[] classpathEntries = classpath.split(File.pathSeparator);
+		this.classpath = Arrays.asList(classpathEntries);
+		this.cache = new LinkedList<Class<?>>();
+	}
+	
+	public Reloader(ClassLoader parent) {
+		super(parent);
+		String classpath = System.getProperty("java.class.path");
+		String[] classpathEntries = classpath.split(File.pathSeparator);
+		this.classpath = Arrays.asList(classpathEntries);
+		this.cache = new LinkedList<Class<?>>();
+	}
 	
 	public Reloader(List<String> classpath, ClassLoader parent) {
 		super(parent);
@@ -18,14 +34,14 @@ public class Reloader extends ClassLoader {
 	}
 
     @Override
-    public Class<?> loadClass(String s) {
+    public Class<?> loadClass(String s) throws ClassNotFoundException {
     	Class<?> clazz;
         clazz = findClass(s);
         if (clazz != null) this.cache.add(clazz);
         return clazz;
     }
     
-    public Class<?> rloadClass(String s, boolean reload) {
+    public Class<?> rloadClass(String s, boolean reload) throws ClassNotFoundException {
     	Class<?> clazz = retrieveFromCache(s);
     	if (clazz != null) {
     		if (!reload) {
@@ -39,7 +55,7 @@ public class Reloader extends ClassLoader {
         return clazz;
     }
     
-    private Class<?> reload(String s) {
+    protected Class<?> reload(String s) throws ClassNotFoundException {
 		Class<?> clazz = null;
 		Reloader r = new Reloader(this.classpath, this.getParent());
 		clazz = r.loadClass(s);
@@ -51,7 +67,7 @@ public class Reloader extends ClassLoader {
 		return clazz;
 	}
     
-    private Class<?> retrieveFromCache(String s) {
+    protected Class<?> retrieveFromCache(String s) {
     	Class<?> clazz = null;
     	for (Class<?> c : this.cache) {
     		if (c.getName().compareTo(s)==0) {
@@ -81,7 +97,7 @@ public class Reloader extends ClassLoader {
         }
     }
 
-    private byte[] loadClassData(String className) throws IOException {
+    protected byte[] loadClassData(String className) throws IOException {
     	boolean found = false;
     	File f = null;
     	for (String cp : this.classpath) {

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -218,7 +219,7 @@ public class Generator {
 			String path = mut.getPath();
 			File mutantFile = new File(path);
 			byte[] digest = JustCodeDigest.digest(mutantFile);
-			if (this.mutantHashes.add(digest)) {
+			if (this.mutantHashes.add(digest)) {//if (!hashExists(digest)) {//
 				filteredMutants.add(mut);
 			} else {
 				delete(path);					//deletes mutant
@@ -226,6 +227,16 @@ public class Generator {
 			}
 		}
 		return filteredMutants;
+	}
+	
+	private boolean hashExists(byte[] hash) {
+		for (byte[] other : this.mutantHashes) {
+			if (Arrays.equals(hash, other)) {
+				return true;
+			}
+		}
+		this.mutantHashes.add(hash);
+		return false;
 	}
 
 	/**

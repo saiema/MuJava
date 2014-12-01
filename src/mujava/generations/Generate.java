@@ -1,11 +1,15 @@
 package mujava.generations;
 
+import java.util.Arrays;
+import java.util.List;
+
 import mujava.api.Configuration;
 import mujava.api.Mutant;
 import mujava.api.MutantsInformationHolder;
 import mujava.app.Core;
 import mujava.app.MutationRequest;
 import mujava.op.PRVO;
+import mujava.op.basic.COR;
 
 public class Generate {
 
@@ -13,38 +17,48 @@ public class Generate {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String clazz = "roops" + Core.SEPARATOR + "core" + Core.SEPARATOR + "objects" + Core.SEPARATOR + "SinglyLinkedList_stryker";
+		//String clazz = "roops" + Core.SEPARATOR + "core" + Core.SEPARATOR + "objects" + Core.SEPARATOR + "SinglyLinkedList_stryker";
+		String clazz = "pldi" + Core.SEPARATOR + "nodecachinglinkedlist" + Core.SEPARATOR + "NodeCachingLinkedList";
+		//String clazz = "pldi" + Core.SEPARATOR + "nodecachinglinkedlist" + Core.SEPARATOR + "NodeCachingLinkedList";
 		//String clazz = "bugHunting" + Core.SEPARATOR + "PRVOMethodCall";
 		//String clazz = "bugHunting" + Core.SEPARATOR + "SinglyLinkedList";
 		//String clazz = "main" + Core.SEPARATOR + "Gcd";
-		//String[] methods = {"insert"};
+		//String clazz = "list" + Core.SEPARATOR + "SinglyLinkedListBinaryExpressionFieldVarFor";
+		//String[] methods = {"contains"};
 		//String[] methods = {"radiatedMethod"};
-		String[] methods = {"getNode"};
+		String[] methods = {"remove"};
 		Mutant[] ops = {	
-//				Mutant.PRVOL,
+				Mutant.PRVOL_SMART,
 		        Mutant.PRVOR_REFINED,
-//		        Mutant.PRVOU_REFINED,
-//				Mutant.AODS,
-//				Mutant.AODU,
-//				Mutant.AOIS,
-//				Mutant.AOIU,
-//				Mutant.AORB,
-//				Mutant.AORS,
-//				Mutant.AORU,
-//				Mutant.ASRS,
-//				Mutant.COD,
-//				Mutant.COI,
-//				Mutant.COR,
-//				Mutant.LOD,
-//				Mutant.LOR,
-//				Mutant.ROR,
-//				Mutant.SOR		
+		        Mutant.PRVOU_REFINED,
+				Mutant.AODS,
+				Mutant.AODU,
+				Mutant.AOIS,
+				Mutant.AOIU,
+				Mutant.AORB,
+				Mutant.AORS,
+				Mutant.AORU,
+				Mutant.ASRS,
+				Mutant.COD,
+				Mutant.COI,
+				Mutant.COR,
+				Mutant.LOD,
+				Mutant.LOR,
+				Mutant.ROR,
+				Mutant.SOR 	
 						};
 		MutantsInformationHolder.setVerbose(false);
-		Configuration.add(PRVO.ENABLE_SUPER, Boolean.TRUE);
-		Configuration.add(PRVO.ENABLE_THIS, Boolean.FALSE);
-		Configuration.add(PRVO.ENABLE_LITERAL_EMPTY_STRING, Boolean.FALSE);
-		Configuration.add(PRVO.ENABLE_LITERAL_NULL, Boolean.TRUE);
+		
+		Configuration.add(PRVO.ENABLE_SUPER, Boolean.FALSE);
+		Configuration.add(PRVO.ENABLE_LITERAL_STRINGS, Boolean.FALSE);
+		List<String> bannedMethods = Arrays.asList(new String[]{"hashCode", "getClass", "toString", "toLowerCase", "intern", "toCharArray", "getBytes", "toUpperCase", "trim", "toLowerCase", "clone", "hash32", "serialPersistentFields", "serialVersionUID", "hash", "HASHING_SEED", "length", "isEmpty", "serialPersistentFields", "CASE_INSENSITIVE_ORDER"});
+        Configuration.add(PRVO.PROHIBITED_METHODS, bannedMethods);
+        Configuration.add(COR.ALLOW_BIT_AND, false);
+        Configuration.add(COR.ALLOW_BIT_OR, false);
+        Configuration.add(COR.ALLOW_LOGICAL_AND, false);
+        Configuration.add(COR.ALLOW_LOGICAL_OR, false);
+        Configuration.add(COR.ALLOW_XOR, false);
+        
 		String basePathOriginals = args[0];
 		String basePathMutants = args[1];
 		MutationRequest originalRequest = new MutationRequest(clazz, methods, ops, basePathOriginals, basePathMutants);

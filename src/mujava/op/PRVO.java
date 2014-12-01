@@ -1147,8 +1147,10 @@ public class PRVO extends mujava.op.util.Mutator {
 				this.allowNonStatic = false;
 			}
 			this.justEvaluating = true;
+			Api.disableClassesVerification();
 			super.visit(md);
 			this.justEvaluating = false;
+			Api.enableClassesVerification();
 			super.visit(md);
 		}
 	}
@@ -1189,6 +1191,9 @@ public class PRVO extends mujava.op.util.Mutator {
 			super.visit(p);
 			return;
 		}
+		this.justEvaluating = true;
+		super.visit(p);
+		this.justEvaluating = false;
 		if (this.refinedMode && getMutationsLeft(p) > 0) {
 			ExpressionList init = p.getInit();
 			for (int i = 0; init != null && i < init.size(); i++) {
@@ -1213,6 +1218,11 @@ public class PRVO extends mujava.op.util.Mutator {
 		p.getStatements().accept(this);
 	}
 	
+	@Override
+	public Statement evaluateUp(DoWhileStatement p) {
+		return p;
+	}
+	
 	public void visit(DoWhileStatement p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
@@ -1226,6 +1236,11 @@ public class PRVO extends mujava.op.util.Mutator {
 			popAllowNull(p);
 			popComplyType(p);
 		}
+	}
+	
+	@Override
+	public Statement evaluateUp(IfStatement p) {
+		return p;
 	}
 	
 	public void visit(IfStatement p) throws ParseTreeException {

@@ -92,9 +92,15 @@ public class MutationScore {
 		List<Result> testResults = new LinkedList<Result>();
 		System.out.println("Testing mutant : "+pathToMutant+className+'\n');
 		for (String test : testClasses) {
-			Class<?> testToRun = reloader.rloadClass(test, true);
-			reloader.rloadClass(className, true);
-			testResults.add(JUnitCore.runClasses(testToRun));
+			Class<?> testToRun;
+			try {
+				testToRun = reloader.rloadClass(test, true);
+				reloader.rloadClass(className, true);
+				testResults.add(JUnitCore.runClasses(testToRun));
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		this.delete(originalFile);
 		this.restoreOriginal(originalFile);

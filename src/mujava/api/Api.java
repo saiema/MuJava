@@ -26,6 +26,8 @@ public class Api {
 
 	private static boolean usingApi = false;
 	
+	private static boolean enableClassesVerification = true;
+	
 	private static String methodToConsider;
 	
 	private static boolean cleanOJSystemBeforeGenerating = true;
@@ -140,6 +142,7 @@ public class Api {
 	 * @param ic	:	the name to check	:	{@code String}
 	 */
 	public static boolean enterInnerClass(String ic) {
+		if (!enableClassesVerification) return true;
 		Api.visitedClasses.push(ic);
 		if (!Api.expectedClasses.isEmpty() && Api.expectedClasses.peek().compareTo(ic)==0) {
 			Api.expectedClasses.pop();
@@ -154,6 +157,7 @@ public class Api {
 	 * @param ic	:	the class name to push	:	{@code String}
 	 */
 	public static void leaveInnerClass(String ic, boolean pushExpectedClass) {
+		if (!enableClassesVerification) return;
 		if (pushExpectedClass) Api.expectedClasses.push(ic);
 		if (!Api.visitedClasses.isEmpty()) Api.visitedClasses.pop();
 	}
@@ -182,6 +186,14 @@ public class Api {
 	
 	public static void disableApi() {
 		usingApi = false;
+	}
+	
+	public static void disableClassesVerification() {
+		enableClassesVerification = false;
+	}
+	
+	public static void enableClassesVerification() {
+		enableClassesVerification = true;
 	}
 
 }
