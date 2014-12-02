@@ -1195,6 +1195,13 @@ public class PRVO extends mujava.op.util.Mutator {
 		super.visit(p);
 		this.justEvaluating = false;
 		if (this.refinedMode && getMutationsLeft(p) > 0) {
+			if (this.unary) {
+				VariableDeclarator[] varDecls = p.getInitDecls();
+				for (VariableDeclarator vd : varDecls) {
+					visit(vd);
+				}
+			}
+			//FIXME: CHECK IF THE FOLLOWING CODE IS NECESSARY
 			ExpressionList init = p.getInit();
 			for (int i = 0; init != null && i < init.size(); i++) {
 				pushComplyType(p, init.get(i));
@@ -1203,6 +1210,8 @@ public class PRVO extends mujava.op.util.Mutator {
 				popAllowNull(p);
 				popComplyType(p);
 			}
+			//---------------------------------------------------
+			
 			if (this.unary) {
 				pushComplyType(p, p.getCondition());
 				pushAllowNull(p, false);
@@ -1210,9 +1219,11 @@ public class PRVO extends mujava.op.util.Mutator {
 				popAllowNull(p);
 				popComplyType(p);
 			}
-			ExpressionList increments = p.getIncrement();
-			for (int i = 0; i < increments.size(); i++) {
-				increments.accept(this);
+			if (this.unary) {
+				ExpressionList increments = p.getIncrement();
+				for (int i = 0; i < increments.size(); i++) {
+					increments.accept(this);
+				}
 			}
 		}
 		p.getStatements().accept(this);
@@ -1582,9 +1593,12 @@ public class PRVO extends mujava.op.util.Mutator {
 
 
 	private void replaceByLiteral(Expression complyWith, Expression orig) throws ParseTreeException {
+		boolean parentIsUnaryExpression = ((ParseTreeObject) orig).getParent() instanceof UnaryExpression;
+		ParseTreeObject parent = ((ParseTreeObject)orig).getParent();
+		boolean parentIsIncDecUnaryExpression = parentIsUnaryExpression && (((UnaryExpression)parent).getOperator() >= 0 || ((UnaryExpression)parent).getOperator() <= 3);
 		boolean mutGenLimitIsPositive = getMutationsLeft((ParseTreeObject)orig) > 0;
 		boolean mutatingRightOrUnary = this.right || this.unary;
-		boolean origIsValid = (orig instanceof MethodCall) || (orig instanceof FieldAccess) || (orig instanceof Variable) || (orig instanceof Literal);
+		boolean origIsValid = !parentIsIncDecUnaryExpression && ((orig instanceof MethodCall) || (orig instanceof FieldAccess) || (orig instanceof Variable) || (orig instanceof Literal));
 		boolean noChainedMethodCall = ((orig instanceof MethodCall) && ((MethodCall)orig).getReferenceExpr() == null) || !(orig instanceof MethodCall);
 		boolean noChainedFieldAccess = ((orig instanceof FieldAccess) && ((FieldAccess)orig).getReferenceExpr() == null) || !(orig instanceof FieldAccess);
 		boolean origIsNotAChain = noChainedMethodCall && noChainedFieldAccess;
