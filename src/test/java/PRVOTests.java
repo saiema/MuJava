@@ -501,10 +501,12 @@ public class PRVOTests {
 		mceSLLBEFieldVarFor_left.add(Pattern.compile("this\\.header\\.next\\.value = i; //mutGenLimit 0"));
 		mceSLLBEFieldVarFor_left.add(Pattern.compile("value_param = i; //mutGenLimit 0"));
 		mceSLLBEFieldVarFor_left.add(Pattern.compile("test = i; //mutGenLimit 0"));
+		mceSLLBEFieldVarFor_left.add(Pattern.compile("i = i; //mutGenLimit 0"));
+		mceSLLBEFieldVarFor_left.add(Pattern.compile("j = i; //mutGenLimit 0"));
 		
 		mcneSLLBEFieldVarFor_left.add(Pattern.compile("^([\\s ])*header\\.value = i; //mutGenLimit 0"));
 		mcneSLLBEFieldVarFor_left.add(Pattern.compile("^([\\s ])*header\\.next\\.value = i; //mutGenLimit 0"));
-		Property propSLLBEFieldVarFor_left = new Property(Mutant.PRVOL, "list/SinglyLinkedListBinaryExpressionFieldVarFor", "contains", 5, 4, mceSLLBEFieldVarFor_left, mcneSLLBEFieldVarFor_left);
+		Property propSLLBEFieldVarFor_left = new Property(Mutant.PRVOL, "list/SinglyLinkedListBinaryExpressionFieldVarFor", "contains", 7, 6, mceSLLBEFieldVarFor_left, mcneSLLBEFieldVarFor_left);
 		
 		
 		//LOS SIGUIENTES SON TESTS PARA COMPROBAR QUE NO SE MUTA FUERA DEL METODO BAJO CONSIDERACION

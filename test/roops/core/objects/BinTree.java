@@ -1,11 +1,12 @@
 package roops.core.objects;
 
+
+import roops.core.objects.BinTreeNode;
+
+
 public class BinTree {
 
-	public /*@nullable@*/ BinTreeNode root;
-	public int size;
-
-  /*@ 
+/*@ 
     @ invariant (\forall BinTreeNode n;
     @     \reach(root, BinTreeNode, left + right).has(n) == true;
     @     \reach(n.right, BinTreeNode, right + left).has(n) == false &&
@@ -25,10 +26,48 @@ public class BinTree {
     @ invariant (\forall BinTreeNode n; 
     @	  \reach(root, BinTreeNode, left + right).has(n) == true;
     @	  (n.left != null ==> n.left.parent == n) && (n.right != null ==> n.right.parent == n));
-    @*/
+    @ 
+    @ invariant root != null ==> root.parent == null;
+    @*/    public /*@nullable@*/roops.core.objects.BinTreeNode root;
 
+    public int size;
 
-	/*@
+    public BinTree() {
+    }
+
+/*@
+	  @ requires true;
+	  @
+	  @ ensures (\result == true) <==> (\exists BinTreeNode n; 
+	  @		\reach(root, BinTreeNode, left+right).has(n) == true;
+	  @		n.key == k);
+	  @
+	  @ ensures (\forall BinTreeNode n; 
+	  @		\reach(root, BinTreeNode, left+right).has(n); 
+	  @		\old(\reach(root, BinTreeNode, left+right)).has(n));
+	  @
+	  @ ensures (\forall BinTreeNode n;  
+	  @		\old(\reach(root, BinTreeNode, left+right)).has(n);
+	  @		\reach(root, BinTreeNode, left+right).has(n));
+	  @
+	  @ signals (RuntimeException e) false;
+	  @*/    public boolean contains( int k ) {
+        roops.core.objects.BinTreeNode current = this.root;
+        while (current != null) {
+            if (k < current.key) {
+                current = current.left;
+            } else {
+                if (k > current.key) {
+                    current = current.right;
+                } else {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+/*@
 	  @ requires true;
 	  @
 	  @ ensures (\exists BinTreeNode n;
@@ -38,53 +77,110 @@ public class BinTree {
 	  @	ensures (\forall BinTreeNode n;
 	  @		\old(\reach(root, BinTreeNode, left + right)).has(n) == true;
 	  @  	n.key != k) ==> size == \old(size) + 1;
-	  @*/
-	
-	
+	  @
+	  @ ensures (\exists BinTreeNode n; 
+	  @     \reach(root, BinTreeNode, left + right).has(n) == true;
+	  @		n.key == k);
+	  @
+	  @ signals (RuntimeException e) false;
+	  @*/    public boolean insert( int k ) {
+        roops.core.objects.BinTreeNode y = null;
+        roops.core.objects.BinTreeNode x = this.root;
+        while (x != null) {
+            y = x;
+            if (k < x.key) { //mutGenLimit 2
+                x = x.left;
+            } else {
+                if (k > x.key) { //mutGenLimit 2
+                    x = x.right; //mutGenLimit 2
+                } else {
+                    return false;
+                }
+            }
+        }
+        x = new roops.core.objects.BinTreeNode();
+        x.key = k;
+        if (y == null) {
+            this.root = x;
+        } else {
+            if (k < y.key) { //mutGenLimit 2
+                y.left = x; //mutGenLimit 2
+            } else {
+                y.right = x;
+            }
+        }
+        x.parent = y;
+        this.size += 1;
+        return true;
+    }
 
-	boolean insert(int k){
-		BinTreeNode y = null; 
-		BinTreeNode x = root; 
-		while (x != null) {
-			//while(x.left != null) {  //(4c)
-			y = x;
-			//y = t.root; //(3b)(8)(9)
-			if (k < x.key)
-				//if(k < t.root.key) //(9)(13)
-				x = x.left;
-			//x = x.right; //(3a)
-			//x = x.left.right //(13)
-			else {
-				if (k > x.key)
-					//if (k < x.key) //(4a)
-					//if(k > t.root.key) (4b)
-					x = x.right; 
-				else
-					return false;
-			}
-		}
-		x = new BinTreeNode();
-		x.key = k;
-		if (y == null) 
-			//if(x != null) //(10)
-			root = x;
-		else {
-			if (k < y.key) 
-				//if(k > y.key) //(2a)
-				//if(k < x.key)  //(2b)(5)(11)(12)
-				y.left = x;
-			//y.left = y; //(6)(10)(11)
-			else
-				y.right = x;
-			//y.right = y;	//(10)(12)
-		}
-//		x.parent = y;
-		x.parent = x; //mutGenLimit 1  //(1)(7)(8)
-		//y.parent = x;  //(5)(6)(10) 
-		//x.parent = y; //Omission error (14)
-		size += 1; 
-		return true;
-	}
-
+/*@
+	  @ requires (\forall BinTreeNode n1; 
+	  @		\reach(root, BinTreeNode, left+right).has(n1);
+	  @		(\forall BinTreeNode m1; 
+	  @				\reach(root, BinTreeNode, left+right).has(m1); n1 != m1 ==> n1.key != m1.key));
+	  @
+	  @ ensures (\exists BinTreeNode n2; 
+	  @		\old(\reach(root, BinTreeNode, left + right)).has(n2) == true; 
+	  @		\old(n2.key) == element)
+	  @				 <==> \result == true;
+	  @
+	  @ ensures (\forall BinTreeNode n3; 
+	  @		\reach(root, BinTreeNode, left+right).has(n3);
+	  @		n3.key != element);
+	  @
+	  @ signals (RuntimeException e) false;
+	  @*/    public boolean remove( int element ) {
+        roops.core.objects.BinTreeNode node = this.root;
+        while (node != null && node.key != element) { //mutGenLimit 2
+            if (element < node.key) {
+                node = node.left;
+            } else {
+                if (element > node.key) {
+                    node = node.right;
+                }
+            }
+        }
+        if (node == null) {
+            return false;
+        } else {
+            if (node.left != null && node.right != null) { //mutGenLimit 2
+                roops.core.objects.BinTreeNode predecessor = node.left;
+                if (predecessor != null) {
+                    while (predecessor.right != null) {
+                        predecessor = predecessor.right;
+                    }
+                }
+                node.key = predecessor.key;
+                node = predecessor;
+            }
+        }
+        roops.core.objects.BinTreeNode pullUp;
+        if (node.left == null) {
+            pullUp = node.right;
+        } else {
+            pullUp = node.left;
+        }
+        if (node == this.root) {
+            this.root = pullUp;
+            if (pullUp != null) {
+                pullUp.parent = null;
+            }
+        } else {
+            if (node.parent.left == node) { //mutGenLimit 2
+                node.parent.left = pullUp; //mutGenLimit 2
+                if (pullUp != null) {
+                    pullUp.parent = node.parent;
+                }
+            } else {
+                node.parent.right = pullUp; //mutGenLimit 2
+                if (pullUp != null) {
+                    pullUp.parent = node.parent;
+                }
+            }
+        }
+        this.size--;
+        return true;
+    }
 
 }

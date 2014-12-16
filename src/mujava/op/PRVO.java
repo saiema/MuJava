@@ -984,7 +984,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					if (retType == null && next == null) continue;
 					boolean typeCheck = false;
 					boolean pertCheck = false;
-					boolean primitiveCheck = false;
+					boolean primitiveCheck = true;//false;
 					if (next == null) {
 						boolean ltypeCheck = true; //compatibleAssignType(ltype, retType)
 						pertCheck = true;
@@ -993,7 +993,7 @@ public class PRVO extends mujava.op.util.Mutator {
 						typeCheck = true;
 						pertCheck = (m instanceof OJMember)?isFieldMethodOf((OJMember)m,next):((m instanceof Variable)?isFieldMethodOf((Variable)m, next):false);
 					}
-					primitiveCheck = (prevPrev == null) && !retType.isPrimitive();
+					//primitiveCheck = ((prevPrev == null) && !retType.isPrimitive());
 					if (pertCheck && typeCheck && primitiveCheck) {
 						Expression prevPrevCopy = prevPrev==null?null:((Expression)prevPrev.makeRecursiveCopy_keepOriginalID());
 						Expression nextCopy = rightPart==null?null:((Expression)rightPart.makeRecursiveCopy_keepOriginalID());

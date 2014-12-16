@@ -18,15 +18,15 @@ public class Generate {
 	 */
 	public static void main(String[] args) {
 		//String clazz = "roops" + Core.SEPARATOR + "core" + Core.SEPARATOR + "objects" + Core.SEPARATOR + "SinglyLinkedList_stryker";
-		String clazz = "pldi" + Core.SEPARATOR + "nodecachinglinkedlist" + Core.SEPARATOR + "NodeCachingLinkedList";
 		//String clazz = "pldi" + Core.SEPARATOR + "nodecachinglinkedlist" + Core.SEPARATOR + "NodeCachingLinkedList";
+		String clazz = "pldi" + Core.SEPARATOR + "binomialheap" + Core.SEPARATOR + "BinomialHeap";
 		//String clazz = "bugHunting" + Core.SEPARATOR + "PRVOMethodCall";
 		//String clazz = "bugHunting" + Core.SEPARATOR + "SinglyLinkedList";
 		//String clazz = "main" + Core.SEPARATOR + "Gcd";
 		//String clazz = "list" + Core.SEPARATOR + "SinglyLinkedListBinaryExpressionFieldVarFor";
 		//String[] methods = {"contains"};
 		//String[] methods = {"radiatedMethod"};
-		String[] methods = {"remove"};
+		String[] methods = {"findMinimum"};
 		Mutant[] ops = {	
 				Mutant.PRVOL_SMART,
 		        Mutant.PRVOR_REFINED,

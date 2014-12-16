@@ -19,6 +19,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 import test.java.utils.LineMutationsFilter;
 import test.java.utils.ManualMutationsFilter;
+import test.java.utils.MultiMutationsFilter;
 import test.java.utils.MutationExpected;
 import test.java.utils.Property;
 import test.java.utils.SpecificMutationsFilter;
@@ -181,19 +182,90 @@ public class CustomTest {
 									false);
 		
 		
+		List<Mutant> operators9 = new LinkedList<Mutant>();
+		operators9.add(Mutant.PRVOL_SMART);
+		operators9.add(Mutant.PRVOR_REFINED);
+		operators9.add(Mutant.PRVOU_REFINED);
+		Property propCustom9 = new Property(operators9,
+									"utils/SimpleClass",
+									"twicePlusOne",
+									TestingTools.NO_MUTANTS_EXPECTED,
+									TestingTools.NO_MUTANTS_EXPECTED,
+									TestingTools.NO_PATTERN_EXPECTED,
+									TestingTools.NO_PATTERN_EXPECTED);
+		
+		List<Mutant> operators10 = Arrays.asList(new Mutant[]{
+				Mutant.AMC,
+				Mutant.AODS,
+				Mutant.AODU,
+				Mutant.AOIS,
+				Mutant.AOIU,
+				Mutant.AORB,
+				Mutant.AORS,
+				Mutant.AORU,
+				Mutant.ASRS,
+				Mutant.COD,
+				Mutant.COI,
+				Mutant.COR,
+				Mutant.COR,
+				Mutant.EAM,
+				Mutant.EMM,
+				Mutant.ROR,
+				Mutant.SOR,
+				Mutant.EOA_STRICT,
+				Mutant.EOC_SMART,
+				Mutant.IHD,
+				Mutant.IHI,
+				Mutant.IOD,
+				Mutant.IOP,
+				Mutant.IPC,
+				Mutant.ISD_SMART,
+				Mutant.ISI_SMART,
+				Mutant.JDC,
+				Mutant.JID,
+				Mutant.JSD,
+				Mutant.JSI,
+				Mutant.JTD,
+				Mutant.JTI_SMART,
+				Mutant.LOD,
+				Mutant.LOI,
+				Mutant.LOR,
+				Mutant.OAN_RELAXED,
+				Mutant.OMR,
+				Mutant.PCC,
+				Mutant.PCD,
+				Mutant.PNC,
+				Mutant.PPD,
+				Mutant.PRVOL_SMART,
+				Mutant.PRVOR_REFINED,
+				Mutant.PRVOU_REFINED
+		});
+		Property propCustom10 = new Property(operators10,
+											"roops/core/objects/SinglyLinkedList_stryker",
+											"getNode",
+											TestingTools.NO_MUTANTS_EXPECTED,
+											TestingTools.NO_MUTANTS_EXPECTED,
+											TestingTools.NO_PATTERN_EXPECTED,
+											TestingTools.NO_PATTERN_EXPECTED,
+											new MultiMutationsFilter(),
+											true);
+		
+		
+		
 		//MUTANTS FOLDERS
 		
 		//MUTANTS GENERATION
 		
 		//PARAMETERS
 		return Arrays.asList(new Object[][] {
-				{propCustom8},
+				{propCustom10},
 		});
 	}
 	
 	@Test
 	public void mutantGeneration() {
-		assertTrue(TestingTools.obtainMutations(prop));
+		assertTrue(!TestingTools.generateMutants(prop, true).isEmpty());
+		//assertTrue(TestingTools.obtainMutations(prop));
 	}
 	
 
