@@ -1595,7 +1595,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	private void replaceByLiteral(Expression complyWith, Expression orig) throws ParseTreeException {
 		boolean parentIsUnaryExpression = ((ParseTreeObject) orig).getParent() instanceof UnaryExpression;
 		ParseTreeObject parent = ((ParseTreeObject)orig).getParent();
-		boolean parentIsIncDecUnaryExpression = parentIsUnaryExpression && (((UnaryExpression)parent).getOperator() >= 0 || ((UnaryExpression)parent).getOperator() <= 3);
+		boolean parentIsIncDecUnaryExpression = parentIsUnaryExpression && (((UnaryExpression)parent).getOperator() >= 0 && ((UnaryExpression)parent).getOperator() <= 3);
 		boolean mutGenLimitIsPositive = getMutationsLeft((ParseTreeObject)orig) > 0;
 		boolean mutatingRightOrUnary = this.right || this.unary;
 		boolean origIsValid = !parentIsIncDecUnaryExpression && ((orig instanceof MethodCall) || (orig instanceof FieldAccess) || (orig instanceof Variable) || (orig instanceof Literal));
