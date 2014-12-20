@@ -1212,6 +1212,9 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			line_num++;
 			pushNest();
 			bl.accept(this);
+			
+			outputCommentIfApplicable(bl.getAfterComment());
+			
 			popNest();
 			writeTab();
 			out.print("}");
@@ -1366,7 +1369,20 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 	/****** rough around innerclass ********/
 	public void visit(TypeName p) throws ParseTreeException {
-		outputCommentIfApplicable(p.getComment()); //added (12/09/14)
+		ParseTreeObject parent = p.getParent();
+		boolean useTabs = true;
+		boolean useLineSeparator = true;
+		if (parent instanceof Parameter) {
+			useTabs = false;
+			useLineSeparator = false;
+		} else if (parent instanceof FieldDeclaration) {
+			useTabs = false;
+			useLineSeparator = false;
+		} else if (parent instanceof MethodDeclaration) {
+			useTabs = false;
+			useLineSeparator = false;
+		}
+		outputCommentIfApplicable(p.getComment(), useTabs, useLineSeparator); //added (12/09/14)
 		String typename = p.getName().replace('$', '.');
 		out.print(typename);
 
@@ -1421,7 +1437,8 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	}
 
 	public void visit(VariableDeclaration p) throws ParseTreeException {
-		outputCommentIfApplicable(p.getComment()); //added (12/09/14)
+		String comment = p.getTypeSpecifier() != null?p.getTypeSpecifier().getComment():null;
+		outputCommentIfApplicable(comment); //added (12/09/14)
 		writeTab();
 
 		ModifierList modifs = p.getModifiers();
@@ -1430,7 +1447,12 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			out.print(" ");
 
 		TypeName typespec = p.getTypeSpecifier();
-		typespec.accept(this);
+//		typespec.accept(this);
+		String typename = typespec.getName().replace('$', '.');
+		out.print(typename);
+
+		int dims = typespec.getDimension();
+		out.print(TypeName.stringFromDimension(dims));
 
 		out.print(" ");
 
@@ -1614,6 +1636,8 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		pushNest();
 
 		stmts.accept(this);
+		
+		outputCommentIfApplicable(stmts.getAfterComment());
 
 		popNest();
 		writeTab();
@@ -1633,7 +1657,9 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		pushNest();
 
 		stmts.accept(this);
-
+		
+		outputCommentIfApplicable(stmts.getAfterComment());
+		
 		popNest();
 		writeTab();
 		out.print("}");
@@ -1745,24 +1771,48 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++
 	// +++++++++++++++++++++++++++added (10/09/14) [simon]
-	private void outputCommentIfApplicable(String comment) {
-		if (!comment.isEmpty())
-			out.print(comment);
-		this.line_num += countCommentLines(comment);	//added (12/09/14) [simon]
+	private void outputCommentIfApplicable(String original) {
+		outputCommentIfApplicable(original, true, true);
+	}
+	
+	
+	private void outputCommentIfApplicable(String original, boolean useTabs, boolean addLineSeparator) {
+		if (original == null) return;
+		if (original.isEmpty()) return;
+		Matcher m = Pattern.compile("(\n)|(\r)|(\r\n)|("+System.getProperty("line.separator")+")").matcher(original);
+		int from = 0;
+		int to = 0;
+		while (!m.hitEnd()) {
+			if (m.find()) {
+				to = m.end();
+				if (useTabs) writeTab();
+				String commentLine = original.substring(from, to).trim() + (addLineSeparator?System.getProperty("line.separator"):"");
+				out.print(commentLine);
+				this.line_num++;
+				from = to;
+			}
+		}
+		if (to < (original.length() - 1)) {
+			if (useTabs) writeTab();
+			String commentLine = original.substring(from, original.length()).trim() + (addLineSeparator?System.getProperty("line.separator"):"");
+			out.print(commentLine);
+			this.line_num++;
+		}
 	}
 	// ----------------------------------------------------
 	
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++
 	// +++++++++++++++++++++++++++added (12/09/14) [simon]
-	private int countCommentLines(String comment) {
-		if (comment == null || comment.isEmpty()) return 0;
-		Matcher m = Pattern.compile("(\n)|(\r)|(\r\n)|("+System.getProperty("line.separator")+")").matcher(comment);
-		int newLines = 0;
-		while (m.find()) {
-			newLines++;
-		}
-		return newLines;
-	}
+//	private int countCommentLines(String comment) {
+//		if (comment == null || comment.isEmpty()) return 0;
+//		Matcher m = Pattern.compile("(\n)|(\r)|(\r\n)|("+System.getProperty("line.separator")+")").matcher(comment);
+//		int newLines = 0;
+//		while (m.find()) {
+//			newLines++;
+//		}
+//		return newLines;
+//	}
+	
 	//-----------------------------------------------------
 
 }
