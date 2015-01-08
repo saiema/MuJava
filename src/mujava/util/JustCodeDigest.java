@@ -35,8 +35,9 @@ public class JustCodeDigest {
 	public static byte[] digest(String original) {
 		String justCode = getJustCode(original);
 		InputStream is = new ByteArrayInputStream(justCode.getBytes());
+		DigestInputStream dis = null;
 		try {
-			DigestInputStream dis = new DigestInputStream(is, MessageDigest.getInstance("MD5"));
+			dis = new DigestInputStream(is, MessageDigest.getInstance("MD5"));
 			while (dis.read() != -1) {}
 			return dis.getMessageDigest().digest();
 		} catch (NoSuchAlgorithmException e) {
@@ -45,6 +46,15 @@ public class JustCodeDigest {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			if (dis != null) {
+				try {
+					dis.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 		return null;
 	}
