@@ -39,11 +39,24 @@ public class AOIU extends Arithmetic_OP {
 
 	public void visit( UnaryExpression p ) throws ParseTreeException {
 		if (!(getMutationsLeft(p) > 0)) return;
-		if (isArithmeticType(p)) {
+		if (isArithmeticType(p) && !isIncDecOp(p.getOperator())) {
 			UnaryExpression originalCopy = (UnaryExpression) p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutant = new UnaryExpression(UnaryExpression.MINUS, originalCopy);
 			outputToFile(p, mutant);
 		}
+	}
+	
+	private boolean isIncDecOp(int op) {
+		if (UnaryExpression.POST_DECREMENT == op) {
+			return true;
+		} else if (UnaryExpression.POST_INCREMENT == op) {
+			return true;
+		} else if (UnaryExpression.PRE_DECREMENT == op) {
+			return true;
+		} else if (UnaryExpression.PRE_INCREMENT == op) {
+			return true;
+		}
+		return false;
 	}
 
 	public void visit( Variable p) throws ParseTreeException {	   

@@ -42,6 +42,13 @@ public class Generator {
 	public static enum VERBOSE_LEVEL {NO_VERBOSE, BASIC_VERBOSE, FULL_VERBOSE, DEBUG}
 	private VERBOSE_LEVEL verboseLevel = VERBOSE_LEVEL.NO_VERBOSE;
 	private Integer currentGeneration = -1;
+	private static boolean useLowMemoryMode = false;
+	
+	
+	public static void useLowMemoryMode(boolean ulmm) {
+		Generator.useLowMemoryMode = ulmm;
+	}
+	
 	
 	/**
 	 * Construct the basic form of a Generator
@@ -81,9 +88,10 @@ public class Generator {
 	 */
 	public GenerationsInformation generate(boolean checkOnEveryMutant) {
 		boolean goalAchieved = false;
-		GenerationsInformation ginfo = new GenerationsInformation();
+		GenerationsInformation ginfo = new GenerationsInformation(Generator.useLowMemoryMode);
 		this.currentGeneration = 0;
 		MutationRequest request = this.reqGen.nextRequest();
+		File mutFile = null;
 		try {
 			File originalFile = getFileToMutate(request);
 			byte[] digest = JustCodeDigest.digest(originalFile);
@@ -100,13 +108,13 @@ public class Generator {
 			do {
 				this.reqGen.update(ginfo, this.currentGeneration);
 				this.currentGeneration++;
-				List<MutantInfo> lastGeneration = ginfo.getGeneration(this.currentGeneration-1);
+				List<MutantInfo> lastGeneration = ginfo.getLastGeneration();//ginfo.getGeneration(this.currentGeneration-1);
 				request = this.reqGen.nextRequest();
 				int currentMutant = 0;
 				String currentGenerationDir = request.outputDir;
 				for (MutantInfo mut : lastGeneration) {
 					request.outputDir = appendDir(currentGenerationDir, "mutant-"+Integer.toString(currentMutant));
-					File mutFile = new File(mut.getPath());
+					mutFile = new File(mut.getPath());
 					copyMutant(mutFile.getAbsolutePath(), originalFile.getAbsolutePath());
 					List<MutantInfo> mutants = generateNextGeneration(request, checkOnEveryMutant, ginfo);
 					if (!checkOnEveryMutant) ginfo.add(this.currentGeneration, mutants);
@@ -125,14 +133,20 @@ public class Generator {
 			
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
+			System.err.println("ClassNotFoundException while generating generation " + this.currentGeneration);
+			System.err.println("Current file: " + (mutFile!=null?(mutFile.getAbsolutePath()):("null")));
 			e.printStackTrace();
 			//return null;
 		} catch (OpenJavaException e) {
 			// TODO Auto-generated catch block
+			System.err.println("OpenJavaException while generating generation " + this.currentGeneration);
+			System.err.println("Current file: " + (mutFile!=null?(mutFile.getAbsolutePath()):("null")));
 			e.printStackTrace();
 			//return null;
 		} catch (ParseTreeException e) {
 			// TODO Auto-generated catch block
+			System.err.println("ParseTreeException while generating generation " + this.currentGeneration);
+			System.err.println("Current file: " + (mutFile!=null?(mutFile.getAbsolutePath()):("null")));
 			e.printStackTrace();
 			//return null;
 		}

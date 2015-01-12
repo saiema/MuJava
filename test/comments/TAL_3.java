@@ -14,11 +14,11 @@ public class TAL_3 {
 		//comment 5
 		int i = 0; //mutGenLimit 1
 		//comment 6
-		while (i < array.length && !found) {
+		while (i < array.length && !found) { //mutGenLimit 1
 			//comment 7
-			if (array[i] == value) {
+			if (array[i] == value) { //mutGenLimit 1
 				//comment 8
-				found = true;
+				found = true; //mutGenLimit 1
 				//comment 9
 			} else {
 				//comment 10
@@ -28,7 +28,7 @@ public class TAL_3 {
 			//comment 12
 		}
 		//comment 13
-		return found;
+		return found; //mutGenLimit 1
 		//comment 14
 	}
 

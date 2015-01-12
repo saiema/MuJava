@@ -18,15 +18,16 @@ public class Generate {
 	 */
 	public static void main(String[] args) {
 		//String clazz = "roops" + Core.SEPARATOR + "core" + Core.SEPARATOR + "objects" + Core.SEPARATOR + "SinglyLinkedList_stryker";
-		//String clazz = "pldi" + Core.SEPARATOR + "nodecachinglinkedlist" + Core.SEPARATOR + "NodeCachingLinkedList";
-		String clazz = "pldi" + Core.SEPARATOR + "binomialheap" + Core.SEPARATOR + "BinomialHeap";
+		String clazz = "pldi" + Core.SEPARATOR + "nodecachinglinkedlist" + Core.SEPARATOR + "NodeCachingLinkedList";
+		//String clazz = "pldi" + Core.SEPARATOR + "binomialheap" + Core.SEPARATOR + "BinomialHeap";
+		//String clazz = "pldi" + Core.SEPARATOR + "bintree" + Core.SEPARATOR + "BinTree";
 		//String clazz = "bugHunting" + Core.SEPARATOR + "PRVOMethodCall";
-		//String clazz = "bugHunting" + Core.SEPARATOR + "SinglyLinkedList";
+		//String clazz = "comments" + Core.SEPARATOR + "TAL_3";
 		//String clazz = "main" + Core.SEPARATOR + "Gcd";
 		//String clazz = "list" + Core.SEPARATOR + "SinglyLinkedListBinaryExpressionFieldVarFor";
-		//String[] methods = {"contains"};
-		//String[] methods = {"radiatedMethod"};
-		String[] methods = {"findMinimum"};
+		//String[] methods = {"addFirst"};
+		String[] methods = {"contains"};
+		//String[] methods = {"getNode"};
 		Mutant[] ops = {	
 				Mutant.PRVOL_SMART,
 		        Mutant.PRVOR_REFINED,
@@ -47,6 +48,9 @@ public class Generate {
 				Mutant.ROR,
 				Mutant.SOR 	
 						};
+		String basePathOriginals = args[0];
+		String basePathMutants = args[1];
+		
 		MutantsInformationHolder.setVerbose(false);
 		
 		Configuration.add(PRVO.ENABLE_SUPER, Boolean.FALSE);
@@ -59,11 +63,25 @@ public class Generate {
         Configuration.add(COR.ALLOW_LOGICAL_OR, false);
         Configuration.add(COR.ALLOW_XOR, false);
         
-		String basePathOriginals = args[0];
-		String basePathMutants = args[1];
+        generate(clazz, methods, ops, basePathOriginals, basePathMutants, 2, true);
+	}
+	
+	/**
+	 * Generate several generations of mutants.
+	 * 
+	 * @param clazz					:	the clazz to mutate																												:	{@code String}
+	 * @param methods				:	the methods to mutate																											:	{@code String[]}
+	 * @param ops					:	mutation operators to use																										:	{@code Mutant[]}
+	 * @param basePathOriginals		:	the folder where original class is found (e.g.: src/)																			:	{@code String}
+	 * @param basePathMutants		:	the folder where mutants will be stored (e.g.: mutants/)																		:	{@code String}
+	 * @param generations			:	how many generations will be generated (keep in mind that this value will not overwrite mutGenLimit annotations)				:	{@code int}
+	 * @param lowMemory				:	if {@code true} less info will be outputed but less memory will be used (for more than 2-3 generations this should be enabled)	:	{@code boolean}
+	 */
+	public static void generate(String clazz, String[] methods, Mutant[] ops, String basePathOriginals, String basePathMutants, int generations, boolean lowMemory) {
 		MutationRequest originalRequest = new MutationRequest(clazz, methods, ops, basePathOriginals, basePathMutants);
-		GoalTester goalTester = new GenerationsGoalTester(1);
+		GoalTester goalTester = new GenerationsGoalTester(generations);
 		RequestGenerator requestGenerator = new SameRequestGenerator(originalRequest);
+		Generator.useLowMemoryMode(lowMemory);
 		Generator generator = new Generator(requestGenerator, goalTester, Generator.VERBOSE_LEVEL.FULL_VERBOSE);
 		GenerationsInformation generationsInfo= generator.generate(false);
 		System.out.println(generationsInfo.showBasicInformation());

@@ -32,6 +32,8 @@ public class Api {
 	
 	private static boolean cleanOJSystemBeforeGenerating = true;
 	
+	private static String currentFilePath;
+	
 	/**
 	 * This field defines if the mutations are to be performed on an inner class
 	 * 
@@ -66,6 +68,7 @@ public class Api {
 		if (cleanOJSystemBeforeGenerating) OJSystem.clean();
 		Api.methodToConsider = methodToConsider;
 		Debug.setDebugLevel(0);
+		Api.currentFilePath = javaFile.getAbsolutePath();
 		NotDirBasedMutantsGenerator gen = new NotDirBasedMutantsGenerator(javaFile, mutOps);
 		MutationSystem.CLASS_NAME = Api.getMainClassName(className);
 		gen.makeMutants();
@@ -196,4 +199,8 @@ public class Api {
 		enableClassesVerification = true;
 	}
 
+	public static String getCurrentFilePath() {
+		return Api.currentFilePath;
+	}
+	
 }

@@ -33,6 +33,7 @@ public class GenerationsInformation {
 		if (lowMemoryMode) {
 			this.lastGeneration = new LinkedList<MutantInfo>();
 			this.mutationsNumberPerOperatorPerLinePerGeneration = new HashMap<Integer, Map<Integer, Map<Mutant, Integer>>>();
+			this.lastMutantsUpdated = new LinkedList<MutantInfo>();
 			this.lowMemoryMode = true;
 		} else {
 			this.generations = new HashMap<Integer, List<MutantInfo>>();
@@ -111,6 +112,7 @@ public class GenerationsInformation {
 	
 	private void addMutantPerLinePerOperatorLowMemory(Integer generation, MutantInfo mutant) {
 		Map<Integer, Map<Mutant, Integer>> mutationsPerOperatorPerLine;
+		int affectedLine = mutant.getMutation() != null?mutant.getMutation().getAffectedLine():-1;
 		if (this.mutationsNumberPerOperatorPerLinePerGeneration.containsKey(generation)) {
 			mutationsPerOperatorPerLine = this.mutationsNumberPerOperatorPerLinePerGeneration.get(generation);
 		} else {
@@ -118,20 +120,19 @@ public class GenerationsInformation {
 			this.mutationsNumberPerOperatorPerLinePerGeneration.put(generation, mutationsPerOperatorPerLine);
 		}
 		Map<Mutant, Integer> mutationsPerOperator;
-		if (mutationsPerOperatorPerLine.containsKey(mutant.getMutatedLine())) {
-			mutationsPerOperator = mutationsPerOperatorPerLine.get(mutant.getMutatedLine());
+		if (mutationsPerOperatorPerLine.containsKey(affectedLine)) {
+			mutationsPerOperator = mutationsPerOperatorPerLine.get(affectedLine);
 		} else {
 			mutationsPerOperator = new HashMap<Mutant, Integer>();
-			mutationsPerOperatorPerLine.put(mutant.getMutatedLine(), mutationsPerOperator);
+			mutationsPerOperatorPerLine.put(affectedLine, mutationsPerOperator);
 		}
 		Integer mutations;
 		if (mutationsPerOperator.containsKey(mutant.getOpUsed())) {
-			mutations = mutationsPerOperator.get(mutant.getOpUsed());
+			mutations = mutationsPerOperator.get(mutant.getOpUsed()) + 1;
 		} else {
-			mutations = new Integer(0);
-			mutationsPerOperator.put(mutant.getOpUsed(), mutations);
+			mutations = new Integer(1);
 		}
-		mutations++;
+		mutationsPerOperator.put(mutant.getOpUsed(), mutations);
 	}
 	
 	private void addMutantPerLine(Integer generation, MutantInfo mutant) {
@@ -269,21 +270,26 @@ public class GenerationsInformation {
 	}
 	
 	private String showGenerationLowMemory(Integer generation, boolean fullInfo) {
-		int genSize = 0;
-		Map<Integer, Map<Mutant, Integer>> mutationsPerOperatorPerLine = this.mutationsNumberPerOperatorPerLinePerGeneration.get(generation);
-		if (mutationsPerOperatorPerLine == null) {
-			return "";
-		}
-		for (Entry<Integer, Map<Mutant, Integer>> mpopl : mutationsPerOperatorPerLine.entrySet()) {
-			for (Entry<Mutant, Integer> mpo : mpopl.getValue().entrySet()) {
-				genSize += mpo.getValue(); 
-			}
-		}
-		String res = (this.generations.containsKey(generation)?("Generation : " + generation + " | mutants " + genSize):("There's no generation " + generation)) + "\n";
-		if (this.generations.containsKey(generation) && fullInfo) {
-			res += showFullGenerationInfoLowMemory(generation);
+		String res = (this.mutationsNumberPerOperatorPerLinePerGeneration.containsKey(generation)?("Generation : " + generation + " | mutants " + getGenerationMutationsNumber(generation)):("There's no generation " + generation)) + "\n";
+		if (this.mutationsNumberPerOperatorPerLinePerGeneration.containsKey(generation) && fullInfo) {
+			res += showFullGenerationInfo(generation);
 		}
 		return res;
+	}
+	
+	private int getGenerationMutationsNumber(Integer generation) {
+		if (this.lowMemoryMode) {
+			Map<Integer, Map<Mutant, Integer>> mutationsForGeneration = this.mutationsNumberPerOperatorPerLinePerGeneration.get(generation);
+			int mutations = 0;
+			for (Entry<Integer, Map<Mutant, Integer>> entry : mutationsForGeneration.entrySet()) {
+				for (Entry<Mutant, Integer> mutationsPerOperator : entry.getValue().entrySet()) {
+					mutations += mutationsPerOperator.getValue();
+				}
+			}
+			return mutations;
+		} else {
+			return this.generations.get(generation).size();
+		}
 	}
 	
 	public String showFullGenerationInfo(Integer generation) {
