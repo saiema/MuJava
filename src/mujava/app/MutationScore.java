@@ -94,8 +94,10 @@ public class MutationScore {
 		for (String test : testClasses) {
 			Class<?> testToRun;
 			try {
-				testToRun = reloader.rloadClass(test, true);
 				reloader.rloadClass(className, true);
+				testToRun = reloader.getLastChild().rloadClass(test, true);
+//				testToRun = reloader.rloadClass(test, true);
+//				reloader.rloadClass(className, true);
 				testResults.add(JUnitCore.runClasses(testToRun));
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block

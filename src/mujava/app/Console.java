@@ -43,7 +43,7 @@ public class Console {
 		flags.setNoValueFlag('F'); //activates field mutations
 		flags.setNoValueFlag('C'); //activates class mutations
 		flags.setDependence('T', 'S');
-		flags.setDependence('T', 'S');
+		flags.setDependence('S', 'T');
 		flags.setDependence('t', 'T');
 		flags.setDependence('x', 'B');
 		flags.setDependence('s', 'B');
@@ -62,7 +62,6 @@ public class Console {
 		System.out.println(mutationScore?"Will calculate mutation score":"");
 		
 		//===========================validate mutation operators========================================//
-		//MutatorsInfo mi = MutatorsInfo.newInstance();
 		List<Mutant> ops = new LinkedList<Mutant>();
 		if (flags.flagExist('x')) {
 			for (String op : flags.getFlagValues('x')) {
@@ -249,6 +248,9 @@ public class Console {
 		System.out.println("-x <mutations operators to use> | optional parameter | requires : -B 		| e.g: -x COI COR LOR");
 		System.out.println("-H 								| optional parameter | can't be used with any other parameter and no value must be passed | effect : show this info");
 		System.out.println("-h 								| optional parameter | can't be used with any other parameter and no value must be passed | effect : show all mutation operators available");
+		System.out.println("-S								| optional parameter | requires : -T		| effect : calculate mutation score");
+		System.out.println("-F								| optional parameter | requires : -m		| effect : enable field mutations");
+		System.out.println("-C								| optional parameter | requires : -m		| effect : enable class mutations");
 	}
 	
 	private static void mutopsHelp() {
