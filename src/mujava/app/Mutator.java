@@ -14,6 +14,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -387,24 +389,42 @@ public class Mutator implements Runnable{
 		filterCompatibleMutants(mih.getMutantsIdentifiers());
 	}
 	
-	/*
-	 * Just a test method, the client is the one who must filter the desired mutants
-	 * and use the method checkCompatibility(List<Mutation> mis) to check if selected
-	 * mutants are compatible and can be applied on the same file 
+	/**
+	 * This method takes a mutations list and will remove any mutation that return false when calling {@Mutation#isOneLineInMethodOp()}
+	 * and for all mutations affecting the same node only one will be selected at random.
+	 * 
+	 * @param mutations
 	 */
 	public static void filterCompatibleMutants(List<Mutation> mutations) {
 		int current = 0;
 		List<Mutation> mis = mutations;
-		List<ParseTreeObject> nodesToMutate = new LinkedList<ParseTreeObject>();
+		List<Mutation> filteredMutations = new LinkedList<Mutation>();
+		Random random = new Random();
+		Map<Integer, List<Mutation>> mutationsPerNodeID = new HashMap<Integer, List<Mutation>>();
 		while (current < mis.size()) {
 			if (!mis.get(current).isOneLineInMethodOp()) {
 				mis.remove(current);
-			} else if (alreadyMutated(mis.get(current).getOriginal(), nodesToMutate)) {
-				mis.remove(current);
 			} else {
+				Mutation currMutation = mis.get(current);
+				Integer mutationNodeID = currMutation.getOriginal().getObjectID();
+				List<Mutation> mutationsSameID;
+				if (mutationsPerNodeID.containsKey(mutationNodeID)) {
+					mutationsSameID = mutationsPerNodeID.get(mutationNodeID);
+				} else {
+					mutationsSameID = new LinkedList<Mutation>();
+					mutationsPerNodeID.put(mutationNodeID, mutationsSameID);
+				}
+				mutationsSameID.add(currMutation);
 				current++;
 			}
 		}
+		for (Entry<Integer, List<Mutation>> mutationsPerNode : mutationsPerNodeID.entrySet()) {
+			Integer idx = random.nextInt(mutationsPerNode.getValue().size());
+			Mutation selectedMutation = mutationsPerNode.getValue().get(idx);
+			filteredMutations.add(selectedMutation);
+		}
+		mutations.clear();
+		mutations.addAll(filteredMutations);
 	}
 	
 	/*
