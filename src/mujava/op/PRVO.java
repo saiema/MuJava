@@ -69,20 +69,94 @@ import java.util.List;
  * @author Matías Williams
  * <hr> rewritten by
  * @author Simón Emmanuel Gutiérrez Brida
- * @version 2.6
+ * @version 3.0
  */
 public class PRVO extends mujava.op.util.Mutator {
 
+	/**
+	 * Option to enable/disable the use of {@code super} in the generated mutations
+	 * <p>
+	 * this option is enabled by default
+	 */
 	public static final String ENABLE_SUPER = "prvo_enable_super";
+	/**
+	 * Option to enable/disable the use of {@code this} in the generated mutations
+	 * <p>
+	 * this option is enabled by default
+	 */
 	public static final String ENABLE_THIS = "prvo_enable_this";
+	/**
+	 * Option to enable/disable the use of the literal {@code null} in the generated mutations
+	 * <p>
+	 * this option is enabled by default
+	 */
 	public static final String ENABLE_LITERAL_NULL = "prvo_enable_literal_null";
+	/**
+	 * Option to enable/disable the use of the literal {@code true} in the generated mutations
+	 * <p>
+	 * this option is enabled by default
+	 */
 	public static final String ENABLE_LITERAL_TRUE = "prvo_enable_literal_true";
+	/**
+	 * Option to enable/disable the use of the literal {@code false} in the generated mutations
+	 * <p>
+	 * this option is enabled by default
+	 */
 	public static final String ENABLE_LITERAL_FALSE = "prvo_enable_literal_false";
+	/**
+	 * Option to enable/disable the use of the empty string literal in the generated mutations
+	 * <p>
+	 * this option is enabled by default
+	 */
 	public static final String ENABLE_LITERAL_EMPTY_STRING = "prvo_enable_literal_empty_string";
+	/**
+	 * Option to enable/disable the use of the literal {@code 0} in the generated mutations
+	 * <p>
+	 * this option is enabled by default
+	 */
 	public static final String ENABLE_LITERAL_ZERO = "prvo_enable_literal_zero";
+	/**
+	 * Option to enable/disable the use of the literal {@code 1} in the generated mutations
+	 * <p>
+	 * this option is enabled by default
+	 */
 	public static final String ENABLE_LITERAL_ONE = "prvo_enable_literal_one";
+	/**
+	 * Option to enable/disable the use of the string literals (collected from the method to mutate code) in the generated mutations
+	 * <p>
+	 * this option is enabled by default
+	 */
 	public static final String ENABLE_LITERAL_STRINGS = "prvo_enable_literal_strings";
+	/**
+	 * Option to set a list of prohibited methods that will not be used to generated mutations
+	 * <p>
+	 * this option is not set by default
+	 */
 	public static final String PROHIBITED_METHODS = "prvo_prohibited_methods";
+	/**
+	 * Option to enable/disable mutations that changes one field or method in a chained expression with a chained expression of size 2
+	 * <p>
+	 * this option is enabled by default
+	 */
+	public static final String ENABLE_ONE_BY_TWO_MUTANTS = "prvo_one_by_two_mutants";
+	/**
+	 * Option to enable/disable mutations that changes a sub chained expression of size 2 with one field or method
+	 * <p>
+	 * this option is enabled by default 
+	 */
+	public static final String ENABLE_TWO_BY_ONE_MUTANTS = "prvo_two_by_one_mutants";
+	/**
+	 * Option to enable/disable mutations affecting a chained expression on the left side of an assignment statement replacing this expression with a variable or field
+	 * <p>
+	 * this option is disabled by default
+	 */
+	public static final String ENABLE_ALL_BY_ONE_MUTANTS_LEFT = "prvo_all_by_one_mutants_left";
+	/**
+	 * Option to enable/disable mutations affecting a chained expression on the right side of an assignment statement replacing this expression with a variable or field
+	 * <p>
+	 * this option is disabled by default
+	 */
+	public static final String ENABLE_ALL_BY_ONE_MUTANTS_RIGHT = "prvo_all_by_one_mutants_right";
 
 	ParseTreeObject parent = null;
 
@@ -822,6 +896,34 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return true;
 	}
+	
+	private boolean generateTwoByOneMutations() {
+		if (Configuration.argumentExist(ENABLE_TWO_BY_ONE_MUTANTS)) {
+			return (Boolean) Configuration.getValue(ENABLE_TWO_BY_ONE_MUTANTS);
+		}
+		return true;
+	}
+	
+	private boolean generateOneByTwoMutations() {
+		if (Configuration.argumentExist(ENABLE_ONE_BY_TWO_MUTANTS)) {
+			return (Boolean) Configuration.getValue(ENABLE_ONE_BY_TWO_MUTANTS);
+		}
+		return true;
+	}
+	
+	private boolean generateAllByOneMutantsRight() {
+		if (Configuration.argumentExist(ENABLE_ALL_BY_ONE_MUTANTS_RIGHT)) {
+			return (Boolean) Configuration.getValue(ENABLE_ALL_BY_ONE_MUTANTS_RIGHT);
+		}
+		return false;
+	}
+	
+	private boolean generateAllByOneMutantsLeft() {
+		if (Configuration.argumentExist(ENABLE_ALL_BY_ONE_MUTANTS_LEFT)) {
+			return (Boolean) Configuration.getValue(ENABLE_ALL_BY_ONE_MUTANTS_LEFT);
+		}
+		return false;
+	}
 
 	private Expression addThisSuper(Expression exp) throws ParseTreeException {
 		if (exp == null) return null;
@@ -962,7 +1064,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		OJClass ltype = getType(e1);
 		OJClass rtype = getType(e2);
 		boolean methodIsApplicable = (lor && !((e1 instanceof Literal) || (e1 instanceof Variable))) || ((!lor && (e2 instanceof FieldAccess || e2 instanceof MethodCall)));
-		if (methodIsApplicable) {
+		if (methodIsApplicable && this.generateTwoByOneMutations()) {
 			Expression current = lor?e1:e2;
 			Expression next = null;
 			Expression prev = null;
@@ -1033,12 +1135,72 @@ public class PRVO extends mujava.op.util.Mutator {
 			} while (current != null && !(current instanceof Variable) && !(current instanceof SelfAccess) );
 		}
 	}
+	
+	private void replaceAllByOne(NonLeaf orig, Expression e1, Expression e2, boolean lor) throws ParseTreeException {
+		OJClass ltype = getType(e1);
+		boolean methodIsApplicableLeft = false;
+		if (lor && this.generateAllByOneMutantsLeft()) {
+			if (e1 instanceof FieldAccess) {
+				methodIsApplicableLeft = ((FieldAccess)e1).getReferenceExpr() != null;
+			} else if (e1 instanceof MethodCall) {
+				methodIsApplicableLeft = ((MethodCall)e1).getReferenceExpr() != null;
+			}
+		}
+		boolean methodIsApplicableRight = false;
+		if (!lor && this.generateAllByOneMutantsRight()) {
+			methodIsApplicableRight = true;
+		}
+		boolean methodIsApplicable = methodIsApplicableLeft || methodIsApplicableRight;
+		if (methodIsApplicable) {
+			java.util.List<Object> fnm = this.smartMode?fieldAndMethods(orig, null, false):fieldAndMethods((Expression)null, (ParseTreeObject) (lor?e1:e2));
+			if (!lor) {
+				searchForLiteralsInMethod((ParseTreeObject) orig);
+				fnm.addAll(this.literals);
+			}
+			for (Object replacement : fnm) {
+				if (replacement instanceof Literal) {
+					if (!lor) {
+						OJClass typeToComply = ltype;
+						OJClass litType = getType((Literal)replacement);
+						if (!compatibleAssignType(typeToComply, litType, true)) {
+							continue;
+						} else {
+							outputToFile((ParseTreeObject) e2, (Literal)replacement);
+						}
+					}
+				} else if (replacement instanceof Variable) {
+					OJClass varType = getType((Variable)replacement);
+					if (compatibleAssignType(ltype, varType, true)) {
+						outputToFile((ParseTreeObject)(lor?e1:e2), (Variable)replacement);
+					} else {
+						continue;
+					}
+				} else if (replacement instanceof FieldAccess) {
+					OJClass fieldType = getType((FieldAccess)replacement);
+					if (compatibleAssignType(ltype, fieldType, true)) {
+						outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject) addThisSuper((FieldAccess)replacement));
+					} else {
+						continue;
+					}
+				} else if (replacement instanceof MethodCall && !lor) {
+					OJClass methodType = getType((MethodCall)replacement);
+					if (compatibleAssignType(ltype, methodType, true)) {
+						outputToFile((ParseTreeObject)e2, (MethodCall)replacement);
+					} else {
+						continue;
+					}
+				} else {
+					continue;
+				}
+			}
+		}
+	}
 
 	private void replaceOneByTwo(NonLeaf orig, Expression e1, Expression e2, boolean lor) throws ParseTreeException {
 		OJClass ltype = getType(e1);
 		OJClass rtype = getType(e2);
 		boolean methodIsApplicable = (lor && !(e1 instanceof Literal) && !ltype.isPrimitive()) || (!lor && (e2 instanceof Variable || e2 instanceof FieldAccess || e2 instanceof MethodCall) && !rtype.isPrimitive());
-		if (methodIsApplicable) {
+		if (methodIsApplicable && this.generateOneByTwoMutations()) {
 			Expression current = lor?e1:e2;
 			Expression next = null;
 			Expression prev = null;
@@ -1125,6 +1287,9 @@ public class PRVO extends mujava.op.util.Mutator {
 		increaseLenght(orig, e1, e2, lor);
 		replaceTwoByOne(orig, e1, e2, lor);
 		replaceOneByTwo(orig, e1, e2, lor);
+		if (orig instanceof AssignmentExpression) {
+			replaceAllByOne(orig, e1, e2, lor);
+		}
 	}
 
 	private boolean binExprSupportsNull(int operator) {
