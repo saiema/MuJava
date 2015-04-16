@@ -33,7 +33,7 @@ public class EAMTests {
 	
 	@BeforeClass
 	public static void setTestingToolsVerbose() {
-		TestingTools.setVerbose(true);
+		TestingTools.setVerbose(false);
 	}
 	
 	@Parameters

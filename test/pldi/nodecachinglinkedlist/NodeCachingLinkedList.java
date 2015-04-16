@@ -6,9 +6,9 @@ package pldi.nodecachinglinkedlist;
 *//*@ nullable_by_default @*/
 public class NodeCachingLinkedList {
 
-    public pldi.nodecachinglinkedlist.LinkedListNode header;
+    public LinkedListNode header;
 
-    public pldi.nodecachinglinkedlist.LinkedListNode firstCachedNode;
+    public LinkedListNode firstCachedNode;
 
     public int maximumCacheSize;
 
@@ -69,7 +69,7 @@ public class NodeCachingLinkedList {
     @  signals (RuntimeException e) false;
     @*/
     public /*@nullable@*/java.lang.Object remove( final int index ) {
-        pldi.nodecachinglinkedlist.LinkedListNode node = null; //mutGenLimit 10
+        LinkedListNode node = null; //mutGenLimit 10
         if (index < 0) { //mutGenLimit 10
             throw new java.lang.RuntimeException();
         }
@@ -97,7 +97,7 @@ public class NodeCachingLinkedList {
         this.size = this.size - 1; //mutGenLimit 10
         this.modCount = this.modCount + 1; //mutGenLimit 10
         if (this.cacheSize < this.maximumCacheSize) { //mutGenLimit 10
-            pldi.nodecachinglinkedlist.LinkedListNode nextCachedNode; //mutGenLimit 10
+            LinkedListNode nextCachedNode; //mutGenLimit 10
             nextCachedNode = this.firstCachedNode; //mutGenLimit 10
             node.previous = null; //mutGenLimit 10
             node.next = nextCachedNode; //mutGenLimit 10
@@ -117,12 +117,26 @@ public class NodeCachingLinkedList {
     @ ensures \result == true;
     @*/
     public boolean addFirst( java.lang.Object o ) {
-        pldi.nodecachinglinkedlist.LinkedListNode newNode = new pldi.nodecachinglinkedlist.LinkedListNode();
+        LinkedListNode newNode = new LinkedListNode();
         newNode.value = o;
-        pldi.nodecachinglinkedlist.LinkedListNode insertBeforeNode = this.header.next;
-        newNode.next = insertBeforeNode; //mutGenLimit 2
-        newNode.previous = insertBeforeNode.previous;
-        insertBeforeNode.previous.next = newNode;
+        LinkedListNode insertBeforeNode = this.header.next; //mutGenLimit 2
+        newNode.next = insertBeforeNode;
+        newNode.previous = insertBeforeNode.previous; //mutGenLimit 2
+        insertBeforeNode.previous.next = newNode; //mutGenLimit 2
+        insertBeforeNode.previous = newNode;
+        this.size++;
+        this.modCount++;
+        return true;
+    }
+    
+    public boolean addFirstUglyCopy( java.lang.Object o ) {
+        LinkedListNode newNode = new LinkedListNode();
+        newNode.value = o;
+        LinkedListNode insertBeforeNode;
+        insertBeforeNode = this.header.next; //mutGenLimit 2
+        newNode.next = insertBeforeNode;
+        newNode.previous.next.previous = insertBeforeNode.previous.next.previous; //mutGenLimit 2
+        insertBeforeNode.previous.next = newNode.next.previous; //mutGenLimit 2
         insertBeforeNode.previous = newNode;
         this.size++;
         this.modCount++;

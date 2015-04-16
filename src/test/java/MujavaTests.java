@@ -21,6 +21,8 @@ import test.java.utils.TestingTools;
 				JTI_DUMBTests.class,JTI_SMARTTests.class,	LODTests.class,				LOITests.class,
 				LORTests.class,		OANTests.class,			OMRTests.class,				PCCTests.class,
 				PCDTests.class,		PMDTests.class,			PPDTests.class,				PRVOTests.class,
+				PRVO_no_method_allowed_Options_Tests.class,	PRVO_replaceAllByOne_left_Options_Tests.class,
+				PRVO_replaceAllByOne_right_Options_Tests.class,							PRVO_TwoByOne_OneByTwo_Disabled_Options_Tests.class,
 				RORTests.class,		SORTests.class,			GenericsParsingTests.class,	GenericsWritingTests.class,
 				PCITests.class,		PNCTests.class,			ObtainingMutationsTest.class,
 				MergedMutationsTests.class,					MultiMutationsTests.class,	InnerClassTests.class})
