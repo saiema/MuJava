@@ -5,7 +5,10 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+
+import mujava.api.Configuration;
 import mujava.api.Mutant;
+import mujava.op.PRVO;
 
 
 
@@ -42,10 +45,13 @@ public class Console {
 		flags.setOverridingFlag('h'); //show all mutation operators
 		flags.setNoValueFlag('F'); //activates field mutations
 		flags.setNoValueFlag('C'); //activates class mutations
+		flags.setOptionalFlag('N'); //define banned methods for PRVO
+		flags.setOptionalFlag('J'); //define banned fields for PRVO
 		flags.setDependence('T', 'S');
 		flags.setDependence('S', 'T');
 		flags.setDependence('t', 'T');
 		flags.setDependence('x', 'B');
+		flags.setDependence('N', 'm');
 		flags.setDependence('s', 'B');
 		flags.setDependence('F', 'm');
 		flags.setDependence('C', 'm');
@@ -208,6 +214,40 @@ public class Console {
 		}
 		methodsToMutate = mtm.toArray(new String[mtm.size()]);
 		
+		//==================================add banned methods============================================//
+		
+		List<String> bannedMethods = new LinkedList<String>();
+		if (flags.flagExist('N')) {
+			bannedMethods.addAll(flags.getFlagValues('N'));
+			System.out.print("banned methods: [");
+			int i = 0;
+			while (i < bannedMethods.size()) {
+				System.out.print(bannedMethods.get(i));
+				if (i + 1 < bannedMethods.size()) {
+					System.out.println(", ");
+				}
+			}
+			System.out.println("]");
+		}
+		
+		Configuration.add(PRVO.PROHIBITED_METHODS, bannedMethods);
+		
+		List<String> bannedFields = new LinkedList<String>();
+		if (flags.flagExist('J')) {
+			bannedFields.addAll(flags.getFlagValues('J'));
+			System.out.print("banned fields: [");
+			int i = 0;
+			while (i < bannedFields.size()) {
+				System.out.print(bannedFields.get(i));
+				if (i + 1 < bannedFields.size()) {
+					System.out.println(", ");
+				}
+			}
+			System.out.println("]");
+		}
+		
+		Configuration.add(PRVO.PROHIBITED_FIELDS, bannedFields);
+		
 		System.out.println("Parameters validated\n\n");
 		
 		//================================Mutants generation==============================================//
@@ -251,6 +291,8 @@ public class Console {
 		System.out.println("-S								| optional parameter | requires : -T		| effect : calculate mutation score");
 		System.out.println("-F								| optional parameter | requires : -m		| effect : enable field mutations");
 		System.out.println("-C								| optional parameter | requires : -m		| effect : enable class mutations");
+		System.out.println("-N								| optional parameter | requires : -m		| effect : define methods that will not be used by PRVO while generating mutants e.g: -N toString getClass");
+		System.out.println("-J								| optional parameter | required : -m		| effect : define fields that will not be used by PRVO while generating mutants e.g: -J serialID");
 	}
 	
 	private static void mutopsHelp() {

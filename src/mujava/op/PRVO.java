@@ -134,11 +134,17 @@ public class PRVO extends mujava.op.util.Mutator {
 	 */
 	public static final String ENABLE_LITERAL_STRINGS = "prvo_enable_literal_strings";
 	/**
-	 * Option to set a list of prohibited methods that will not be used to generated mutations
+	 * Option to set a list of prohibited methods or a map of prohibited methods per class that will not be used to generated mutations
 	 * <p>
 	 * this option is not set by default
 	 */
 	public static final String PROHIBITED_METHODS = "prvo_prohibited_methods";
+	/**
+	 * Option to set a list of prohibited fields or a map of prohibited fields per class that will not be used to generated mutations
+	 * <p>
+	 * this option is not set by default
+	 */
+	public static final String PROHIBITED_FIELDS = "prvo_prohibited_fields";
 	/**
 	 * Option to enable/disable mutations that changes one element of an expression without affecting it's length
 	 * <p>
@@ -223,6 +229,18 @@ public class PRVO extends mujava.op.util.Mutator {
 					this.prohibitedMethods = (List<String>) configValue;
 				} catch (ClassCastException ex) {
 					throw new IllegalStateException("The value for PROHIBITED_METHODS it's not a Map<String, List<String>> nor a List<String>");
+				}
+			}
+		}
+		if (Configuration.argumentExist(PROHIBITED_FIELDS)) {
+			Object configValue = Configuration.getValue(PROHIBITED_FIELDS);
+			try {
+				this.prohibitedFieldsPerClass = (Map<String, List<String>>) configValue;
+			} catch (ClassCastException e) {
+				try {
+					this.prohibitedFields = (List<String>) configValue;
+				} catch (ClassCastException ex) {
+					throw new IllegalStateException("The value for PROHIBITED_FIELDS it's not a Map<String, List<String>> nor a List<String>");
 				}
 			}
 		}
@@ -549,8 +567,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		int options = 0;
 		options += ignoreVars?0:VARIABLES;
 		options += this.allowNonStatic?ALLOW_NON_STATIC:0;
-		boolean filterMethods = this.prohibitedMethods != null || this.prohibitedMethodsPerClass != null;
-		return fieldsMethodsAndVars(limit, t, options, filterMethods);
+		return fieldsMethodsAndVars(limit, t, options);
 	}
 
 	private java.util.List<Object> fieldAndMethods(Expression e, ParseTreeObject limit) throws ParseTreeException {
@@ -590,7 +607,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
 			boolean isNonStatic = !f.getModifiers().isStatic();
 			if (((onlyPublic && f.getModifiers().isPublic()) || !onlyPublic) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
-				fnm.add(f);
+				if (this.isFieldAllowed(f)) fnm.add(f);
 			}
 		}
 		for (OJMethod m : t.getDeclaredMethods()) {
@@ -598,14 +615,14 @@ public class PRVO extends mujava.op.util.Mutator {
 			boolean isNonStatic = !m.getModifiers().isStatic();
 			if (m.getReturnType().getName().compareToIgnoreCase("void") == 0) continue;
 			if ((m.signature().getParameterTypes().length == 0 && ((onlyPublic && m.getModifiers().isPublic())||(!onlyPublic))) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
-				fnm.add(m);
+				if (this.isMethodAllowed(m)) fnm.add(m);
 			}
 		}
 		for (OJField inheritedField : t.getAllFields()) {
 			boolean allowNonStatic = (this.allowNonStatic && this.smartMode) || !this.smartMode;
 			boolean isNonStatic = !inheritedField.getModifiers().isStatic();
 			if (((!inheritedField.getModifiers().isPrivate() && !onlyPublic) || inheritedField.getModifiers().isPublic() && onlyPublic) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
-				if (!fnm.contains(inheritedField)) fnm.add(inheritedField);
+				if (!fnm.contains(inheritedField) && this.isFieldAllowed(inheritedField)) fnm.add(inheritedField);
 			}
 		}
 		for (OJMethod inheritedMethod : t.getAllMethods()) {
@@ -613,7 +630,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			boolean isNonStatic = !inheritedMethod.getModifiers().isStatic();
 			if (inheritedMethod.getReturnType().getName().compareToIgnoreCase("void") == 0) continue;
 			if ((((inheritedMethod.getModifiers().isProtected() && !onlyPublic) || inheritedMethod.getModifiers().isPublic()) && inheritedMethod.signature().getParameterTypes().length == 0) && ((allowNonStatic && isNonStatic) || !isNonStatic)) {
-				if (!fnm.contains(inheritedMethod)) fnm.add(inheritedMethod);
+				if (!fnm.contains(inheritedMethod) && this.isMethodAllowed(inheritedMethod)) fnm.add(inheritedMethod);
 			}
 		}
 		if (addVariables) {

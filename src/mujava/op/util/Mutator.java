@@ -7,7 +7,6 @@
 package mujava.op.util;
 
 import mujava.*;
-import mujava.api.Api;
 
 import java.io.*;
 import java.util.Arrays;
@@ -48,6 +47,10 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	protected Map<String, List<String>> prohibitedMethodsPerClass = null;
 	
 	protected List<String> prohibitedMethods = null;
+	
+	protected Map<String, List<String>> prohibitedFieldsPerClass = null;
+	
+	protected List<String> prohibitedFields = null;
 	
 	public int num = 0;
 	public CompilationUnit comp_unit = null;
@@ -686,6 +689,9 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		OJField[] declaredFields = clazz.getDeclaredFields();
 		Map<Signature, OJField> table = new HashMap<Signature, OJField>();
 		for (OJField f : declaredFields) {
+			if (!isFieldAllowed(f)) {
+				continue;
+			}
 			boolean isNonStatic = !f.getModifiers().isStatic();
 			if (!allowNonStatic && isNonStatic) {
 				continue;
@@ -694,6 +700,9 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		}
 		OJField[] inheritedFields = getInheritedFields(clazz);
 		for (OJField f : inheritedFields) {
+			if (!isFieldAllowed(f)) {
+				continue;
+			}
 			boolean isNonStatic = !f.getModifiers().isStatic();
 			if (!allowNonStatic && isNonStatic) {
 				continue;
@@ -761,10 +770,9 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * <li>ALLOW_VOID: will include methods with a void return value</li>
 	 * <li>ALLOW_PARAMS: will include methods with parameters</li>
 	 * <li>ALLOW_NON_STATIC: will include methods and fields without the static modifier</li><p> : {@code int}
-	 * @param filterMethods 
 	 * @return all methods and fields in {@code clazz}, optionally the result will include declared variables
 	 */
-	public List<Object> fieldsMethodsAndVars(ParseTreeObject limit, OJClass t, int options, boolean filterMethods) throws ParseTreeException {
+	public List<Object> fieldsMethodsAndVars(ParseTreeObject limit, OJClass t, int options) throws ParseTreeException {
 		boolean ignoreVars = (options & VARIABLES) == 0;
 		boolean ignoreVoidMethods = (options & ALLOW_VOID) == 0;
 		boolean ignoreMethodsWithParams = (options & ALLOW_PARAMS) == 0;
@@ -798,7 +806,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		return result;
 	}
 	
-	private boolean isMethodAllowed(OJMethod m) {
+	protected boolean isMethodAllowed(OJMethod m) {
 		if (this.prohibitedMethodsPerClass != null) {
 			return isMethodAllowed_usingMap(m);
 		} else if (this.prohibitedMethods != null) {
@@ -822,6 +830,32 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	private boolean isMethodAllowed_usingList(OJMethod m) {
 		String methodName = m.getName();
 		return !this.prohibitedMethods.contains(methodName);
+	}
+	
+	protected boolean isFieldAllowed(OJField f) {
+		if (this.prohibitedFieldsPerClass != null) {
+			return isFieldAllowed_usingMap(f);
+		} else if (this.prohibitedFields != null) {
+			return isFieldAllowed_usingList(f);
+		}
+		return true;
+	}
+	
+	private boolean isFieldAllowed_usingMap(OJField f) {
+		OJClass declaringClass = f.getDeclaringClass();
+		String fieldName = f.getName();
+		if (this.prohibitedFieldsPerClass.containsKey(declaringClass.getName())) {
+			List<String> bannedFields = this.prohibitedFieldsPerClass.get(declaringClass.getName());
+			if (bannedFields != null && !bannedFields.isEmpty()) {
+				return !bannedFields.contains(fieldName);
+			}
+		}
+		return true;
+	}
+	
+	private boolean isFieldAllowed_usingList(OJField f) {
+		String fieldName = f.getName();
+		return !this.prohibitedFields.contains(fieldName);
 	}
 
 	/**
@@ -875,6 +909,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 *            calculates
 	 * @throws ParseTreeException
 	 */
+	@SuppressWarnings("rawtypes")
 	public void bindLocalVariables(StatementList statList) throws ParseTreeException {
 		Enumeration st = statList.elements();
 		HashSet<String> result = new HashSet<String>();
