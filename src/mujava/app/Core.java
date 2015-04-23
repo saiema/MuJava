@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
 
 import mujava.OpenJavaException;
 import mujava.api.Mutant;
@@ -172,8 +173,22 @@ public class Core {
 				}
 				boolean killed = false;
 				List<Result> results = ms.runTestsWithMutants(Arrays.asList(testClasses), pathToFile, className);
+				if (results == null) {
+					System.out.println("An error ocurred while running tests for mutants");
+					System.out.println(ms.getLastError()!=null?ms.getLastError().toString():"no exception to display, contact your favorite mujava++ developer");
+					return -1;
+				}
 				for (Result r : results) {
 					System.out.println("Runned : " + r.getRunCount() + " tests (pass : " + (r.getRunCount()-r.getFailureCount()) + " | failed : " + r.getFailureCount() + ")\n");
+					if (!r.wasSuccessful()) {
+						for (Failure f : r.getFailures()) {
+							System.out.println("mutant : " + Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java");
+							System.out.println("test : " + f.getTestHeader());
+							System.out.println("failure description: " + f.getDescription());
+							System.out.println("exception: " + f.getException());
+							System.out.println("trace: " + f.getTrace());
+						}
+					}
 					if (!killed && !r.wasSuccessful()) killed = true;
 				}
 				if (killed) mutantsKilled++;
