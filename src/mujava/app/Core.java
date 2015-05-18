@@ -185,8 +185,8 @@ public class Core {
 							System.out.println("mutant : " + Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java");
 							System.out.println("test : " + f.getTestHeader());
 							System.out.println("failure description: " + f.getDescription());
-							System.out.println("exception: " + f.getException());
-							System.out.println("trace: " + f.getTrace());
+							if (!(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
+							if (!(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
 						}
 					}
 					if (!killed && !r.wasSuccessful()) killed = true;

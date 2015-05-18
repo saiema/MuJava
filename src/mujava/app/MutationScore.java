@@ -18,6 +18,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import mujava.loader.Reloader;
 
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -28,6 +29,7 @@ public class MutationScore {
 	private static String testsBinFolder = null;
 	private static MutationScore instance = null;
 	private Exception lastError = null;
+	private static Reloader reloader;
 	
 	public static MutationScore newInstance(String mutantsSourceFolder, String originalBinFolder, String testsBinFolder) {
 		if (instance == null) {
@@ -87,17 +89,18 @@ public class MutationScore {
 			this.restoreOriginal(originalFile);
 			return null;
 		}
-		List<String> classpath = Arrays.asList(new String[]{MutationScore.originalBinFolder, MutationScore.testsBinFolder});
-		Reloader reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
+		if (MutationScore.reloader == null) {
+			List<String> classpath = Arrays.asList(new String[]{MutationScore.originalBinFolder, MutationScore.testsBinFolder});
+			MutationScore.reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
+			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.originalBinFolder);
+		}
 		List<Result> testResults = new LinkedList<Result>();
 		System.out.println("Testing mutant : "+pathToMutant+className+'\n');
 		for (String test : testClasses) {
 			Class<?> testToRun;
 			try {
-				reloader.rloadClass(className, true);
-				testToRun = reloader.getLastChild().rloadClass(test, true);
-//				testToRun = reloader.rloadClass(test, true);
-//				reloader.rloadClass(className, true);
+				MutationScore.reloader = MutationScore.reloader.getLastChild();
+				testToRun = MutationScore.reloader.rloadClass(test, true);
 				testResults.add(JUnitCore.runClasses(testToRun));
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block

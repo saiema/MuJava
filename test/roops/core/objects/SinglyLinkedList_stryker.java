@@ -21,31 +21,31 @@ public class SinglyLinkedList_stryker {
       @ 
       @*/
     public boolean contains( /*@nullable@*/java.lang.Object valueParam ) {
-    	SinglyLinkedListNode current; //mutGenLimit 1
-    	boolean result; //mutGenLimit 1
-    	current = this.header; //mutGenLimit 1
-    	result = false; //mutGenLimit 1
-    	while (result == false && current != null) { //mutGenLimit 1
-    		boolean equalVal; //mutGenLimit 1
-    		if (valueParam == null && current.value == null) { //mutGenLimit 1
-    			equalVal = true; //mutGenLimit 1
+    	SinglyLinkedListNode current; //mutGenLimit 100
+    	boolean result; //mutGenLimit 100
+    	current = this.header; //mutGenLimit 100
+    	result = false; //mutGenLimit 100
+    	while (result == false && current != null) { //mutGenLimit 100
+    		boolean equalVal; //mutGenLimit 100
+    		if (valueParam == null && current.value == null) { //mutGenLimit 100
+    			equalVal = true; //mutGenLimit 100
     		} else {
-    			if (valueParam != null) { //mutGenLimit 1
-    				if (valueParam == current) { //mutGenLimit 1
-    					equalVal = true; //mutGenLimit 1
+    			if (valueParam != null) { //mutGenLimit 100
+    				if (valueParam == current) { //mutGenLimit 100
+    					equalVal = true; //mutGenLimit 100
     				} else {
-    					equalVal = false; //mutGenLimit 1
+    					equalVal = false; //mutGenLimit 100
     				}
     			} else {
-    				equalVal = false; //mutGenLimit 1
+    				equalVal = false; //mutGenLimit 100
     			}
     		}
-    		if (equalVal == true) { //mutGenLimit 1
-    			result = true; //mutGenLimit 1
+    		if (equalVal == true) { //mutGenLimit 100
+    			result = true; //mutGenLimit 100
     		}
-    		current = current.next; //mutGenLimit 1
+    		current = current.next; //mutGenLimit 100
     	}
-    	return result; //mutGenLimit 1
+    	return result; //mutGenLimit 100
     }
 
 /*@
