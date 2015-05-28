@@ -63,7 +63,7 @@ public class Generate {
         Configuration.add(COR.ALLOW_LOGICAL_OR, false);
         Configuration.add(COR.ALLOW_XOR, false);
         
-        generate(clazz, methods, ops, basePathOriginals, basePathMutants, 2, true);
+        generate(clazz, methods, ops, basePathOriginals, basePathMutants, 1, false);
 	}
 	
 	/**

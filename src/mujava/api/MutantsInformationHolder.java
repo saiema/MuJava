@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import openjava.ptree.CompilationUnit;
+import openjava.ptree.Literal;
 import openjava.ptree.ParseTreeObject;
 
 /**
@@ -58,6 +59,9 @@ public class MutantsInformationHolder {
 		}
 	}
 	private static boolean isEqualToOriginal(ParseTreeObject original, ParseTreeObject mutant) {
+		if (bothLiterals(original, mutant)) {
+			return sameLiterals((Literal) original, (Literal) mutant);
+		}
 		String originalAsString = original.toFlattenString();
 		String originalParentAsString = getParentAsString(original);
 		String originalPlusParentAsString = originalAsString + " from " + originalParentAsString;
@@ -75,6 +79,22 @@ public class MutantsInformationHolder {
 		boolean equalToOriginal = originalPlusParentAsString.trim().compareTo(mutantPlusParentAsString.trim()) == 0;
 		if (equalToOriginal && verbose) System.out.println("mutant " + mutantPlusParentAsString + " equal to original");
 		return equalToOriginal;
+	}
+	
+	private static boolean bothLiterals(ParseTreeObject original, ParseTreeObject mutant) {
+		if (original instanceof Literal && mutant instanceof Literal) {
+			return true;
+		}
+		return false;
+	}
+	
+	private static boolean sameLiterals(Literal original, Literal mutant) {
+		if (original.getLiteralType() == mutant.getLiteralType()) {
+			System.out.println("same literals");
+			return original.toString().compareTo(mutant.toString()) == 0;
+		} else {
+			return false;
+		}
 	}
 	
 	private static void clean() {
