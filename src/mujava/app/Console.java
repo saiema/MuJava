@@ -3,9 +3,11 @@ package mujava.app;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import mujava.api.Configuration;
 import mujava.api.Mutant;
@@ -27,7 +29,7 @@ public class Console {
 	static String[] methodsToMutate = null;
 	static boolean mutationScore = false;
 	static String[] testClasses = new String[]{"mutationScore.BooleanOpsAndTests", "mutationScore.BooleanOpsXorTests", "mutationScore.BooleanOpsXnorTests", "mutationScore.BooleanOpsOrTests"};
-
+	
 	public static void main(String[] args) {
 		
 		
@@ -48,6 +50,7 @@ public class Console {
 		flags.setNoValueFlag('C'); //activates class mutations
 		flags.setOptionalFlag('N'); //define banned methods for PRVO
 		flags.setOptionalFlag('J'); //define banned fields for PRVO
+		flags.setOptionalFlag('P'); //define allowed packages to mark as reloadable by Reloader
 		flags.setDependence('T', 'S');
 		flags.setDependence('S', 'T');
 		flags.setDependence('t', 'T');
@@ -56,6 +59,7 @@ public class Console {
 		flags.setDependence('s', 'B');
 		flags.setDependence('F', 'm');
 		flags.setDependence('C', 'm');
+		flags.setDependence('P', 'm');
 		
 		
 		System.out.println("Validating parameters...");
@@ -105,6 +109,7 @@ public class Console {
 		}
 		if (verifyDirectory(mutDir.get(0))) {
 			System.out.println("Warning : mutants output directory ("+mutDir.get(0)+") already exist");
+			deleteDirectory(mutDir.get(0));
 		}
 		mutantsSourceDir = mutDir.get(0);
 		
@@ -249,6 +254,30 @@ public class Console {
 		
 		Configuration.add(PRVO.PROHIBITED_FIELDS, bannedFields);
 		
+		//================================ALLOWED PACKAGES TO RELOAD======================================//
+		
+		Set<String> allowedPackages = null;
+		if(flags.flagExist('P')) {
+			allowedPackages = new TreeSet<String>();
+			allowedPackages.addAll(flags.getFlagValues('P'));
+			MutationScore.allowedPackages = allowedPackages;
+		}
+		System.out.print("Allowed packages to mark as reloadable: ");
+		if (allowedPackages == null) {
+			System.out.println("all");
+		} else {
+			String allowedPackagesAsString = "[";
+			Iterator<String> it = allowedPackages.iterator();
+			while(it.hasNext()) {
+				allowedPackagesAsString += it.next();
+				if (it.hasNext()) {
+					allowedPackagesAsString += ", ";
+				}
+			}
+			allowedPackagesAsString += "]";
+			System.out.println(allowedPackagesAsString);
+		}
+		
 		System.out.println("Parameters validated\n\n");
 		
 		//================================Mutants generation==============================================//
@@ -321,6 +350,23 @@ public class Console {
 	private static boolean verifyDirectory(String dir) {
 		File directory = new File(dir);
 		return directory.exists() && directory.isDirectory();
+	}
+	
+	private static void deleteDirectory(String dir) {
+		File directory = new File(dir);
+		if (directory.exists() && directory.isDirectory()) {
+			deleteDirRecursively(directory);
+		}
+	}
+	
+	private static void deleteDirRecursively(File file){
+	    File[] contents = file.listFiles();
+	    if (contents != null) {
+	        for (File f : contents) {
+	        	deleteDirRecursively(f);
+	        }
+	    }
+	    file.delete();
 	}
 	
 	private static boolean verifyFile(String f) {

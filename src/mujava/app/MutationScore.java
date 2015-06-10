@@ -12,6 +12,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
@@ -30,6 +31,7 @@ public class MutationScore {
 	private static MutationScore instance = null;
 	private Exception lastError = null;
 	private static Reloader reloader;
+	public static Set<String> allowedPackages = null;
 	
 	public static MutationScore newInstance(String mutantsSourceFolder, String originalBinFolder, String testsBinFolder) {
 		if (instance == null) {
@@ -92,7 +94,7 @@ public class MutationScore {
 		if (MutationScore.reloader == null) {
 			List<String> classpath = Arrays.asList(new String[]{MutationScore.originalBinFolder, MutationScore.testsBinFolder});
 			MutationScore.reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
-			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.originalBinFolder);
+			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.originalBinFolder, MutationScore.allowedPackages);
 		}
 		List<Result> testResults = new LinkedList<Result>();
 		System.out.println("Testing mutant : "+pathToMutant+className+'\n');

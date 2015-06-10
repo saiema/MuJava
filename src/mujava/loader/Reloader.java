@@ -98,19 +98,26 @@ public class Reloader extends ClassLoader {
 	}
 	
 	public void markEveryClassInFolderAsReloadable(String folder) {
+		markEveryClassInFolderAsReloadable(folder, null);
+	}
+	
+	public void markEveryClassInFolderAsReloadable(String folder, Set<String> allowedPackages) {
 		File pathFile = new File(folder);
 		if (pathFile.exists() && pathFile.isDirectory()) {
 			setPathAsPriority(folder);
-			crawlAndMark(pathFile, "");
+			crawlAndMark(pathFile, "", allowedPackages);
 		}
 	}
 	
-	private void crawlAndMark(File dir, String pkg) {
+	private void crawlAndMark(File dir, String pkg, Set<String> allowedPackages) {
 		File[] files = dir.listFiles();
 		for (File file : files) {
 			if (file.getName().startsWith(".")) {
 				continue;
 			} else if (file.isFile() && file.getName().endsWith(".class")) {
+				if (allowedPackages != null && !allowedPackages.contains(pkg)) {
+					continue;
+				}
 				this.markClassAsReloadable(this.getClassName(file, pkg));
 			} else if (file.isDirectory()) {
 				String newPkg;
@@ -119,7 +126,7 @@ public class Reloader extends ClassLoader {
 				} else {
 					newPkg = file.getName();
 				}
-				crawlAndMark(file, newPkg);
+				crawlAndMark(file, newPkg, allowedPackages);
 			}
 		}
 	}
