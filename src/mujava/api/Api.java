@@ -23,6 +23,8 @@ import openjava.ptree.ParseTreeException;
  * (but some minor changes in muJava's codebase had to be done nonetheless).
  */
 public class Api {
+	
+	public static final String USE_MUTGENLIMIT = "api_use_mutgenlimit";
 
 	private static boolean usingApi = false;
 	
@@ -201,6 +203,13 @@ public class Api {
 
 	public static String getCurrentFilePath() {
 		return Api.currentFilePath;
+	}
+	
+	public static boolean useMutGenLimit() {
+		if (Configuration.argumentExist(USE_MUTGENLIMIT)) {
+			return (Boolean) Configuration.getValue(USE_MUTGENLIMIT);
+		}
+		return true;
 	}
 	
 }

@@ -7,6 +7,7 @@
 package mujava.op.util;
 
 import mujava.*;
+import mujava.api.Api;
 
 import java.io.*;
 import java.util.Arrays;
@@ -282,6 +283,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	}
 
 	public static int getMutationsLeft(ParseTreeObject nl) {
+		if (!Api.useMutGenLimit()) return Integer.MAX_VALUE;
 		ParseTreeObject parent = nl;
 		while (parent != null) {
 			if (parent instanceof ExpressionStatement) {
@@ -356,6 +358,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	}
 
 	public static ParseTreeObject getMutationsLimitParent(ParseTreeObject nl) {
+		if (!Api.useMutGenLimit()) return null;
 		ParseTreeObject parent = nl;
 		while (parent != null) {
 			if (parent instanceof ExpressionStatement) {

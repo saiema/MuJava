@@ -269,11 +269,11 @@ public class MutantIdentifierWriter {
 		ParseTreeObject parent = null;
 		parent = mujava.op.util.Mutator.getMutationsLimitParent(((ParseTreeObject) mutant.getOriginal()));
 		int mutationsLeft = mujava.op.util.Mutator.getMutationsLeft(((ParseTreeObject) mutant.getOriginal()));
-		if (parent != null && mutationsLeft > 0) {
-			((NonLeaf) parent).setMutGenLimit(mutationsLeft - 1);
+		if ((Api.useMutGenLimit() && parent != null && mutationsLeft > 0) || (!Api.useMutGenLimit())) {
+			if (Api.useMutGenLimit()) ((NonLeaf) parent).setMutGenLimit(mutationsLeft - 1);
 			source.accept(writer);
 			ret = writer.getMutatedLine();
-			((NonLeaf) parent).setMutGenLimit(mutationsLeft);
+			if (Api.useMutGenLimit()) ((NonLeaf) parent).setMutGenLimit(mutationsLeft);
 		}
 		return ret;
 	}
