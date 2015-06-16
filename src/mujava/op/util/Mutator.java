@@ -591,6 +591,9 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			return (p.unwrappedPrimitive()).isAssignableFrom(c
 					.unwrappedPrimitive());
 		}
+		if (c.isPrimitive() && !p.isPrimitive()) {
+			c = c.primitiveWrapper();
+		}
 		return p.isAssignableFrom(c);
 	}
 

@@ -4,10 +4,10 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This class is used to reload and re-link classes.
@@ -26,7 +26,7 @@ import java.util.Set;
  * <p>
  * 
  * @author Simon Emmanuel Gutierrez Brida
- * @version 2.8
+ * @version 2.9
  */
 public class Reloader extends ClassLoader {
 	protected List<String> classpath;
@@ -38,7 +38,7 @@ public class Reloader extends ClassLoader {
 	public Reloader(List<String> classpath, ClassLoader parent) {
 		super(parent);
 		this.classpath = new LinkedList<String>(classpath);
-		this.reloadableCache = new HashSet<String>();
+		this.reloadableCache = new TreeSet<String>();
 		this.reloadableClassCache = new LinkedList<Class<?>>();
 	}
 	
@@ -155,7 +155,7 @@ public class Reloader extends ClassLoader {
 
 	protected Class<?> reload(String s) throws ClassNotFoundException {
 		Class<?> clazz = null;
-		Set<String> childReloadableCache = new HashSet<String>();
+		Set<String> childReloadableCache = new TreeSet<String>();
 		childReloadableCache.addAll(this.reloadableCache);
 		Reloader r = new Reloader(this.classpath, this, childReloadableCache);
 		for (String c : this.reloadableCache) {

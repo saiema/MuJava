@@ -95,6 +95,7 @@ public class MutationScore {
 			List<String> classpath = Arrays.asList(new String[]{MutationScore.originalBinFolder, MutationScore.testsBinFolder});
 			MutationScore.reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
 			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.originalBinFolder, MutationScore.allowedPackages);
+			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.testsBinFolder, MutationScore.allowedPackages);
 		}
 		List<Result> testResults = new LinkedList<Result>();
 		System.out.println("Testing mutant : "+pathToMutant+className+'\n');

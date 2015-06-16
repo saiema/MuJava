@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.Mutant;
 import mujava.op.PRVO;
@@ -51,6 +52,8 @@ public class Console {
 		flags.setOptionalFlag('N'); //define banned methods for PRVO
 		flags.setOptionalFlag('J'); //define banned fields for PRVO
 		flags.setOptionalFlag('P'); //define allowed packages to mark as reloadable by Reloader
+		flags.setNoValueFlag('A'); //ignores mutGenLimit annotations 
+		flags.setNoValueFlag('L'); //allows the use of numeric literal variations in PRVO
 		flags.setDependence('T', 'S');
 		flags.setDependence('S', 'T');
 		flags.setDependence('t', 'T');
@@ -60,6 +63,8 @@ public class Console {
 		flags.setDependence('F', 'm');
 		flags.setDependence('C', 'm');
 		flags.setDependence('P', 'm');
+		flags.setDependence('A', 'm');
+		flags.setDependence('L', 'm');
 		
 		
 		System.out.println("Validating parameters...");
@@ -278,6 +283,20 @@ public class Console {
 			System.out.println(allowedPackagesAsString);
 		}
 		
+		//================================IGNORE MUTGENLIMIT ANNOTATIONS==================================//
+		
+		if (flags.flagExist('A')) {
+			System.out.println("Ignoring mutGenLimit annotations");
+			Configuration.add(Api.USE_MUTGENLIMIT, Boolean.FALSE);
+		}
+		
+		//==========================ALLOW NUMERIC LITERAL VARIATIONS IN PRVO==============================//
+		
+		if (flags.flagExist('L')) {
+			System.out.println("Allow numeric literal variations in PRVO");
+			Configuration.add(PRVO.ENABLE_NUMBER_LITERALS_VARIATIONS, Boolean.TRUE);
+		}
+		
 		System.out.println("Parameters validated\n\n");
 		
 		//================================Mutants generation==============================================//
@@ -338,8 +357,11 @@ public class Console {
 		System.out.println("-S								| optional parameter | requires : -T		| effect : calculate mutation score");
 		System.out.println("-F								| optional parameter | requires : -m		| effect : enable field mutations");
 		System.out.println("-C								| optional parameter | requires : -m		| effect : enable class mutations");
-		System.out.println("-N								| optional parameter | requires : -m		| effect : define methods that will not be used by PRVO while generating mutants e.g: -N toString getClass");
-		System.out.println("-J								| optional parameter | required : -m		| effect : define fields that will not be used by PRVO while generating mutants e.g: -J serialID");
+		System.out.println("-N <methods>					| optional parameter | requires : -m		| effect : define methods that will not be used by PRVO while generating mutants e.g: -N toString getClass");
+		System.out.println("-J <fields>						| optional parameter | required : -m		| effect : define fields that will not be used by PRVO while generating mutants e.g: -J serialID");
+		System.out.println("-P <packages>					| optional parameter | required : -m		| effect : define allowed packages to mark as reloadable by Reloader e.g: -P main.ui.tools");
+		System.out.println("-A								| optional parameter | required : -m		| effect : ignores mutGenLimit annotations and mutates anywhere a mutations operator can");
+		System.out.println("-L								| optional parameter | required : -m		| effect : allows the use of numeric literal variations in PRVO");
 	}
 	
 	private static void mutopsHelp() {

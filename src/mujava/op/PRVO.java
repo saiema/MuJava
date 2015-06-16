@@ -69,7 +69,7 @@ import java.util.List;
  * @author Matías Williams
  * <hr> rewritten by
  * @author Simón Emmanuel Gutiérrez Brida
- * @version 3.2
+ * @version 3.3
  */
 public class PRVO extends mujava.op.util.Mutator {
 
@@ -187,6 +187,13 @@ public class PRVO extends mujava.op.util.Mutator {
 	 * this option is disabled by default
 	 */
 	public static final String ENABLE_ALL_BY_ONE_MUTANTS_RIGHT = "prvo_all_by_one_mutants_right";
+	/**
+	 * Option to enable/disable number literals variations when generating mutants.
+	 * A number literal variation is when given a number literal K add all it's variations within primitive types (integer, float, double, long)
+	 * <p>
+	 * this option is disabled by default
+	 */
+	public static final String ENABLE_NUMBER_LITERALS_VARIATIONS = "prvo_number_literals_variations";
 
 	ParseTreeObject parent = null;
 
@@ -1019,6 +1026,13 @@ public class PRVO extends mujava.op.util.Mutator {
 	private boolean allowAllByOneMutantsLeft() {
 		if (Configuration.argumentExist(ENABLE_ALL_BY_ONE_MUTANTS_LEFT)) {
 			return (Boolean) Configuration.getValue(ENABLE_ALL_BY_ONE_MUTANTS_LEFT);
+		}
+		return false;
+	}
+	
+	private boolean allowNumberLiteralsVariations() {
+		if (Configuration.argumentExist(ENABLE_NUMBER_LITERALS_VARIATIONS)) {
+			return (Boolean) Configuration.getValue(ENABLE_NUMBER_LITERALS_VARIATIONS);
 		}
 		return false;
 	}
@@ -1883,7 +1897,8 @@ public class PRVO extends mujava.op.util.Mutator {
 				if (complyWith != null) {
 					OJClass typeToComply = getType(complyWith);
 					OJClass litType = getType(lit);
-					if (!compatibleAssignType(typeToComply, litType, false)) {
+					boolean ignoreTypeCheckOnNumbers = this.allowNumberLiteralsVariations() && this.isNumber(lit) && this.isNumericExpression(complyWith);
+					if (!ignoreTypeCheckOnNumbers && !compatibleAssignType(typeToComply, litType, false)) {
 						continue;
 					}
 				}
@@ -1913,6 +1928,8 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (this.allowLiteralOne()) this.literals.add(Literal.constantOne());
 		if (this.allowLiteralTrue()) this.literals.add(Literal.constantTrue());
 		if (this.allowLiteralZero()) this.literals.add(Literal.constantZero());
+		if (this.allowLiteralOne() && this.allowNumberLiteralsVariations()) this.addNumberLiteralsVariations(Literal.constantOne());
+		if (this.allowLiteralZero() && this.allowNumberLiteralsVariations()) this.addNumberLiteralsVariations(Literal.constantZero());
 	}
 
 	/**
@@ -2032,15 +2049,60 @@ public class PRVO extends mujava.op.util.Mutator {
 			boolean isTrue = isBoolean && ((Literal)node).toFlattenString().compareToIgnoreCase("true") == 0;
 			boolean falseCheck = (isFalse && this.allowLiteralFalse()) || !isFalse;
 			boolean trueCheck = (isTrue && this.allowLiteralTrue()) || !isTrue;
-			boolean isNumber = ((Literal)node).getLiteralType()==Literal.INTEGER || ((Literal)node).getLiteralType()==Literal.DOUBLE || ((Literal)node).getLiteralType()==Literal.FLOAT || ((Literal)node).getLiteralType()==Literal.LONG;
+			boolean isNumber = this.isNumber((Literal)node);
 			boolean isOne = isNumber && ((Literal)node).toFlattenString().compareTo("1") == 0;
 			boolean isZero = isNumber && ((Literal)node).toFlattenString().compareTo("0") == 0;
 			boolean oneCheck = (isOne && this.allowLiteralOne()) || !isOne;
 			boolean zeroCheck = (isZero && this.allowLiteralZero()) || !isZero;
 			if (nullCheck && stringCheck && emptyStringCheck && falseCheck && trueCheck && oneCheck && zeroCheck) {
 				this.literals.add((Literal)node);
+				if (isNumber && this.allowNumberLiteralsVariations()) addNumberLiteralsVariations((Literal)node);
 			}
 		}
+	}
+	
+	private void addNumberLiteralsVariations(Literal literal) {
+		if (literal.getLiteralType()==Literal.INTEGER) {
+			Integer intLiteral = Integer.valueOf(literal.toFlattenString().trim());
+			this.literals.add(Literal.makeLiteral(intLiteral.doubleValue()));
+			this.literals.add(Literal.makeLiteral(intLiteral.floatValue()));
+			this.literals.add(Literal.makeLiteral(intLiteral.longValue()));
+		} else if (literal.getLiteralType()==Literal.DOUBLE) {
+			Double doubleLiteral = Double.valueOf(literal.toFlattenString().trim());
+			this.literals.add(Literal.makeLiteral(doubleLiteral.intValue()));
+			this.literals.add(Literal.makeLiteral(doubleLiteral.floatValue()));
+			this.literals.add(Literal.makeLiteral(doubleLiteral.longValue()));
+		} else if (literal.getLiteralType()==Literal.FLOAT) {
+			Float floatLiteral = Float.valueOf(literal.toFlattenString().trim());
+			this.literals.add(Literal.makeLiteral(floatLiteral.intValue()));
+			this.literals.add(Literal.makeLiteral(floatLiteral.doubleValue()));
+			this.literals.add(Literal.makeLiteral(floatLiteral.longValue()));
+		} else if (literal.getLiteralType()==Literal.LONG) {
+			Long longLiteral = Long.valueOf(literal.toFlattenString().trim());
+			this.literals.add(Literal.makeLiteral(longLiteral.intValue()));
+			this.literals.add(Literal.makeLiteral(longLiteral.doubleValue()));
+			this.literals.add(Literal.makeLiteral(longLiteral.floatValue()));
+		}
+	}
+	
+	private boolean isNumber(Literal literal) {
+		return literal.getLiteralType()==Literal.INTEGER || literal.getLiteralType()==Literal.DOUBLE || literal.getLiteralType()==Literal.FLOAT || literal.getLiteralType()==Literal.LONG;
+	}
+	
+	private boolean isNumericExpression(Expression expr) throws ParseTreeException {
+		if (isNumber(expr)) {
+			return true;
+		}
+		OJClass numberClass = OJClass.forClass(Number.class);
+		OJClass exprType = getType(expr);
+		return compatibleAssignType(numberClass, exprType, true);
+	}
+	
+	private boolean isNumber(Expression expr) {
+		if (expr instanceof Literal) {
+			return this.isNumber((Literal)expr);
+		}
+		return false;
 	}
 
 	private void outputToFile(ParseTreeObject original, ParseTreeObject mutant) {

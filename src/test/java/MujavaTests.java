@@ -25,7 +25,8 @@ import test.java.utils.TestingTools;
 				PRVO_replaceAllByOne_right_Options_Tests.class,							PRVO_TwoByOne_OneByTwo_Disabled_Options_Tests.class,
 				RORTests.class,		SORTests.class,			GenericsParsingTests.class,	GenericsWritingTests.class,
 				PCITests.class,		PNCTests.class,			ObtainingMutationsTest.class,
-				MergedMutationsTests.class,					MultiMutationsTests.class,	InnerClassTests.class})
+				MergedMutationsTests.class,					MultiMutationsTests.class,	InnerClassTests.class,
+				LiteralNumbersVariationsTests.class})
 public class MujavaTests {
 	
 	@BeforeClass
