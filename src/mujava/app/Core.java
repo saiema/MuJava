@@ -23,7 +23,7 @@ import mujava.api.MutantsInformationHolder;
 /**
  * This class execute all commands either from console or from a GUI
  * and return the results to be handled by the caller
- * @author simon
+ * @author Simon Emmanuel Gutierrez Brida
  */
 public class Core {
 	public static String SEPARATOR = fixBackslash(FileSystems.getDefault().getSeparator());
@@ -36,7 +36,7 @@ public class Core {
 	private HashMap<String, List<String>> mutantsFolders;
 	private Exception error;
 	private MutationScore ms;
-	public static final int mujavappVersion = 201409010;
+	public static final int mujavappVersion = 20151606;
 	
 	public static Core newInstance(String inputDirP, String outputDirP) {
 		if (instance == null) {
