@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+//import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -26,10 +27,10 @@ import java.util.TreeSet;
  * <p>
  * 
  * @author Simon Emmanuel Gutierrez Brida
- * @version 2.9
+ * @version 2.9.1
  */
 public class Reloader extends ClassLoader {
-	protected List<String> classpath;
+	protected Set<String> classpath;
 	protected String priorityPath;
 	protected Set<String> reloadableCache;
 	protected List<Class<?>> reloadableClassCache;
@@ -37,15 +38,23 @@ public class Reloader extends ClassLoader {
 
 	public Reloader(List<String> classpath, ClassLoader parent) {
 		super(parent);
-		this.classpath = new LinkedList<String>(classpath);
+		this.classpath = new TreeSet<String>();
+		this.classpath.addAll(classpath);
 		this.reloadableCache = new TreeSet<String>();
 		this.reloadableClassCache = new LinkedList<Class<?>>();
 	}
 	
-	protected Reloader(List<String> classpath, ClassLoader parent, Set<String> reloadableCache) {
+	private Reloader(Set<String> classpath, ClassLoader parent, Set<String> reloadableCache) {
 		this(classpath, parent);
 		this.reloadableCache = reloadableCache;
 	}
+	
+	private Reloader(Set<String> classpath, ClassLoader parent) {
+		super(parent);
+		this.classpath = classpath;
+		this.reloadableClassCache = new LinkedList<Class<?>>();
+	}
+	
 
 	@Override
 	public Class<?> loadClass(String s) throws ClassNotFoundException {
@@ -94,7 +103,7 @@ public class Reloader extends ClassLoader {
 	
 	public void setPathAsPriority(String path) {
 		this.priorityPath = path;
-		this.classpath.remove(path);
+		//this.classpath.remove(path);
 	}
 	
 	public void markEveryClassInFolderAsReloadable(String folder) {
@@ -154,6 +163,19 @@ public class Reloader extends ClassLoader {
 	}
 
 	protected Class<?> reload(String s) throws ClassNotFoundException {
+		//DEBUG
+//		System.out.println("Reloader#reload("+s+")");
+//		System.out.println("Reloader classpath size : " + this.classpath.size());
+//		System.out.print("Reloader classpath : ");
+//		String classpathAsString = "[";
+//		Iterator<String> it = this.classpath.iterator();
+//		while(it.hasNext()) {
+//			classpathAsString += it.next();
+//			if (it.hasNext()) classpathAsString += ", ";
+//		}
+//		classpathAsString += "]";
+//		System.out.println(classpathAsString);
+		//DEBUG
 		Class<?> clazz = null;
 		Set<String> childReloadableCache = new TreeSet<String>();
 		childReloadableCache.addAll(this.reloadableCache);
@@ -248,6 +270,12 @@ public class Reloader extends ClassLoader {
 		boolean found = false;
 		File f = null;
 		for (String cp : classpath) {
+			//DEBUG
+//			System.out.println("Reloader#classExist");
+//			System.out.println("s: " + s);
+//			System.out.println("cp: " + cp);
+//			System.out.println("File separator : " + File.separator);
+			//DEBUG
 			f = new File(cp + s.replaceAll("\\.", File.separator) + ".class");
 			found = f.exists();
 			if (found) break;

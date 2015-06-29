@@ -554,7 +554,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 
 	private List<Object> fieldAndMethods(ParseTreeObject limit, Object elem, boolean forceIgnoreVars) throws ParseTreeException{
-		boolean ignoreVars = forceIgnoreVars;
+		boolean ignoreVars = forceIgnoreVars || limit == null;
 		OJClass t = null;
 		if (elem instanceof MethodCall || elem instanceof FieldAccess || elem instanceof Variable) {
 			t = getType((Expression) elem);

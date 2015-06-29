@@ -1054,6 +1054,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		boolean found = false;
 		ParseTreeObject current = currentWithOffset;
 		StatementList stmtList = (StatementList) getStatementList(current);
+		if (stmtList == null) return null;
 		while (current != null && !found) {
 			int idx;
 			for (idx = 0; idx < stmtList.size(); idx++) {

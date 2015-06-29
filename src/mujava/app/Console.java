@@ -13,6 +13,7 @@ import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.Mutant;
 import mujava.op.PRVO;
+import mujava.util.Config;
 
 
 
@@ -33,6 +34,13 @@ public class Console {
 	
 	public static void main(String[] args) {
 		
+		if (args.length > 1 && args[0] != "--args") {
+			System.err.println("usage : mujava.app.Console [<path to .properties file>]");
+		}
+		
+		if (args.length == 0 || args.length == 1) args = (args.length == 1?Config.getInstance(args[0]):Config.getInstance()).configAsArgs();
+		
+		if (args.length > 1 && args[0] == "--args") Arrays.copyOfRange(args, 1, args.length);
 		
 		//=======================set required and optional flags=======================================//
 		Flags flags = new Flags(System.err);

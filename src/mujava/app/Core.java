@@ -36,7 +36,7 @@ public class Core {
 	private HashMap<String, List<String>> mutantsFolders;
 	private Exception error;
 	private MutationScore ms;
-	public static final int mujavappVersion = 20151606;
+	public static final int mujavappVersion = 2015290601;
 	
 	public static Core newInstance(String inputDirP, String outputDirP) {
 		if (instance == null) {
@@ -194,7 +194,7 @@ public class Core {
 				if (killed) mutantsKilled++;
 			}
 		}
-		System.out.println("Mutants : "+ mutants + " | didn't compile : "+failedToCompile + " | mutantsKilled : "+ mutantsKilled + " | mutation score : "+((mutantsKilled+failedToCompile)*100.0)/mutants+'\n');
+		System.out.println("Mutants : "+ mutants + " | didn't compile : " + failedToCompile + " | mutants killed by tests : "+ mutantsKilled + " | surviving mutants : " + (mutants-failedToCompile-mutantsKilled) + " | mutation score : "+((mutantsKilled+failedToCompile)*100.0)/mutants+'\n');
 		return ((mutantsKilled+failedToCompile)*(float)100.0)/mutants;
 	}
 
