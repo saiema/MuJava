@@ -156,7 +156,16 @@ public class Config {
 			public String getFlag() {
 				return "-L";
 			}
-		};
+		},
+		QUICK_DEATH {
+			public String getKey() {
+				return "mutation.advanced.quickDeath";
+			}
+			public String getFlag() {
+				return "-Q";
+			}
+		}
+		;
 		//MUTATION ADVANCED
 
 		public abstract String getKey();

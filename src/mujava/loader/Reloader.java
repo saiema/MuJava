@@ -154,7 +154,6 @@ public class Reloader extends ClassLoader {
 	protected Class<?> loadAgain(String s) throws ClassNotFoundException {
 		Class<?> clazz = null;
 		if (classExist(s, this.classpath.toArray(new String[this.classpath.size()]))) {
-			System.out.println("Reloading " + s);
 			clazz = findClass(s);
 		} else {
 			clazz = loadClassAsReloadable(s);
@@ -163,19 +162,6 @@ public class Reloader extends ClassLoader {
 	}
 
 	protected Class<?> reload(String s) throws ClassNotFoundException {
-		//DEBUG
-//		System.out.println("Reloader#reload("+s+")");
-//		System.out.println("Reloader classpath size : " + this.classpath.size());
-//		System.out.print("Reloader classpath : ");
-//		String classpathAsString = "[";
-//		Iterator<String> it = this.classpath.iterator();
-//		while(it.hasNext()) {
-//			classpathAsString += it.next();
-//			if (it.hasNext()) classpathAsString += ", ";
-//		}
-//		classpathAsString += "]";
-//		System.out.println(classpathAsString);
-		//DEBUG
 		Class<?> clazz = null;
 		Set<String> childReloadableCache = new TreeSet<String>();
 		childReloadableCache.addAll(this.reloadableCache);
@@ -270,12 +256,6 @@ public class Reloader extends ClassLoader {
 		boolean found = false;
 		File f = null;
 		for (String cp : classpath) {
-			//DEBUG
-//			System.out.println("Reloader#classExist");
-//			System.out.println("s: " + s);
-//			System.out.println("cp: " + cp);
-//			System.out.println("File separator : " + File.separator);
-			//DEBUG
 			f = new File(cp + s.replaceAll("\\.", File.separator) + ".class");
 			found = f.exists();
 			if (found) break;

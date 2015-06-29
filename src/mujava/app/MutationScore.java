@@ -32,6 +32,7 @@ public class MutationScore {
 	private Exception lastError = null;
 	private static Reloader reloader;
 	public static Set<String> allowedPackages = null;
+	public static boolean quickDeath;
 	
 	public static MutationScore newInstance(String mutantsSourceFolder, String originalBinFolder, String testsBinFolder) {
 		if (instance == null) {
@@ -104,7 +105,11 @@ public class MutationScore {
 			try {
 				MutationScore.reloader = MutationScore.reloader.getLastChild();
 				testToRun = MutationScore.reloader.rloadClass(test, true);
-				testResults.add(JUnitCore.runClasses(testToRun));
+				Result testResult = JUnitCore.runClasses(testToRun);
+				testResults.add(testResult);
+				if (MutationScore.quickDeath && !testResult.wasSuccessful()) {
+					break;
+				}
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

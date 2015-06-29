@@ -62,6 +62,7 @@ public class Console {
 		flags.setOptionalFlag('P'); //define allowed packages to mark as reloadable by Reloader
 		flags.setNoValueFlag('A'); //ignores mutGenLimit annotations 
 		flags.setNoValueFlag('L'); //allows the use of numeric literal variations in PRVO
+		flags.setNoValueFlag('Q'); //stop at the first failing test for each mutant
 		flags.setDependence('T', 'S');
 		flags.setDependence('S', 'T');
 		flags.setDependence('t', 'T');
@@ -73,6 +74,7 @@ public class Console {
 		flags.setDependence('P', 'm');
 		flags.setDependence('A', 'm');
 		flags.setDependence('L', 'm');
+		flags.setDependence('Q', 'm');
 		
 		
 		System.out.println("Validating parameters...");
@@ -305,6 +307,14 @@ public class Console {
 			Configuration.add(PRVO.ENABLE_NUMBER_LITERALS_VARIATIONS, Boolean.TRUE);
 		}
 		
+		if (flags.flagExist('Q')) {
+			System.out.println("Quick death enabled");
+			MutationScore.quickDeath = true;
+		} else {
+			System.out.println("Quick death disabled");
+			MutationScore.quickDeath = false;
+		}
+		
 		System.out.println("Parameters validated\n\n");
 		
 		//================================Mutants generation==============================================//
@@ -370,6 +380,7 @@ public class Console {
 		System.out.println("-P <packages>					| optional parameter | required : -m		| effect : define allowed packages to mark as reloadable by Reloader e.g: -P main.ui.tools");
 		System.out.println("-A								| optional parameter | required : -m		| effect : ignores mutGenLimit annotations and mutates anywhere a mutations operator can");
 		System.out.println("-L								| optional parameter | required : -m		| effect : allows the use of numeric literal variations in PRVO");
+		System.out.println("-Q								| optional parameter | required : -m		| effect : stop at the first failing test for each mutant");
 	}
 	
 	private static void mutopsHelp() {
