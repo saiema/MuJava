@@ -319,6 +319,7 @@ public class Config {
 			case ALLOWED_PACKAGES_TO_RELOAD: return false;
 			case ALLOW_CLASS_MUTATIONS:
 			case ALLOW_FIELD_MUTATIONS:
+			case QUICK_DEATH:
 			case ALLOW_NUMERIC_LITERAL_VARIATIONS: return true;
 			case BANNED_FIELDS:
 			case BANNED_METHODS:
