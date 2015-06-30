@@ -63,6 +63,7 @@ public class Console {
 		flags.setNoValueFlag('A'); //ignores mutGenLimit annotations 
 		flags.setNoValueFlag('L'); //allows the use of numeric literal variations in PRVO
 		flags.setNoValueFlag('Q'); //stop at the first failing test for each mutant
+		flags.setOptionalFlag('V'); //enable full verbose mode
 		flags.setDependence('T', 'S');
 		flags.setDependence('S', 'T');
 		flags.setDependence('t', 'T');
@@ -315,6 +316,13 @@ public class Console {
 			MutationScore.quickDeath = false;
 		}
 		
+		if (flags.flagExist('V')) {
+			System.out.println("Full verbose mode enabled");
+			Core.fullVerbose = true;
+		} else {
+			Core.fullVerbose = false;
+		}
+		
 		System.out.println("Parameters validated\n\n");
 		
 		//================================Mutants generation==============================================//
@@ -381,6 +389,7 @@ public class Console {
 		System.out.println("-A								| optional parameter | required : -m		| effect : ignores mutGenLimit annotations and mutates anywhere a mutations operator can");
 		System.out.println("-L								| optional parameter | required : -m		| effect : allows the use of numeric literal variations in PRVO");
 		System.out.println("-Q								| optional parameter | required : -m		| effect : stop at the first failing test for each mutant");
+		System.out.println("-V								| optional parameter | effect : enable full verbose mode");
 	}
 	
 	private static void mutopsHelp() {

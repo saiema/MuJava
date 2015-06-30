@@ -164,6 +164,14 @@ public class Config {
 			public String getFlag() {
 				return "-Q";
 			}
+		},
+		FULL_VERBOSE {
+			public String getKey() {
+				return "mutation.advanced.fullVerbose";
+			}
+			public String getFlag() {
+				return "-V";
+			}
 		}
 		;
 		//MUTATION ADVANCED
@@ -320,6 +328,7 @@ public class Config {
 			case ALLOW_CLASS_MUTATIONS:
 			case ALLOW_FIELD_MUTATIONS:
 			case QUICK_DEATH:
+			case FULL_VERBOSE:
 			case ALLOW_NUMERIC_LITERAL_VARIATIONS: return true;
 			case BANNED_FIELDS:
 			case BANNED_METHODS:

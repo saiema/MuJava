@@ -19,10 +19,13 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import mujava.junit.runner.MuJavaJunitTestRunner;
+import mujava.junit.runner.MuJavaTestRunnerException;
 import mujava.loader.Reloader;
 
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
+import org.junit.runners.model.InitializationError;
 
 public class MutationScore {
 	private static String mutantsSourceFolder = null;
@@ -105,12 +108,13 @@ public class MutationScore {
 			try {
 				MutationScore.reloader = MutationScore.reloader.getLastChild();
 				testToRun = MutationScore.reloader.rloadClass(test, true);
-				Result testResult = JUnitCore.runClasses(testToRun);
+				MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, MutationScore.quickDeath);
+				Result testResult = mjTestRunner.run();
 				testResults.add(testResult);
-				if (MutationScore.quickDeath && !testResult.wasSuccessful()) {
+				if (!testResult.wasSuccessful() && MutationScore.quickDeath) {
 					break;
 				}
-			} catch (ClassNotFoundException e) {
+			} catch (ClassNotFoundException | IllegalArgumentException | MuJavaTestRunnerException | InitializationError e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

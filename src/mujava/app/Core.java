@@ -36,7 +36,8 @@ public class Core {
 	private HashMap<String, List<String>> mutantsFolders;
 	private Exception error;
 	private MutationScore ms;
-	public static final int mujavappVersion = 2015290601;
+	public static boolean fullVerbose = false;
+	public static final int mujavappVersion = 2015300601;
 	
 	public static Core newInstance(String inputDirP, String outputDirP) {
 		if (instance == null) {
@@ -182,11 +183,11 @@ public class Core {
 					System.out.println("Runned : " + r.getRunCount() + " tests (pass : " + (r.getRunCount()-r.getFailureCount()) + " | failed : " + r.getFailureCount() + ")\n");
 					if (!r.wasSuccessful()) {
 						for (Failure f : r.getFailures()) {
-							System.out.println("mutant : " + Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java");
-							System.out.println("test : " + f.getTestHeader());
-							System.out.println("failure description: " + f.getDescription());
-							if (!(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
-							if (!(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
+							if (Core.fullVerbose) System.out.println("mutant : " + Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java");
+							if (Core.fullVerbose) System.out.println("test : " + f.getTestHeader());
+							if (Core.fullVerbose) System.out.println("failure description: " + f.getDescription());
+							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
+							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
 						}
 					}
 					if (!killed && !r.wasSuccessful()) killed = true;
