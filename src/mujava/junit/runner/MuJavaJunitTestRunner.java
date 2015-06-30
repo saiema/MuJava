@@ -39,15 +39,15 @@ public class MuJavaJunitTestRunner {
 		if (runWithAnnotation != null) {
 			if (runWithAnnotation.value().equals(Parameterized.class)) {
 				//System.out.println("retrieving parameterized runner with failFast: " + this.failFast);
-				return this.failFast? new FailFastParameterized(testToRun):new Parameterized(testToRun);
+				return this.failFast? new FailFastParameterized(testToRun):null;
 			}
 		} else if (TestCase.class.isAssignableFrom(testToRun)) {
-			this.testRunner = new BlockJUnit4ClassRunner(testToRun); //TODO: for the moment will be using this runner
+			this.testRunner = null; //TODO: for the moment will be using this runner
 		} else if (TestSuite.class.isAssignableFrom(testToRun)) {
-			this.testRunner = new BlockJUnit4ClassRunner(testToRun); //TODO: for the moment will be using this runner
+			this.testRunner = null; //TODO: for the moment will be using this runner
 		} else if (testToRun.getAnnotation(Test.class) != null) {
 			if (this.failFast) FailFastBlockJUnit4ClassRunner.ignore = false;
-			return this.failFast? new FailFastBlockJUnit4ClassRunner(testToRun):new BlockJUnit4ClassRunner(testToRun);
+			return this.failFast? new FailFastBlockJUnit4ClassRunner(testToRun):null;
 		} else {
 			throw new IllegalArgumentException("Class : " + testToRun.toString() + " is not a valid junit test");
 		}
