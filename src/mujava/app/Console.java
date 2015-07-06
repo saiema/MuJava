@@ -63,7 +63,7 @@ public class Console {
 		flags.setNoValueFlag('A'); //ignores mutGenLimit annotations 
 		flags.setNoValueFlag('L'); //allows the use of numeric literal variations in PRVO
 		flags.setNoValueFlag('Q'); //stop at the first failing test for each mutant
-		flags.setOptionalFlag('V'); //enable full verbose mode
+		flags.setNoValueFlag('V'); //enable full verbose mode
 		flags.setDependence('T', 'S');
 		flags.setDependence('S', 'T');
 		flags.setDependence('t', 'T');

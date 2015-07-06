@@ -85,7 +85,7 @@ public class MutationScore {
 		return testResults;
 	}
 	
-	public List<Result> runTestsWithMutants(List<String> testClasses, String pathToMutant, String className) {
+	public List<TestResult> runTestsWithMutants(List<String> testClasses, String pathToMutant, String className) {
 		this.lastError = null;
 		String originalFile = MutationScore.originalBinFolder+className;
 		String mutantFile = MutationScore.mutantsSourceFolder+pathToMutant+className;
@@ -101,7 +101,7 @@ public class MutationScore {
 			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.originalBinFolder, MutationScore.allowedPackages);
 			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.testsBinFolder, MutationScore.allowedPackages);
 		}
-		List<Result> testResults = new LinkedList<Result>();
+		List<TestResult> testResults = new LinkedList<TestResult>();
 		System.out.println("Testing mutant : "+pathToMutant+className+'\n');
 		for (String test : testClasses) {
 			Class<?> testToRun;
@@ -110,7 +110,7 @@ public class MutationScore {
 				testToRun = MutationScore.reloader.rloadClass(test, true);
 				MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, MutationScore.quickDeath);
 				Result testResult = mjTestRunner.run();
-				testResults.add(testResult);
+				testResults.add(new TestResult(testResult));
 				if (!testResult.wasSuccessful() && MutationScore.quickDeath) {
 					break;
 				}

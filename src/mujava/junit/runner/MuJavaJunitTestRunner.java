@@ -8,9 +8,9 @@ import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
-import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.Parameterized;
 import org.junit.runners.ParentRunner;
+import org.junit.runners.Suite;
 import org.junit.runners.model.InitializationError;
 
 public class MuJavaJunitTestRunner {
@@ -38,8 +38,9 @@ public class MuJavaJunitTestRunner {
 		RunWith runWithAnnotation = testToRun.getAnnotation(RunWith.class);
 		if (runWithAnnotation != null) {
 			if (runWithAnnotation.value().equals(Parameterized.class)) {
-				//System.out.println("retrieving parameterized runner with failFast: " + this.failFast);
 				return this.failFast? new FailFastParameterized(testToRun):null;
+			}  else if (runWithAnnotation.value().equals(Suite.class)) {
+				return new Suite(testToRun, new FailFastRunnerBuilder());
 			}
 		} else if (TestCase.class.isAssignableFrom(testToRun)) {
 			this.testRunner = null; //TODO: for the moment will be using this runner
