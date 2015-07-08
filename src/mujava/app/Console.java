@@ -13,7 +13,7 @@ import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.Mutant;
 import mujava.op.PRVO;
-import mujava.util.Config;
+import mujava.util.ConfigReader;
 
 
 
@@ -38,7 +38,7 @@ public class Console {
 			System.err.println("usage : mujava.app.Console [<path to .properties file>]");
 		}
 		
-		if (args.length == 0 || args.length == 1) args = (args.length == 1?Config.getInstance(args[0]):Config.getInstance()).configAsArgs();
+		if (args.length == 0 || args.length == 1) args = (args.length == 1?ConfigReader.getInstance(args[0]):ConfigReader.getInstance()).configAsArgs();
 		
 		if (args.length > 1 && args[0] == "--args") Arrays.copyOfRange(args, 1, args.length);
 		
