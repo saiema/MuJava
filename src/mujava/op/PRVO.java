@@ -47,6 +47,7 @@ import openjava.ptree.Statement;
 import openjava.ptree.StatementList;
 import openjava.ptree.SwitchStatement;
 import openjava.ptree.TryStatement;
+import openjava.ptree.TypeName;
 import openjava.ptree.UnaryExpression;
 import openjava.ptree.Variable;
 import openjava.ptree.VariableDeclaration;
@@ -194,7 +195,20 @@ public class PRVO extends mujava.op.util.Mutator {
 	 * this option is disabled by default
 	 */
 	public static final String ENABLE_NUMBER_LITERALS_VARIATIONS = "prvo_number_literals_variations";
-
+	/**
+	 * Option to enable/disable wrapping of mutants of the form {@Code Object var = primitive type expression}.
+	 * Wrapping will generate {@code new T(primitive type expression)} where {@code T} is a wrapper type for the primitive type of the original expression.
+	 * <p>
+	 * this option is disabled by default
+	 */
+	public static final String ENABLE_PRIMITIVE_WRAPPING = "prvo_primitive_wrapping";
+	/**
+	 * Option to enable/disable mutants of the form {@Code Object var = primitive type expression}.
+	 * <p>
+	 * this option is enabled by default
+	 */
+	public static final String ENABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS = "prvo_primitive_to_object_assignments";
+	
 	ParseTreeObject parent = null;
 
 	private boolean allowNonStatic = true;
@@ -769,18 +783,46 @@ public class PRVO extends mujava.op.util.Mutator {
 					if (lor && prev==null && !getType(current).isPrimitive() && retType.isPrimitive()) continue;
 					if ((next == null) && (lor?compatibleAssignType(retType, rtype):compatibleAssignType(ltype, retType, !refined))) {
 						Expression prevCopy = prev==null?null:((Expression) prev.makeRecursiveCopy_keepOriginalID());
+						ParseTreeObject mutantNode = null;
 						if (m instanceof OJField) {
 							FieldAccess mutantField = new FieldAccess(prevCopy==null?(this.isInherited((OJField)m)?(SelfAccess.constantSuper()):(SelfAccess.constantThis())):(prevCopy), ((OJField)m).getName());
 							mutantField.setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
-							outputToFile((ParseTreeObject)(lor?e1:e2), mutantField);
+							if (isPrimitiveToObjectAssignment((lor?retType:ltype), (lor?rtype:retType))) {
+								if (usePrimitiveWrapping() && !lor) {
+									mutantNode = wrapPrimitiveExpression(retType, mutantField);
+								} else if (allowPrimitiveToObjectMutants()) {
+									mutantNode = mutantField;
+								}
+							} else {
+								mutantNode = mutantField;
+							}
+							if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 						} else if (m instanceof OJMethod) {
 							MethodCall mutantMethod = new MethodCall(prevCopy==null?(this.isInherited((OJMethod)m)?(SelfAccess.constantSuper()):(SelfAccess.constantThis())):(prevCopy), ((OJMethod)m).getName(), new ExpressionList());
 							mutantMethod.setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
-							outputToFile((ParseTreeObject)(lor?e1:e2), mutantMethod);
+							if (isPrimitiveToObjectAssignment((lor?retType:ltype), (lor?rtype:retType))) {
+								if (usePrimitiveWrapping() && !lor) {
+									mutantNode = wrapPrimitiveExpression(retType, mutantMethod);
+								} else if (allowPrimitiveToObjectMutants()) {
+									mutantNode = mutantMethod;
+								}
+							} else {
+								mutantNode = mutantMethod;
+							}
+							if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 						} else if (m instanceof Variable) {
 							Variable mutantVar = (Variable) ((Variable)m).makeRecursiveCopy_keepOriginalID();
 							mutantVar.setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
-							outputToFile((ParseTreeObject)(lor?e1:e2), mutantVar);
+							if (isPrimitiveToObjectAssignment((lor?retType:ltype), (lor?rtype:retType))) {
+								if (usePrimitiveWrapping() && !lor) {
+									mutantNode = wrapPrimitiveExpression(retType, mutantVar);
+								} else if (allowPrimitiveToObjectMutants()) {
+									mutantNode = mutantVar;
+								}
+							} else {
+								mutantNode = mutantVar;
+							}
+							if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 						}
 					} else if ((next != null) && (!(m instanceof Variable && prev!=null) && (isFieldMethodOf(m, next)))) {
 						Expression nextCopy = rightPart==null?null:((Expression) rightPart.makeRecursiveCopy_keepOriginalID());
@@ -795,16 +837,30 @@ public class PRVO extends mujava.op.util.Mutator {
 						}
 						((ParseTreeObject) mutantCurrent).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
 						if (nextCopy == null) {
-							outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject)mutantCurrent);
+							ParseTreeObject mutantNode = null;
+							if (isPrimitiveToObjectAssignment((lor?retType:ltype), (lor?rtype:retType))) {
+								if (usePrimitiveWrapping() && !lor) {
+									mutantNode = wrapPrimitiveExpression(retType, (ParseTreeObject) mutantCurrent);
+								} else if (allowPrimitiveToObjectMutants()) {
+									mutantNode = (ParseTreeObject) mutantCurrent;
+								}
+							} else {
+								mutantNode = (ParseTreeObject) mutantCurrent;
+							}
+							if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 						} else {
-//							if (nextCopy instanceof FieldAccess) {
-//								((FieldAccess)nextCopy).setReferenceExpr(mutantCurrent);
-//							} else if (nextCopy instanceof MethodCall) {
-//								((MethodCall)nextCopy).setReferenceExpr(mutantCurrent);
-//							}
-							//outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject)nextCopy);
 							ParseTreeObject mutant = (ParseTreeObject) addThisSuper(append(nextCopy, mutantCurrent));
-							outputToFile((ParseTreeObject)(lor?e1:e2), mutant);
+							ParseTreeObject mutantNode = null;
+							if (isPrimitiveToObjectAssignment(ltype, rtype)) {
+								if (usePrimitiveWrapping() && !lor) {
+									mutantNode = wrapPrimitiveExpression(rtype, mutant);
+								} else if (allowPrimitiveToObjectMutants()) {
+									mutantNode = mutant;
+								}
+							} else {
+								mutantNode = mutant;
+							}
+							if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 						}	
 					}
 				}
@@ -854,7 +910,17 @@ public class PRVO extends mujava.op.util.Mutator {
 					boolean prevIsNotNull = prev != null;
 					if (prevIsNotNull && leftEndCheck && compatibleAssignType(ltype, getType(prev)) && compatibleAssignType(getType(prev), rtype)) {
 						Expression prevCopy = (Expression) prev.makeRecursiveCopy_keepOriginalID();
-						outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject)prevCopy);
+						ParseTreeObject mutantNode = null;
+						if (isPrimitiveToObjectAssignment((lor?getType(prev):ltype), (lor?rtype:getType(prev)))) {
+							if (usePrimitiveWrapping() && !lor) {
+								mutantNode = wrapPrimitiveExpression(getType(prev), (ParseTreeObject) prevCopy);
+							} else if (allowPrimitiveToObjectMutants()) {
+								mutantNode = (ParseTreeObject) prevCopy;
+							}
+						} else {
+							mutantNode = (ParseTreeObject) prevCopy;
+						}
+						if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 					}
 				} else {
 					OJClass prevType = prev == null?null:getType(prev);
@@ -876,7 +942,17 @@ public class PRVO extends mujava.op.util.Mutator {
 								}
 								if (!thisCheck) continue;
 								Expression nextCopy = (Expression) rightPart.makeRecursiveCopy_keepOriginalID();
-								outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject)nextCopy);
+								ParseTreeObject mutantNode = null;
+								if (isPrimitiveToObjectAssignment(ltype, rtype)) {
+									if (usePrimitiveWrapping() && !lor) {
+										mutantNode = wrapPrimitiveExpression(rtype, (ParseTreeObject) nextCopy);
+									} else if (allowPrimitiveToObjectMutants()) {
+										mutantNode = (ParseTreeObject) nextCopy;
+									}
+								} else {
+									mutantNode = (ParseTreeObject) nextCopy;
+								}
+								if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 							} else {
 								Expression nextCopy = (Expression) rightPart.makeRecursiveCopy_keepOriginalID();
 								Expression prevCopy = (Expression) prev.makeRecursiveCopy_keepOriginalID();
@@ -885,7 +961,17 @@ public class PRVO extends mujava.op.util.Mutator {
 								} else if (nextCopy instanceof MethodCall) {
 									((MethodCall)nextCopy).setReferenceExpr(prevCopy);
 								}
-								outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject)nextCopy);
+								ParseTreeObject mutantNode = null;
+								if (isPrimitiveToObjectAssignment(ltype, rtype)) {
+									if (usePrimitiveWrapping() && !lor) {
+										mutantNode = wrapPrimitiveExpression(rtype, (ParseTreeObject) nextCopy);
+									} else if (allowPrimitiveToObjectMutants()) {
+										mutantNode = (ParseTreeObject) nextCopy;
+									}
+								} else {
+									mutantNode = (ParseTreeObject) nextCopy;
+								}
+								if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 							}
 						}
 					} else {
@@ -1036,6 +1122,20 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return false;
 	}
+	
+	private boolean usePrimitiveWrapping() {
+		if (Configuration.argumentExist(ENABLE_PRIMITIVE_WRAPPING)) {
+			return (Boolean) Configuration.getValue(ENABLE_PRIMITIVE_WRAPPING);
+		}
+		return false;
+	}
+	
+	private boolean allowPrimitiveToObjectMutants() {
+		if (Configuration.argumentExist(ENABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS)) {
+			return (Boolean) Configuration.getValue(ENABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS);
+		}
+		return true;
+	}
 
 	private Expression addThisSuper(Expression exp) throws ParseTreeException {
 		if (exp == null) return null;
@@ -1141,16 +1241,31 @@ public class PRVO extends mujava.op.util.Mutator {
 						}
 						((ParseTreeObject)mutant).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
 						if (nextCopy != null) {
-//							if (nextCopy instanceof FieldAccess) {
-//								((FieldAccess)nextCopy).setReferenceExpr(mutant);
-//							} else if (nextCopy instanceof MethodCall) {
-//								((MethodCall)nextCopy).setReferenceExpr(mutant);
-//							}
 							ParseTreeObject mutantPTO = (ParseTreeObject) addThisSuper(append(nextCopy, mutant));
-//							outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject)addThisSuper(nextCopy));
-							outputToFile((ParseTreeObject)(lor?e1:e2), mutantPTO);
+							ParseTreeObject mutantNode = null;
+							if (isPrimitiveToObjectAssignment(ltype, rtype)) {
+								if (usePrimitiveWrapping() && !lor) {
+									mutantNode = wrapPrimitiveExpression(rtype, mutantPTO);
+								} else if (allowPrimitiveToObjectMutants()) {
+									mutantNode = mutantPTO;
+								}
+							} else {
+								mutantNode = mutantPTO;
+							}
+							if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 						} else {
-							outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject)addThisSuper(mutant));
+							ParseTreeObject mutantNode = null;
+							ParseTreeObject mutantToWrite = (ParseTreeObject)addThisSuper(mutant);
+							if (isPrimitiveToObjectAssignment((lor?retType:ltype), (lor?rtype:retType))) {
+								if (usePrimitiveWrapping() && !lor) {
+									mutantNode = wrapPrimitiveExpression(rtype, mutantToWrite);
+								} else if (allowPrimitiveToObjectMutants()) {
+									mutantNode = mutantToWrite;
+								}
+							} else {
+								mutantNode = mutantToWrite;
+							}
+							if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 						}
 
 					}
@@ -1198,16 +1313,15 @@ public class PRVO extends mujava.op.util.Mutator {
 					if (retType == null && next == null) continue;
 					boolean typeCheck = false;
 					boolean pertCheck = false;
-					boolean primitiveCheck = true;//false;
+					boolean primitiveCheck = true;
 					if (next == null) {
-						boolean ltypeCheck = true; //compatibleAssignType(ltype, retType)
+						boolean ltypeCheck = true;
 						pertCheck = true;
 						typeCheck = lor?ltypeCheck&&compatibleAssignType(retType, rtype):compatibleAssignType(ltype, retType);
 					} else {
 						typeCheck = true;
 						pertCheck = (m instanceof OJMember)?isFieldMethodOf((OJMember)m,next):((m instanceof Variable)?isFieldMethodOf((Variable)m, next):false);
 					}
-					//primitiveCheck = ((prevPrev == null) && !retType.isPrimitive());
 					if (pertCheck && typeCheck && primitiveCheck) {
 						Expression prevPrevCopy = prevPrev==null?null:((Expression)prevPrev.makeRecursiveCopy_keepOriginalID());
 						Expression nextCopy = rightPart==null?null:((Expression)rightPart.makeRecursiveCopy_keepOriginalID());
@@ -1226,9 +1340,29 @@ public class PRVO extends mujava.op.util.Mutator {
 							} else if (nextCopy instanceof MethodCall) {
 								((MethodCall)nextCopy).setReferenceExpr(mutant);
 							}
-							outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject)nextCopy);
+							ParseTreeObject mutantNode = null;
+							if (isPrimitiveToObjectAssignment(ltype, rtype)) {
+								if (usePrimitiveWrapping() && !lor) {
+									mutantNode = wrapPrimitiveExpression(rtype, (ParseTreeObject) nextCopy);
+								} else if (allowPrimitiveToObjectMutants()) {
+									mutantNode = (ParseTreeObject) nextCopy;
+								}
+							} else {
+								mutantNode = (ParseTreeObject) nextCopy;
+							}
+							if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 						} else {
-							outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject)mutant);
+							ParseTreeObject mutantNode = null;
+							if (isPrimitiveToObjectAssignment((lor?retType:ltype), (lor?rtype:retType))) {
+								if (usePrimitiveWrapping() && !lor) {
+									mutantNode = wrapPrimitiveExpression(retType, (ParseTreeObject) mutant);
+								} else if (allowPrimitiveToObjectMutants()) {
+									mutantNode = (ParseTreeObject) mutant;
+								}
+							} else {
+								mutantNode = (ParseTreeObject) mutant;
+							}
+							if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 						}
 					}
 				}
@@ -1247,7 +1381,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			} while (current != null && !(current instanceof Variable) && !(current instanceof SelfAccess) );
 		}
 	}
-	
+
 	private void replaceAllByOne(NonLeaf orig, Expression e1, Expression e2, boolean lor) throws ParseTreeException {
 		OJClass ltype = getType(e1);
 		OJClass rtype = getType(e1);
@@ -1277,7 +1411,17 @@ public class PRVO extends mujava.op.util.Mutator {
 							continue;
 						} else {
 							((ParseTreeObject)replacement).setParent(((ParseTreeObject)e2).getParent());
-							outputToFile((ParseTreeObject) e2, (Literal)replacement);
+							ParseTreeObject mutantNode = null;
+							if (isPrimitiveToObjectAssignment(ltype, litType)) {
+								if (usePrimitiveWrapping() && !lor) {
+									mutantNode = wrapPrimitiveExpression(litType, (ParseTreeObject) replacement);
+								} else if (allowPrimitiveToObjectMutants()) {
+									mutantNode = (ParseTreeObject) replacement;
+								}
+							} else {
+								mutantNode = (ParseTreeObject) replacement;
+							}
+							if (mutantNode != null) outputToFile((ParseTreeObject) e2, mutantNode);
 						}
 					} else {
 						continue;
@@ -1286,8 +1430,21 @@ public class PRVO extends mujava.op.util.Mutator {
 					OJClass varType = getType((Variable)replacement);
 					((ParseTreeObject)replacement).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
 					if (!lor && compatibleAssignType(ltype, varType, true)) {
-						outputToFile((ParseTreeObject)(e2), (Variable)replacement);
+						ParseTreeObject mutantNode = null;
+						if (isPrimitiveToObjectAssignment(ltype, varType)) {
+							if (usePrimitiveWrapping()) {
+								mutantNode = wrapPrimitiveExpression(varType, (ParseTreeObject) replacement);
+							} else if (allowPrimitiveToObjectMutants()) {
+								mutantNode = (ParseTreeObject) replacement;
+							}
+						} else {
+							mutantNode = (ParseTreeObject) replacement;
+						}
+						if (mutantNode != null) outputToFile((ParseTreeObject)(e2), mutantNode);
 					} else if (lor && compatibleAssignType(varType, rtype, true)) {
+						if (isPrimitiveToObjectAssignment(varType, rtype) && !usePrimitiveWrapping()) {
+							continue;
+						}
 						outputToFile((ParseTreeObject)(e1), (Variable)replacement);
 					} else {
 						continue;
@@ -1297,11 +1454,22 @@ public class PRVO extends mujava.op.util.Mutator {
 					FieldAccess mutant = new FieldAccess((Expression)null, ((OJField)replacement).getName());
 					if (!lor && compatibleAssignType(ltype, fieldType, true)) {
 						((ParseTreeObject)mutant).setParent(((ParseTreeObject)e2).getParent());
-						outputToFile((ParseTreeObject)(e2), (ParseTreeObject) addThisSuper(mutant));
+						ParseTreeObject mutantNode = (ParseTreeObject) addThisSuper(mutant);
+						if (isPrimitiveToObjectAssignment(ltype, fieldType)) {
+							if (usePrimitiveWrapping()) {
+								mutantNode = wrapPrimitiveExpression(fieldType, mutantNode);
+							} else if (!allowPrimitiveToObjectMutants()) {
+								continue;
+							}
+						}
+						outputToFile((ParseTreeObject)(e2), mutantNode);
 					} else if (lor && compatibleAssignType(fieldType, rtype, true)) {
 						((ParseTreeObject)mutant).setParent(((ParseTreeObject)e1).getParent());
+						if (isPrimitiveToObjectAssignment(fieldType, rtype) && !usePrimitiveWrapping()) {
+							continue;
+						}
 						outputToFile((ParseTreeObject)(e1), (ParseTreeObject) addThisSuper(mutant));
-					}	else {
+					} else {
 						continue;
 					}
 				} else if (replacement instanceof OJMethod && !lor) {
@@ -1309,7 +1477,15 @@ public class PRVO extends mujava.op.util.Mutator {
 					if (compatibleAssignType(ltype, methodType, true)) {
 						MethodCall mutant = new MethodCall((Expression)null, ((OJMethod)replacement).getName(), new ExpressionList());
 						((ParseTreeObject)mutant).setParent(((ParseTreeObject)e2).getParent());
-						outputToFile((ParseTreeObject)e2, (ParseTreeObject) addThisSuper(mutant));
+						ParseTreeObject mutantNode = (ParseTreeObject) addThisSuper(mutant);
+						if (isPrimitiveToObjectAssignment(ltype, methodType)) {
+							if (usePrimitiveWrapping()) {
+								mutantNode = wrapPrimitiveExpression(methodType, mutantNode);
+							} else if (!allowPrimitiveToObjectMutants()) {
+								continue;
+							}
+						}
+						outputToFile((ParseTreeObject)e2, mutantNode);
 					} else {
 						continue;
 					}
@@ -1375,7 +1551,15 @@ public class PRVO extends mujava.op.util.Mutator {
 						if (next == null) {
 							boolean ltypeCheck = (lor && (prev==null?(getType(current).isPrimitive()?retType.isPrimitive():!retType.isPrimitive()):true)) || !lor;
 							if ((lor && (ltypeCheck && compatibleAssignType(retType, rtype))) || (!lor && (compatibleAssignType(ltype, retType)))) {
-								outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject)mutantPart2);
+								ParseTreeObject mutantNode = (ParseTreeObject)mutantPart2;
+								if (isPrimitiveToObjectAssignment((lor?retType:ltype), (lor?rtype:retType))) {
+									if (usePrimitiveWrapping() && !lor) {
+										mutantNode = wrapPrimitiveExpression(retType, mutantNode);
+									} else if (!allowPrimitiveToObjectMutants()) {
+										continue;
+									}
+								}
+								outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 							}
 						} else {
 							if (isFieldMethodOf((OJMember)m2,next)){
@@ -1384,7 +1568,15 @@ public class PRVO extends mujava.op.util.Mutator {
 								} else if (nextCopy instanceof MethodCall) {
 									((MethodCall)nextCopy).setReferenceExpr(mutantPart2);
 								}
-								outputToFile((ParseTreeObject)(lor?e1:e2), (ParseTreeObject)nextCopy);
+								ParseTreeObject mutantNode = (ParseTreeObject)nextCopy;
+								if (isPrimitiveToObjectAssignment(ltype, rtype)) {
+									if (usePrimitiveWrapping() && !lor) {
+										mutantNode = wrapPrimitiveExpression(rtype, mutantNode);
+									} else if (!allowPrimitiveToObjectMutants()) {
+										continue;
+									}
+								}
+								outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 							}
 						}
 					}
@@ -2087,6 +2279,43 @@ public class PRVO extends mujava.op.util.Mutator {
 	
 	private boolean isNumber(Literal literal) {
 		return literal.getLiteralType()==Literal.INTEGER || literal.getLiteralType()==Literal.DOUBLE || literal.getLiteralType()==Literal.FLOAT || literal.getLiteralType()==Literal.LONG;
+	}
+	
+	private boolean isPrimitiveToObjectAssignment(OJClass varType, OJClass valueType) {
+		if (varType.getName().compareToIgnoreCase("java.lang.object") == 0
+				&& (valueType.isPrimitive())) {
+			return true;
+		}
+		return false;
+	}
+	
+	private ParseTreeObject wrapPrimitiveExpression(OJClass primitiveClass, ParseTreeObject originalExpression) {
+		if (primitiveClass.isPrimitive()) {
+			TypeName constructorType = null;
+			if (primitiveClass.getSimpleName().compareTo(openjava.mop.OJSystem.BOOLEAN.getSimpleName()) == 0) {
+				constructorType = new TypeName("java.lang.Boolean");
+			} else if (primitiveClass.getSimpleName().compareTo(openjava.mop.OJSystem.CHAR.getSimpleName()) == 0) {
+				constructorType = new TypeName("java.lang.Character");
+			} else if (primitiveClass.getSimpleName().compareTo(openjava.mop.OJSystem.BYTE.getSimpleName()) == 0) {
+				constructorType = new TypeName("java.lang.Byte");
+			} else if (primitiveClass.getSimpleName().compareTo(openjava.mop.OJSystem.SHORT.getSimpleName()) == 0) {
+				constructorType = new TypeName("java.lang.Short");
+			} else if (primitiveClass.getSimpleName().compareTo(openjava.mop.OJSystem.INT.getSimpleName()) == 0) {
+				constructorType = new TypeName("java.lang.Integer");
+			} else if (primitiveClass.getSimpleName().compareTo(openjava.mop.OJSystem.LONG.getSimpleName()) == 0) {
+				constructorType = new TypeName("java.lang.Long");
+			} else if (primitiveClass.getSimpleName().compareTo(openjava.mop.OJSystem.FLOAT.getSimpleName()) == 0) {
+				constructorType = new TypeName("java.lang.Float");
+			}
+			ParseTreeObject originalExpressionParent = (ParseTreeObject) originalExpression.getParent().makeRecursiveCopy_keepOriginalID();
+			ExpressionList params = new ExpressionList();
+			params.add((Expression) originalExpression.makeRecursiveCopy_keepOriginalID());
+			AllocationExpression wrappedExpression = new AllocationExpression(constructorType, params);
+			wrappedExpression.setParent(originalExpressionParent);
+			return wrappedExpression;
+		} else {
+			return originalExpression;
+		}
 	}
 	
 	private boolean isNumericExpression(Expression expr) throws ParseTreeException {

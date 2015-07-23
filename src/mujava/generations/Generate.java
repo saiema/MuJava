@@ -3,6 +3,7 @@ package mujava.generations;
 import java.util.Arrays;
 import java.util.List;
 
+import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.Mutant;
 import mujava.api.MutantsInformationHolder;
@@ -26,7 +27,7 @@ public class Generate {
 		//String clazz = "main" + Core.SEPARATOR + "Gcd";
 		//String clazz = "list" + Core.SEPARATOR + "SinglyLinkedListBinaryExpressionFieldVarFor";
 		//String[] methods = {"addFirst"};
-		String[] methods = {"contains"};
+		String[] methods = {"remove"};
 		//String[] methods = {"getNode"};
 		Mutant[] ops = {	
 				Mutant.PRVOL_SMART,
@@ -62,6 +63,9 @@ public class Generate {
         Configuration.add(COR.ALLOW_LOGICAL_AND, false);
         Configuration.add(COR.ALLOW_LOGICAL_OR, false);
         Configuration.add(COR.ALLOW_XOR, false);
+        Configuration.add(Api.USE_MUTGENLIMIT, Boolean.FALSE);
+        Configuration.add(PRVO.ENABLE_PRIMITIVE_WRAPPING, Boolean.FALSE);
+        Configuration.add(PRVO.ENABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS, Boolean.FALSE);
         
         generate(clazz, methods, ops, basePathOriginals, basePathMutants, 1, false);
 	}

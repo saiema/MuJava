@@ -90,7 +90,6 @@ public class MutantsInformationHolder {
 	
 	private static boolean sameLiterals(Literal original, Literal mutant) {
 		if (original.getLiteralType() == mutant.getLiteralType()) {
-			System.out.println("same literals");
 			return original.toString().compareTo(mutant.toString()) == 0;
 		} else {
 			return false;

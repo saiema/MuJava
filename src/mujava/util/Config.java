@@ -49,6 +49,8 @@ public class Config {
 	private boolean ignoreMutGenLimit;
 	private Set<String> allowedPackagesToReload;
 	private boolean allowNumericLiteralVariations;
+	private boolean disablePrimitiveToObjectAssignments;
+	private boolean wrapPrimitiveToObjectAssignments;
 	//advanced mutation options
 	
 	//mutation score
@@ -294,6 +296,22 @@ public class Config {
 	
 	public boolean quickDeath() {
 		return this.quickDeath;
+	}
+	
+	public boolean allowPrimitiveToObjectAssignments() {
+		return this.disablePrimitiveToObjectAssignments;
+	}
+	
+	public void allowPrimitiveToObjectAssignments(boolean b) {
+		this.disablePrimitiveToObjectAssignments = b;
+	}
+	
+	public boolean wrapPrimitiveToObjectAssignments() {
+		return this.wrapPrimitiveToObjectAssignments;
+	}
+	
+	public void wrapPrimitiveToObjectAssignments(boolean b) {
+		this.wrapPrimitiveToObjectAssignments = b;
 	}
 	
 	public List<Method> getClassMethods() {

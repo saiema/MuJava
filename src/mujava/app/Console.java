@@ -64,6 +64,8 @@ public class Console {
 		flags.setNoValueFlag('L'); //allows the use of numeric literal variations in PRVO
 		flags.setNoValueFlag('Q'); //stop at the first failing test for each mutant
 		flags.setNoValueFlag('V'); //enable full verbose mode
+		flags.setNoValueFlag('p'); //disable mutations of the form a = b where a is of type Object and b is a primitive type expression
+		flags.setNoValueFlag('w'); //wrap mutations of the form a = b to a = new T(b), where a is of type Object and b is a primitive type expression
 		flags.setDependence('T', 'S');
 		flags.setDependence('S', 'T');
 		flags.setDependence('t', 'T');
@@ -76,6 +78,8 @@ public class Console {
 		flags.setDependence('A', 'm');
 		flags.setDependence('L', 'm');
 		flags.setDependence('Q', 'm');
+		flags.setDependence('p', 'm');
+		flags.setDependence('w', 'm');
 		
 		
 		System.out.println("Validating parameters...");
@@ -323,6 +327,22 @@ public class Console {
 			Core.fullVerbose = false;
 		}
 		
+		if (flags.flagExist('p')) {
+			System.out.println("Primitive to Object assignments are disabled");
+			Configuration.add(PRVO.ENABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS, Boolean.FALSE);
+		} else {
+			Configuration.add(PRVO.ENABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS, Boolean.TRUE);
+		}
+		
+		if (flags.flagExist('p')) {
+			System.out.println("Primitive to Object assignments will be wrapped");
+			Configuration.add(PRVO.ENABLE_PRIMITIVE_WRAPPING, Boolean.TRUE);
+		} else {
+			Configuration.add(PRVO.ENABLE_PRIMITIVE_WRAPPING, Boolean.FALSE);
+		}
+		
+		
+		
 		System.out.println("Parameters validated\n\n");
 		
 		//================================Mutants generation==============================================//
@@ -390,6 +410,8 @@ public class Console {
 		System.out.println("-L								| optional parameter | required : -m		| effect : allows the use of numeric literal variations in PRVO");
 		System.out.println("-Q								| optional parameter | required : -m		| effect : stop at the first failing test for each mutant");
 		System.out.println("-V								| optional parameter | effect : enable full verbose mode");
+		System.out.println("-p								| optional parameter | effect : disable mutations of the form a = b where a is of type Object and b is a primitive type expression");
+		System.out.println("-w								| optional parameter | effect : wrap mutations of the form a = b to a = new T(b), where a is of type Object and b is a primitive type expression");
 	}
 	
 	private static void mutopsHelp() {
