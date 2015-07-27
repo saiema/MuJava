@@ -406,5 +406,9 @@
             shortDescription="change type of method parameters to the parents type"
             fullDescription="mutates T a in methods parameters to P a where T inherits from P"
             affectsOneLine="true"
-    />
+    /><mutant name="NPER" type="MethodLevel" isBasic="false"
+    	shortDescription="repairs NullPointerExceptions"
+    	fullDescription="Adds try catch to code that produce NullPointerException (this operator was produces as a task in an ECI course)"
+    	affectsOneLine="false">
+</mutant>
 </info>

@@ -21,7 +21,7 @@ public class Sorting {
 		int tmp = 0;
 		for(int i=0;i<lenD;i++){
 			j = i;
-			for(int k = i;k<lenD;k++) {  
+			for(int k = i;k<lenD;k++) { //mutGenLimit 1
 				if(data[j]>data[k]){
 					j = k;
 				}
@@ -83,10 +83,12 @@ public class Sorting {
 	}
 	
 	public boolean ordered(int[] arr, boolean inc) {
-		boolean isOrdered = true;
+		boolean isOrdered = false;
+		Boolean test = Boolean.FALSE;
+		isOrdered = new Boolean(test); //mutGenLimit 1
 		if (arr.length > 0) {
 			int lastVal = arr[0];
-			for (int v = 1 ; v < arr.length ; v++) { //mutGenLimit 1
+			for (int v = 1 ; v < arr.length ; v++) { //mutGenLimit 0
 				if (inc && lastVal > v) {
 					isOrdered = false;
 				}

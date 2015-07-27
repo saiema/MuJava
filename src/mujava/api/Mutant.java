@@ -46,5 +46,6 @@ public enum Mutant {
 	LOR,
 	ROR,
 	SOR,
+	NPER,
 	MULTI //used for mutants generated with several mutations
 }

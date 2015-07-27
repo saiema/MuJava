@@ -2282,6 +2282,9 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 	
 	private boolean isPrimitiveToObjectAssignment(OJClass varType, OJClass valueType) {
+		if (varType == null || varType.toString().compareTo("<type>null") == 0) {
+			return valueType.isPrimitive();
+		}
 		if (varType.getName().compareToIgnoreCase("java.lang.object") == 0
 				&& (valueType.isPrimitive())) {
 			return true;

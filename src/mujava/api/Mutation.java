@@ -203,7 +203,7 @@ public class Mutation {
 				OJClass originalsType = mutator.getType(original);
 				OJClass mutantsType = mutator.getType(mutant);
 				if (originalsType.toString().compareTo(mutantsType.toString()) == 0) {
-					//now, we have to know if the end in mutator comes from the same class as the end in original
+					//now, we have to know if the end in mutant comes from the same class as the end in original
 					
 				}
 			}
@@ -328,6 +328,7 @@ public class Mutation {
 			case JDC			:;
 			case JID			:;
 			case JSD			:;
+			case NPER			:;
 			case JSI			: {res = false; break;}
 			
 			case JTD			:;

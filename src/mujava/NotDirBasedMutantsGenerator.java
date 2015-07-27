@@ -23,6 +23,7 @@ import mujava.op.JSD;
 import mujava.op.JSI;
 import mujava.op.JTD;
 import mujava.op.JTI;
+import mujava.op.NPER;
 import mujava.op.OAN;
 import mujava.op.OMR;
 import mujava.op.PCC;
@@ -459,6 +460,12 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 					if (mutOps.contains(Mutant.PNC)) {
 						Debug.println("  Applying PNC ... ... ");
 						mutant_op = new PNC(file_env, cdecl, comp_unit);
+						comp_unit.accept(mutant_op);
+					}
+					
+					if (mutOps.contains(Mutant.NPER)) {
+						Debug.println("  Applying NPER ... ... ");
+						mutant_op = new NPER(file_env, cdecl, comp_unit);
 						comp_unit.accept(mutant_op);
 					}
 					

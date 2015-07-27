@@ -18,39 +18,31 @@ public class Generate {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		//String clazz = "roops" + Core.SEPARATOR + "core" + Core.SEPARATOR + "objects" + Core.SEPARATOR + "SinglyLinkedList_stryker";
 		String clazz = "pldi" + Core.SEPARATOR + "nodecachinglinkedlist" + Core.SEPARATOR + "NodeCachingLinkedList";
-		//String clazz = "pldi" + Core.SEPARATOR + "binomialheap" + Core.SEPARATOR + "BinomialHeap";
-		//String clazz = "pldi" + Core.SEPARATOR + "bintree" + Core.SEPARATOR + "BinTree";
-		//String clazz = "bugHunting" + Core.SEPARATOR + "PRVOMethodCall";
-		//String clazz = "comments" + Core.SEPARATOR + "TAL_3";
-		//String clazz = "main" + Core.SEPARATOR + "Gcd";
-		//String clazz = "list" + Core.SEPARATOR + "SinglyLinkedListBinaryExpressionFieldVarFor";
-		//String[] methods = {"addFirst"};
-		String[] methods = {"remove"};
-		//String[] methods = {"getNode"};
+		String[] methods = {"contains"};
 		Mutant[] ops = {	
-				Mutant.PRVOL_SMART,
-		        Mutant.PRVOR_REFINED,
-		        Mutant.PRVOU_REFINED,
-				Mutant.AODS,
-				Mutant.AODU,
-				Mutant.AOIS,
-				Mutant.AOIU,
-				Mutant.AORB,
-				Mutant.AORS,
-				Mutant.AORU,
-				Mutant.ASRS,
-				Mutant.COD,
-				Mutant.COI,
-				Mutant.COR,
-				Mutant.LOD,
-				Mutant.LOR,
-				Mutant.ROR,
-				Mutant.SOR 	
+//				Mutant.PRVOL_SMART,
+//		        Mutant.PRVOR_REFINED,
+//		        Mutant.PRVOU_REFINED,
+//				Mutant.AODS,
+//				Mutant.AODU,
+//				Mutant.AOIS,
+//				Mutant.AOIU,
+//				Mutant.AORB,
+//				Mutant.AORS,
+//				Mutant.AORU,
+//				Mutant.ASRS,
+//				Mutant.COD,
+//				Mutant.COI,
+//				Mutant.COR,
+//				Mutant.LOD,
+//				Mutant.LOR,
+//				Mutant.ROR,
+//				Mutant.SOR 	
+				Mutant.NPER
 						};
-		String basePathOriginals = args[0];
-		String basePathMutants = args[1];
+		String basePathOriginals = args[0]; //test/
+		String basePathMutants = args[1];	//mutants/
 		
 		MutantsInformationHolder.setVerbose(false);
 		
@@ -63,9 +55,11 @@ public class Generate {
         Configuration.add(COR.ALLOW_LOGICAL_AND, false);
         Configuration.add(COR.ALLOW_LOGICAL_OR, false);
         Configuration.add(COR.ALLOW_XOR, false);
-        Configuration.add(Api.USE_MUTGENLIMIT, Boolean.FALSE);
-        Configuration.add(PRVO.ENABLE_PRIMITIVE_WRAPPING, Boolean.FALSE);
+        Configuration.add(Api.USE_MUTGENLIMIT, Boolean.TRUE);
+        Configuration.add(PRVO.ENABLE_PRIMITIVE_WRAPPING, Boolean.TRUE);
         Configuration.add(PRVO.ENABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS, Boolean.FALSE);
+        Configuration.add(PRVO.ENABLE_ALL_BY_ONE_MUTANTS_LEFT, Boolean.TRUE);
+        Configuration.add(PRVO.ENABLE_ALL_BY_ONE_MUTANTS_RIGHT, Boolean.TRUE);
         
         generate(clazz, methods, ops, basePathOriginals, basePathMutants, 1, false);
 	}
