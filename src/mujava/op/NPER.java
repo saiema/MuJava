@@ -5,6 +5,7 @@ import java.util.Random;
 import openjava.mop.FileEnvironment;
 import openjava.mop.OJClass;
 import openjava.mop.OJClassNotFoundException;
+import openjava.ptree.ArrayAccess;
 import openjava.ptree.AssignmentExpression;
 import openjava.ptree.CatchBlock;
 import openjava.ptree.CatchList;
@@ -39,7 +40,20 @@ import mujava.op.util.Mutator;
  * <p>
  * Possible modification that this operator can do are:
  * <li>STATEMENT => try{STATEMENT} catch (NullPointerException npe) {System.out.println("NPE detected");}</li>
- * <li>return EXPRESSION => {try {return EXPRESSION} catch (NullPointerException npe) {System.out.println("NPE detected");return [default value];}}/li> 
+ * <li><pre>return EXPRESSION</pre>
+ * 		<p>
+ * 		<pre>
+ * 			=>
+ * 		</pre>
+ * 		<p>
+ * 		<pre>
+ * 		try {
+ * 			return EXPRESSION
+ * 		} catch (NullPointerException npe) {
+ * 			System.out.println("NPE detected");
+ * 			return [default value];
+ * 		}/li> 
+ * 		</pre>
  * <li>while (EXPRESSION) {STATEMENTS}
  * 		<p>
  * 	<pre>
@@ -239,6 +253,42 @@ public class NPER extends Mutator {
 					e.printStackTrace();
 				}
 			}
+		}
+		super.visit(p);
+	}
+	
+	public void visit(FieldAccess p) throws ParseTreeException {
+		super.visit(p);
+		//TODO: implement
+	}
+	
+	public void visit(MethodCall p) throws ParseTreeException {
+		super.visit(p);
+		//TODO: implement
+	}
+	
+	public void visit(ArrayAccess p) throws ParseTreeException {
+		super.visit(p);
+		//TODO: implement
+	}
+	
+	public void visit(IfStatement p) throws ParseTreeException {
+		if (getMutationsLeft(p) > 0) {
+			StatementList mutant = new StatementList();
+			Expression conditionCopy = (Expression) p.getExpression().makeRecursiveCopy_keepOriginalID();
+			VariableDeclarator condBoolVarDecl = createRandomBooleanVar("cond_", false);
+			VariableDeclaration condBoolVarDeclaration = new VariableDeclaration(new TypeName("java.lang.boolean"), condBoolVarDecl);
+			AssignmentExpression failureAssignment = new AssignmentExpression(new Variable(condBoolVarDecl.getVariable()), AssignmentExpression.EQUALS, Literal.makeLiteral(false));
+			AssignmentExpression conditionAssignment = new AssignmentExpression(new Variable(condBoolVarDecl.getVariable()), AssignmentExpression.EQUALS, conditionCopy);
+			IfStatement modifiedIfStatement = (IfStatement) p.makeRecursiveCopy_keepOriginalID();
+			modifiedIfStatement.setExpression(new Variable(condBoolVarDecl.getVariable()));
+			StatementList tryStatements = new StatementList(new ExpressionStatement(conditionAssignment));
+			StatementList catchStatements = new StatementList(new ExpressionStatement(failureAssignment));
+			mutant.add(condBoolVarDeclaration);
+			TryStatement tryStatement = createNullPointerExceptionTryStatement(tryStatements, catchStatements, "NPE detected in condition evaluation before if statement");
+			mutant.add(tryStatement);
+			mutant.add(modifiedIfStatement);
+			outputToFile(p, mutant);
 		}
 		super.visit(p);
 	}

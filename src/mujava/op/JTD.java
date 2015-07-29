@@ -80,22 +80,6 @@ public class JTD extends mujava.op.util.Mutator {
 		return null;
 	}
 	
-	private Expression getPreviousExpression(Expression e) {
-		if (e instanceof MethodCall) {
-			return ((MethodCall) e).getReferenceExpr();
-		} else if (e instanceof FieldAccess) {
-			return ((FieldAccess) e).getReferenceExpr();
-		} else if (e instanceof Variable) {
-			return null;
-		} else if (e instanceof Literal) {
-			return null;
-		} else {
-			// should never reach this point
-			// throw an excepcion maybe
-			return null;
-		}
-	}
-	
 	private void outputToFile(FieldAccess original, Expression mutant) {
 		MutantsInformationHolder.mainHolder().addMutation(Mutant.JTD, original, (ParseTreeObject) mutant);
 	}

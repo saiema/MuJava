@@ -319,7 +319,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			Expression currentPart = (Expression) toAddCopy.makeRecursiveCopy_keepOriginalID();
 			removeReferencedExpr(currentPart);
 			parts.add(0, currentPart);
-			toAddCopy = this.getPreviousExpression(toAddCopy);
+			toAddCopy = getPreviousExpression(toAddCopy);
 			if (toAddCopy instanceof SelfAccess) {
 				return original; //you can't append (this|super).xs to another expression
 			}
@@ -329,7 +329,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			Expression currentPart = (Expression) originalCopy.makeRecursiveCopy_keepOriginalID();
 			removeReferencedExpr(currentPart);
 			parts.add(0, currentPart);
-			originalCopy = this.getPreviousExpression(originalCopy);
+			originalCopy = getPreviousExpression(originalCopy);
 		}
 		if (originalCopy != null) parts.add(0, originalCopy);
 		Expression result = null;
@@ -510,23 +510,6 @@ public class PRVO extends mujava.op.util.Mutator {
 			FieldAccess variableFixed = new FieldAccess((Expression)null, v.toString());
 			variableFixed.setParent(v.getParent());
 			return variableFixed;
-		}
-	}
-
-
-	private Expression getPreviousExpression(Expression e) {
-		if (e instanceof MethodCall) {
-			return ((MethodCall) e).getReferenceExpr();
-		} else if (e instanceof FieldAccess) {
-			return ((FieldAccess) e).getReferenceExpr();
-		} else if (e instanceof Variable) {
-			return null;
-		} else if (e instanceof Literal) {
-			return null;
-		} else {
-			//should never reach this point
-			//throw an excepcion maybe
-			return null;
 		}
 	}
 
@@ -1603,9 +1586,9 @@ public class PRVO extends mujava.op.util.Mutator {
 		increaseLenght(orig, e1, e2, lor);
 		replaceTwoByOne(orig, e1, e2, lor);
 		replaceOneByTwo(orig, e1, e2, lor);
-		if (orig instanceof AssignmentExpression) {
+		//if (orig instanceof AssignmentExpression) {
 			replaceAllByOne(orig, e1, e2, lor);
-		}
+		//}
 	}
 
 	private boolean binExprSupportsNull(int operator) {
@@ -1972,6 +1955,29 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
+		//Prototype fix to wrong type compliance in mutations on constructor arguments+++
+		Expression surroundingAllocationExpression = surroundingAllocationExpression(p);
+		if (surroundingAllocationExpression != null) {
+			AllocationExpression alloc = surroundingAllocationExpression(p);
+			try {
+				OJClass[] formalParams = getConstructorFormalParams(alloc.getClassType(), (ExpressionList) p.getParent());
+				int argIndex = getArgumentIndex((ExpressionList) p.getParent(), p);
+				if (argIndex >= 0) {
+					popComplyType(p);
+					pushComplyType(p, p);
+					if (formalParams[argIndex].isPrimitive()) {
+						popAllowNull(p);
+						pushAllowNull(p, false);
+					} else {
+						popAllowNull(p);
+						pushAllowNull(p, true);
+					}
+				}
+			} catch (OJClassNotFoundException e) {
+				throw new ParseTreeException(e);
+			}
+		}
+		//Prototype fix to wrong type compliance in mutations on constructor arguments---
 		unaryVisit(p, p, true);
 	}
 
@@ -1981,6 +1987,29 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
+		//Prototype fix to wrong type compliance in mutations on constructor arguments+++
+		Expression surroundingAllocationExpression = surroundingAllocationExpression(p);
+		if (surroundingAllocationExpression != null) {
+			AllocationExpression alloc = surroundingAllocationExpression(p);
+			try {
+				OJClass[] formalParams = getConstructorFormalParams(alloc.getClassType(), (ExpressionList) p.getParent());
+				int argIndex = getArgumentIndex((ExpressionList) p.getParent(), p);
+				if (argIndex >= 0) {
+					popComplyType(p);
+					pushComplyType(p, p);
+					if (formalParams[argIndex].isPrimitive()) {
+						popAllowNull(p);
+						pushAllowNull(p, false);
+					} else {
+						popAllowNull(p);
+						pushAllowNull(p, true);
+					}
+				}
+			} catch (OJClassNotFoundException e) {
+				throw new ParseTreeException(e);
+			}
+		}
+		//Prototype fix to wrong type compliance in mutations on constructor arguments---
 		sameLength((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false, true);
 		increaseLenght((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false);
 		replaceOneByTwo((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false);
@@ -1993,6 +2022,29 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
+		//Prototype fix to wrong type compliance in mutations on constructor arguments+++
+		Expression surroundingAllocationExpression = surroundingAllocationExpression(p);
+		if (surroundingAllocationExpression != null) {
+			AllocationExpression alloc = surroundingAllocationExpression(p);
+			try {
+				OJClass[] formalParams = getConstructorFormalParams(alloc.getClassType(), (ExpressionList) p.getParent());
+				int argIndex = getArgumentIndex((ExpressionList) p.getParent(), p);
+				if (argIndex >= 0) {
+					popComplyType(p);
+					pushComplyType(p, p);
+					if (formalParams[argIndex].isPrimitive()) {
+						popAllowNull(p);
+						pushAllowNull(p, false);
+					} else {
+						popAllowNull(p);
+						pushAllowNull(p, true);
+					}
+				}
+			} catch (OJClassNotFoundException e) {
+				throw new ParseTreeException(e);
+			}
+		}
+		//Prototype fix to wrong type compliance in mutations on constructor arguments---
 		sameLength((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false, true);
 		increaseLenght((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false);
 		replaceOneByTwo((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false);
@@ -2067,6 +2119,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		increaseLenght(p, e1, rexp, false);
 		replaceTwoByOne(p, e1, rexp, false);
 		replaceOneByTwo(p, e1, rexp, false);
+		replaceAllByOne(p, e1, rexp, false);
 		if (refined) {
 			replaceByLiteral(e1, rexp);
 		}
@@ -2335,6 +2388,58 @@ public class PRVO extends mujava.op.util.Mutator {
 			return this.isNumber((Literal)expr);
 		}
 		return false;
+	}
+	
+	private AllocationExpression surroundingAllocationExpression(ParseTreeObject p) {
+		if (p instanceof AllocationExpression) {
+			return (AllocationExpression) p;
+		}
+		if (p.getParent() != null && p.getParent() instanceof ExpressionList && p.getParent().getParent() instanceof AllocationExpression) {
+			return (AllocationExpression) p.getParent().getParent();
+		}
+		return null;
+	}
+	
+	private OJClass[] getConstructorFormalParams(TypeName tn, ExpressionList actualParams) throws OJClassNotFoundException, ParseTreeException {
+		TypeName constructorType = tn;
+		try {
+			OJClass constructorTypeAsOJClass = OJClass.forName(constructorType.getName());
+			OJConstructor[] constructors = constructorTypeAsOJClass.getConstructors();
+			OJConstructor matchedConstructor = null;
+			if (constructors != null) {
+				for (OJConstructor c : constructors) {
+					if (c.getParameterTypes().length == actualParams.size()) {
+						OJClass[] formalParams = c.getParameterTypes();
+						boolean matches = true;
+						int a = 0;
+						for (OJClass formalParam : formalParams) {
+							if (!compatibleAssignType(formalParam, getType(actualParams.get(a)))) {
+								matches = false;
+								break;
+							}
+							a++;
+						}
+						if (matches) {
+							matchedConstructor = c;
+							break;
+						}
+					}
+				}
+				if (matchedConstructor != null) {
+					return matchedConstructor.getParameterTypes();
+				}
+			}
+		} catch (OJClassNotFoundException e) {
+			throw e;
+		}
+		return null;
+	}
+	
+	private int getArgumentIndex(ExpressionList args, Expression arg) {
+		for (int a = 0; a < args.size(); a++) {
+			if (isSameObject(args.get(a), arg)) return a;
+		}
+		return -1;
 	}
 
 	private void outputToFile(ParseTreeObject original, ParseTreeObject mutant) {

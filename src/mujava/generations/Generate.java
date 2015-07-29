@@ -19,6 +19,7 @@ public class Generate {
 	 */
 	public static void main(String[] args) {
 		String clazz = "pldi" + Core.SEPARATOR + "nodecachinglinkedlist" + Core.SEPARATOR + "NodeCachingLinkedList";
+		//String[] methods = {"addFirstUglyCopy"};
 		String[] methods = {"contains"};
 		Mutant[] ops = {	
 //				Mutant.PRVOL_SMART,

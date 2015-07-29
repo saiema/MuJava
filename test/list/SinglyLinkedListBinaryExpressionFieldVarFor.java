@@ -35,8 +35,8 @@ public class SinglyLinkedListBinaryExpressionFieldVarFor {
 	   {
 	       SinglyLinkedListNode current = null;
 	       boolean result;
-	       for (int i=0, j=0; i+j<20;i++,j++) { //mutGenLimit 1
-	    	   current.value = i;
+	       for (int i=0, j=0; i+j<20;i++,j++) {
+	    	   current.value = i; //mutGenLimit 1
 	       }
 	       current = this.header.next;
 	       Object test = current; 

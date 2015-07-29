@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import openjava.ptree.AssignmentExpression;
 import openjava.ptree.ExpressionStatement;
 import openjava.ptree.ForStatement;
+import openjava.ptree.IfStatement;
 import openjava.ptree.ParseTreeException;
 import openjava.ptree.ReturnStatement;
 import openjava.ptree.Statement;
@@ -20,6 +21,7 @@ public class NPER_Writer extends MutantCodeWriter {
 	private WhileStatement original_while;
 	private AssignmentExpression original_expr;
 	private ReturnStatement original_ret;
+	private IfStatement original_if;
 	
 	private Statement mutant_statement;
 	private StatementList mutant_statements;
@@ -41,6 +43,8 @@ public class NPER_Writer extends MutantCodeWriter {
 			this.original_expr = (AssignmentExpression) original;
 		} else if (original instanceof ReturnStatement) {
 			this.original_ret = (ReturnStatement) original;
+		} else if (original instanceof IfStatement) {
+			this.original_if = (IfStatement) original;
 		}
 	}
 	
@@ -124,6 +128,18 @@ public class NPER_Writer extends MutantCodeWriter {
 			TryStatement m = this.mutant_try;
 			this.original_ret = null;
 			this.mutant_try = null;
+			super.visit(m);
+			mutated_line = line_num;
+		} else {
+			super.visit(p);
+		}
+	}
+	
+	public void visit(IfStatement p) throws ParseTreeException {
+		if (this.original_if != null && isSameObject(p, this.original_if)) {
+			StatementList m = this.mutant_statements;
+			this.original_if = null;
+			this.mutant_statements = null;
 			super.visit(m);
 			mutated_line = line_num;
 		} else {

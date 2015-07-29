@@ -1,5 +1,6 @@
 package test.java;
 
+import mujava.api.Configuration;
 import mujava.api.MutantsInformationHolder;
 
 import org.junit.BeforeClass;
@@ -31,6 +32,7 @@ public class MujavaTests {
 	
 	@BeforeClass
 	public static void setVerboseForTestingTools() {
+		Configuration.clear();
 		TestingTools.setVerbose(false);
 		MutantsInformationHolder.setVerbose(false);
 	}

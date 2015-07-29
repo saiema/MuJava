@@ -1,9 +1,11 @@
 package mujava.api;
 
+import mujava.op.InstantiationSearcher;
 import mujava.op.util.Mutator;
 import openjava.mop.OJClass;
 import openjava.ptree.ArrayAccess;
 import openjava.ptree.AssignmentExpression;
+import openjava.ptree.CompilationUnit;
 import openjava.ptree.DoWhileStatement;
 import openjava.ptree.Expression;
 import openjava.ptree.FieldAccess;
@@ -156,13 +158,12 @@ public class Mutation {
 	 */
 	public boolean isMutantTailChangeOfOriginal() {
 		boolean res = false;
+		Expression originalAsExpression = null;
+		Expression mutantAsExpression = null;
 		if (isChainedExpression(TARGET.ORIGINAL) && isChainedExpression(TARGET.MUTANT)) {
 			try {
-				Expression originalAsExpression = (Expression) this.original;
-				Expression mutantAsExpression = (Expression) this.mutant;
-//				if (originalAsExpression.getObjectID() == mutantAsExpression.getObjectID()) {
-//					res = true;
-//				}
+				originalAsExpression = (Expression) this.original;
+				mutantAsExpression = (Expression) this.mutant;
 				String originalLastName = getLastName(originalAsExpression);
 				String mutantLastName = getLastName(mutantAsExpression);
 				if (originalLastName != null && mutantLastName != null) {
@@ -171,6 +172,18 @@ public class Mutation {
 			} catch (ClassCastException ex) {
 				//couldn't cast mutant or original to Expression
 				res = false;
+			}
+			if (res && mutantAsExpression != null) {
+				Expression mutantTerm = Mutator.getPreviousExpression(mutantAsExpression);
+				CompilationUnit comp_unit = Mutator.getCompilationUnit((ParseTreeObject) mutantTerm);
+				InstantiationSearcher instSearcher = new InstantiationSearcher(null, comp_unit, mutantTerm);
+				try {
+					instSearcher.visit(comp_unit);
+				} catch (ParseTreeException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+				}
+				if (instSearcher.allocationExpressionFound()) res = false;
 			}
 			return res;
 		}
@@ -250,7 +263,7 @@ public class Mutation {
 		if (this.isAssignmentMutation) {
 			if (isPRVOLFamily()) {
 				this.mutatesLeftSideOfAssignment = true;
-			} else {
+			} else if (isPRVORFamily()) {
 				this.mutatesRightSideOfAssignment = true;
 			}
 		}
@@ -258,6 +271,10 @@ public class Mutation {
 	
 	private boolean isPRVOLFamily() {
 		return this.mutOp == Mutant.PRVOL || this.mutOp == Mutant.PRVOL_SMART;
+	}
+	
+	private boolean isPRVORFamily() {
+		return this.mutOp == Mutant.PRVOR || this.mutOp == Mutant.PRVOR_SMART || this.mutOp == Mutant.PRVOR_REFINED;
 	}
 	
 	/**

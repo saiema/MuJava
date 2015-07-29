@@ -11,7 +11,6 @@ import openjava.ptree.CompilationUnit;
 import openjava.ptree.Expression;
 import openjava.ptree.ExpressionList;
 import openjava.ptree.FieldAccess;
-import openjava.ptree.Literal;
 import openjava.ptree.MethodCall;
 import openjava.ptree.ParseTreeException;
 import openjava.ptree.ParseTreeObject;
@@ -163,22 +162,6 @@ public class ISD extends Mutator {
 			}
 		}
 		return false;
-	}
-
-	private Expression getPreviousExpression(Expression e) {
-		if (e instanceof MethodCall) {
-			return ((MethodCall) e).getReferenceExpr();
-		} else if (e instanceof FieldAccess) {
-			return ((FieldAccess) e).getReferenceExpr();
-		} else if (e instanceof Variable) {
-			return null;
-		} else if (e instanceof Literal) {
-			return null;
-		} else {
-			// should never reach this point
-			// throw an excepcion maybe
-			return null;
-		}
 	}
 	
 

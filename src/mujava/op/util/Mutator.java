@@ -1120,5 +1120,40 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			return null;
 		}
 	}
+	
+	protected static final boolean isSameObject(ParseTree p, ParseTree q) {
+		if (p == null && q == null)
+			return true;
+		if (p == null || q == null)
+			return false;
+		return (p.getObjectID() == q.getObjectID());
+	}
+	
+	public static Expression getPreviousExpression(Expression e) {
+		if (e instanceof MethodCall) {
+			return ((MethodCall) e).getReferenceExpr();
+		} else if (e instanceof FieldAccess) {
+			return ((FieldAccess) e).getReferenceExpr();
+		} else if (e instanceof Variable) {
+			return null;
+		} else if (e instanceof Literal) {
+			return null;
+		} else if (e instanceof ArrayAccess) {
+			return getPreviousExpression( ((ArrayAccess)e).getReferenceExpr() );
+		} else {
+			//should never reach this point
+			//throw an excepcion maybe
+			return null;
+		}
+	}
+	
+	
+	public static CompilationUnit getCompilationUnit(ParseTreeObject o) {
+		ParseTreeObject current = null;
+		while (current != null && !(current instanceof CompilationUnit)) {
+			current = current.getParent();
+		}
+		return (CompilationUnit) current;
+	}
 
 }
