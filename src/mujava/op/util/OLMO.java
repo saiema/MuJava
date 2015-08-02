@@ -82,7 +82,7 @@ import openjava.ptree.util.ParseTreeVisitor;
  * TODO: update the javadoc in this class
  * 
  * @author Simón Emmanuel Gutiérrez Brida
- * @version 0.2
+ * @version 0.3
  */
 
 public class OLMO extends ParseTreeVisitor {
@@ -104,6 +104,8 @@ public class OLMO extends ParseTreeVisitor {
 	private boolean decreaseMutGenLimit;
 	
 	private boolean modifyAST;
+	
+	private String methodUnderConsideration;
 
 	
 	public OLMO() {
@@ -171,6 +173,11 @@ public class OLMO extends ParseTreeVisitor {
 			this.mi = mi;
 			cu.accept(this);
 		}
+	}
+	
+	public void modifyAST(CompilationUnit cu, Mutation mi, String methodUnderConsideration) throws ParseTreeException {
+		this.methodUnderConsideration = methodUnderConsideration;
+		modifyAST(cu, mi);
 	}
 	
 	public Mutation mergeMutants() throws ParseTreeException {
@@ -326,7 +333,7 @@ public class OLMO extends ParseTreeVisitor {
 	}
 
 	public void visit(ConstructorDeclaration p) throws ParseTreeException {
-		String methodUnderConsideration = Api.getMethodUnderConsideration();
+		String methodUnderConsideration = this.methodUnderConsideration == null?Api.getMethodUnderConsideration():this.methodUnderConsideration;
 		if (	methodUnderConsideration != null &&
 				methodUnderConsideration.compareTo(p.getName()) == 0 ) {
 			this.insideMethodToConsider = true;
@@ -650,7 +657,7 @@ public class OLMO extends ParseTreeVisitor {
 	}
 
 	public void visit(MethodDeclaration p) throws ParseTreeException {
-		String methodUnderConsideration = Api.getMethodUnderConsideration();
+		String methodUnderConsideration = this.methodUnderConsideration == null?Api.getMethodUnderConsideration():this.methodUnderConsideration;
 		if (	methodUnderConsideration != null &&
 				methodUnderConsideration.compareTo(p.getName()) == 0 ) {
 			this.insideMethodToConsider = true;
