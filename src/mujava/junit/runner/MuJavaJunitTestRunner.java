@@ -1,5 +1,7 @@
 package mujava.junit.runner;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
@@ -46,13 +48,25 @@ public class MuJavaJunitTestRunner {
 			this.testRunner = null; //TODO: for the moment will be using this runner
 		} else if (TestSuite.class.isAssignableFrom(testToRun)) {
 			this.testRunner = null; //TODO: for the moment will be using this runner
-		} else if (testToRun.getAnnotation(Test.class) != null) {
+		} else if (hasTestMethod(testToRun)) {
 			if (this.failFast) FailFastBlockJUnit4ClassRunner.ignore = false;
 			return this.failFast? new FailFastBlockJUnit4ClassRunner(testToRun):null;
 		} else {
 			throw new IllegalArgumentException("Class : " + testToRun.toString() + " is not a valid junit test");
 		}
 		return null;
+	}
+	
+	private boolean hasTestMethod(Class<?> testToRun) {
+		Method[] methods = testToRun.getDeclaredMethods();
+		for (Method m : methods) {
+			if (Modifier.isPublic(m.getModifiers())) {
+				if (m.getAnnotation(Test.class) != null) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	
