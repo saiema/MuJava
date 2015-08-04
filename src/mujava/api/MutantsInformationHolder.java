@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import openjava.ptree.AllocationExpression;
 import openjava.ptree.CompilationUnit;
+import openjava.ptree.ExpressionList;
 import openjava.ptree.Literal;
 import openjava.ptree.ParseTreeObject;
 
@@ -42,6 +44,11 @@ public class MutantsInformationHolder {
 		String mutantAsString = mutant.toFlattenString();
 		Set<String> mutantsGenerated = mutatedNodes.get(originalPlusParentAsString);
 		if (mutantsGenerated == null) {
+			if (isOneArgumentAllocationToOneArgumentAllocation(original, mutant)) {
+				ParseTreeObject origArg = (ParseTreeObject) ((AllocationExpression)original).getArguments().get(0);
+				ParseTreeObject mutArg = (ParseTreeObject) ((AllocationExpression)mutant).getArguments().get(0);
+				return alreadyGenerated(origArg, mutArg);
+			}
 			if (verbose) System.out.println("mutant node " + mutantAsString + " was not already generated for " + originalPlusParentAsString);
 			mutantsGenerated = new HashSet<String>();
 			mutantsGenerated.add(mutantAsString);
@@ -52,12 +59,28 @@ public class MutantsInformationHolder {
 				if (verbose) System.out.println("mutant node " + mutantAsString + " was already generated for " + originalPlusParentAsString);
 				return true;
 			} else {
+				if (isOneArgumentAllocationToOneArgumentAllocation(original, mutant)) {
+					ParseTreeObject origArg = (ParseTreeObject) ((AllocationExpression)original).getArguments().get(0);
+					ParseTreeObject mutArg = (ParseTreeObject) ((AllocationExpression)mutant).getArguments().get(0);
+					return alreadyGenerated(origArg, mutArg);
+				}
 				if (verbose) System.out.println("mutant node " + mutantAsString + " was not already generated for " + originalPlusParentAsString);
 				mutantsGenerated.add(mutantAsString);
 				return false;
 			}
 		}
 	}
+	
+	private static boolean isOneArgumentAllocationToOneArgumentAllocation(ParseTreeObject orig, ParseTreeObject mut) {
+		if (orig instanceof AllocationExpression && mut instanceof AllocationExpression) {
+			ExpressionList origArgs = ((AllocationExpression)orig).getArguments();
+			ExpressionList mutArgs = ((AllocationExpression)mut).getArguments();
+			return origArgs.size() == 1 && mutArgs.size() == 1;
+		} else {
+			return false;
+		}
+	}
+	
 	private static boolean isEqualToOriginal(ParseTreeObject original, ParseTreeObject mutant) {
 		if (bothLiterals(original, mutant)) {
 			return sameLiterals((Literal) original, (Literal) mutant);

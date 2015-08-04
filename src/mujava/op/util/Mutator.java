@@ -605,6 +605,15 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	public OJMethod[] getInheritedMethods(OJClass clazz) {
 		return getInheritedMethods(clazz, 0);
 	}
+	
+	/**
+	 * 
+	 * @param clazz : the class from which inherited constructors will be searched : {@code OJClass}
+	 * @return all non final inherited constructors in {@code clazz}
+	 */
+	public OJConstructor[] getInheritedConstructors(OJClass clazz) {
+		return getInheritedConstructors(clazz, 0);
+	}
 
 	
 	/**
@@ -628,6 +637,28 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		}
 		return table.values().toArray(new OJMethod[table.size()]);
 	}
+	
+	/**
+	 * 
+	 * @param clazz	  : the class from which inherited constructors will be searched : {@code OJClass}
+	 * @param options : options used by this method, the options used by this method are:
+	 * <p><li>ALLOW_FINAL: will include constructors with the final modifier</li><p> : {@code int}
+	 * @return all inherited constructors in {@code clazz}
+	 */
+	public OJConstructor[] getInheritedConstructors(OJClass clazz, int options) {
+		boolean filterFinal = (options & ALLOW_FINAL) == 0;
+		OJClass base = clazz.getSuperclass();
+		Map<Signature, OJConstructor> table = new HashMap<Signature, OJConstructor>();
+		while (base != null) {
+			OJConstructor[] declaredConstructors = filterPrivate(base.getDeclaredConstructors(), filterFinal);
+			for (int m = 0; m < declaredConstructors.length; m++) {
+				if (!table.containsKey(declaredConstructors[m].signature()))
+					table.put(declaredConstructors[m].signature(), declaredConstructors[m]);
+			}
+			base = base.getSuperclass();
+		}
+		return table.values().toArray(new OJConstructor[table.size()]);
+	}
 
 	private OJMethod[] filterPrivate(OJMethod[] methods, boolean filterFinal) {
 		List<OJMethod> filtered = new LinkedList<OJMethod>();
@@ -639,6 +670,18 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			filtered.add(m);
 		}
 		return filtered.toArray(new OJMethod[filtered.size()]);
+	}
+	
+	private OJConstructor[] filterPrivate(OJConstructor[] constructors, boolean filterFinal) {
+		List<OJConstructor> filtered = new LinkedList<OJConstructor>();
+		for (OJConstructor c : constructors) {
+			if ((filterFinal && c.getModifiers().isFinal())
+					|| c.getModifiers().isPrivate()) {
+				continue;
+			}
+			filtered.add(c);
+		}
+		return filtered.toArray(new OJConstructor[filtered.size()]);
 	}
 
 	/**
@@ -756,6 +799,33 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 				table.put(m.signature(), m);
 		}
 		return table.values().toArray(new OJMethod[table.size()]);
+	}
+	
+	/**
+	 * 
+	 * @param clazz	  : the class from which constructors will be searched : {@code OJClass}
+	 * @return all constructor in {@code clazz}
+	 */
+	public OJConstructor[] getAllConstructors(TypeName clazz) {
+		OJClass constructorClass;
+		try {
+			constructorClass = OJClass.forName(clazz.getName());
+		} catch (OJClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return new OJConstructor[]{};
+		}
+		OJConstructor[] declaredConstructors = constructorClass.getDeclaredConstructors();
+		Map<Signature, OJConstructor> table = new HashMap<Signature, OJConstructor>();
+		for (OJConstructor c : declaredConstructors) {
+			table.put(c.signature(), c);
+		}
+		OJConstructor[] inheritedConstructors = getInheritedConstructors(constructorClass);
+		for (OJConstructor c : inheritedConstructors) {
+			if (!table.containsKey(c.signature()))
+				table.put(c.signature(), c);
+		}
+		return table.values().toArray(new OJConstructor[table.size()]);
 	}
 
 	/**
@@ -1007,6 +1077,31 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		}
 		return null;
 	}
+	
+	/**
+	 * @param name	  : the name of the constructor to search :	{@code String}
+	 * @param from	  : the class from which the constructor will be search 	: 	{@code OJClass}
+	 * @param complyWith	:	actual arguments that the searched constructor needs to be able to accept : {@code ExpressionList} 
+	 * @return the formal constructor declaration that matches with all the parameters
+	 */
+	public OJConstructor getConstructor(TypeName from, ExpressionList complyWith) throws ParseTreeException {
+		OJConstructor[] allConstructors = getAllConstructors(from);
+		for (OJConstructor c : allConstructors) {
+			int formalArgs = c.getParameterTypes().length;
+			int actualParams = complyWith.size();
+			if (formalArgs == actualParams) {
+				for (int a = 0; a < formalArgs; a++) {
+					OJClass formalType = c.getParameterTypes()[a];
+					OJClass actualType = getType(complyWith.get(a));
+					if (!compatibleAssignType(formalType, actualType)) {
+						break;
+					}
+				}
+				return c;
+			}
+		}
+		return null;
+	}
 
 	public static boolean compareNamesWithoutPackage(String name1, String name2) {
 		int pakLastIndex1 = name1.lastIndexOf(".") + 1;
@@ -1149,11 +1244,59 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	
 	
 	public static CompilationUnit getCompilationUnit(ParseTreeObject o) {
-		ParseTreeObject current = null;
+		ParseTreeObject current = o;
 		while (current != null && !(current instanceof CompilationUnit)) {
 			current = current.getParent();
 		}
 		return (CompilationUnit) current;
+	}
+	
+	/**
+	 * This method will replace the parent of a {@code ParseTreeObject} with the parent of another
+	 * the difference between this method and {@code ParseTreeObject#setParent(ParseTreeObject)} is that
+	 * this one will detect special cases like when the new parent is an {@code ExpressionList} object
+	 * and will make the necessary adjustments
+	 * @param o :	the object whose parent will be changed
+	 * @param o2 :	the object with the new parent to set
+	 */
+	public static void setParentOf(ParseTreeObject o, ParseTreeObject o2) {
+		ParseTreeObject newParent = o2.getParent();
+		if (newParent instanceof ExpressionList) {
+			ExpressionList newParentAsList = (ExpressionList) newParent.makeRecursiveCopy_keepOriginalID();
+			int indexOfo2 = getArgumentIndex(newParentAsList, (Expression) o2);
+			newParentAsList.remove(indexOfo2);
+			newParentAsList.insertElementAt((Expression)o, indexOfo2);
+		} else {
+			o.setParent(newParent);
+		}
+	}
+	
+	private static int getArgumentIndex(ExpressionList args, Expression arg) {
+		for (int a = 0; a < args.size(); a++) {
+			if (isSameObject(args.get(a), arg)) return a;
+		}
+		return -1;
+	}
+	
+	public static boolean compareAsStrings(ParseTreeObject o1, ParseTreeObject o2, boolean ignoreSelfAccess) {
+		String o1AsString = o1.toFlattenString();
+		String o2AsString = o2.toFlattenString();
+		if (ignoreSelfAccess) {
+			o1AsString = removeSelfAccess(o1AsString);
+			o2AsString = removeSelfAccess(o2AsString);
+		}
+		return o1AsString.compareTo(o2AsString) == 0;
+	}
+	
+	private static String removeSelfAccess(String original) {
+		original = original.trim();
+		if (original.startsWith("this.")) {
+			return original.substring(5, original.length());
+		} else if (original.startsWith("super.")) {
+			return original.substring(6, original.length());
+		} else {
+			return original;
+		}
 	}
 
 }

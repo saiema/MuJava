@@ -38,7 +38,7 @@ public class InstantiationSearcher extends Mutator {
 	
 	
 	private boolean isAllocationForExpression(AssignmentExpression assignment, Expression e) {
-		if (isSameObject(assignment.getLeft(), e)) {
+		if (compareAsStrings((ParseTreeObject)assignment.getLeft(), (ParseTreeObject)e, true)) {
 			Expression right = assignment.getRight();
 			if (right instanceof AllocationExpression || right instanceof ArrayAllocationExpression) {
 				return true;

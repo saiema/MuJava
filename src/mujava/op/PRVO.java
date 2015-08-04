@@ -508,7 +508,8 @@ public class PRVO extends mujava.op.util.Mutator {
 			return v;
 		} else {
 			FieldAccess variableFixed = new FieldAccess((Expression)null, v.toString());
-			variableFixed.setParent(v.getParent());
+			setParentOf(variableFixed, v);
+			//variableFixed.setParent(v.getParent());
 			return variableFixed;
 		}
 	}
@@ -730,7 +731,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	private void sameLength(NonLeaf orig, Expression e1, Expression e2, boolean lor, boolean refined) throws ParseTreeException {
 		OJClass ltype = getType(e1);
 		OJClass rtype = getType(e2);
-		boolean methodApplicable = (lor && !(e1 instanceof Literal)) || (!lor && (e2 instanceof Variable || e2 instanceof FieldAccess || e2 instanceof MethodCall || e2 instanceof Literal));
+		boolean methodApplicable = (lor && !(e1 instanceof Literal)) || (!lor && (e2 instanceof Variable || e2 instanceof FieldAccess || e2 instanceof MethodCall || e2 instanceof Literal || e2 instanceof AllocationExpression));
 		if (methodApplicable && this.allowSameLengthMutations()) {
 			Expression current = lor?e1:e2;
 			Expression prev = null;
@@ -769,7 +770,8 @@ public class PRVO extends mujava.op.util.Mutator {
 						ParseTreeObject mutantNode = null;
 						if (m instanceof OJField) {
 							FieldAccess mutantField = new FieldAccess(prevCopy==null?(this.isInherited((OJField)m)?(SelfAccess.constantSuper()):(SelfAccess.constantThis())):(prevCopy), ((OJField)m).getName());
-							mutantField.setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
+							setParentOf(mutantField, (ParseTreeObject)(lor?e1:e2));
+							//mutantField.setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
 							if (isPrimitiveToObjectAssignment((lor?retType:ltype), (lor?rtype:retType))) {
 								if (usePrimitiveWrapping() && !lor) {
 									mutantNode = wrapPrimitiveExpression(retType, mutantField);
@@ -782,7 +784,8 @@ public class PRVO extends mujava.op.util.Mutator {
 							if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 						} else if (m instanceof OJMethod) {
 							MethodCall mutantMethod = new MethodCall(prevCopy==null?(this.isInherited((OJMethod)m)?(SelfAccess.constantSuper()):(SelfAccess.constantThis())):(prevCopy), ((OJMethod)m).getName(), new ExpressionList());
-							mutantMethod.setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
+							setParentOf(mutantMethod, (ParseTreeObject)(lor?e1:e2));
+							//mutantMethod.setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
 							if (isPrimitiveToObjectAssignment((lor?retType:ltype), (lor?rtype:retType))) {
 								if (usePrimitiveWrapping() && !lor) {
 									mutantNode = wrapPrimitiveExpression(retType, mutantMethod);
@@ -795,7 +798,8 @@ public class PRVO extends mujava.op.util.Mutator {
 							if (mutantNode != null) outputToFile((ParseTreeObject)(lor?e1:e2), mutantNode);
 						} else if (m instanceof Variable) {
 							Variable mutantVar = (Variable) ((Variable)m).makeRecursiveCopy_keepOriginalID();
-							mutantVar.setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
+							setParentOf(mutantVar, (ParseTreeObject)(lor?e1:e2));
+							//mutantVar.setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
 							if (isPrimitiveToObjectAssignment((lor?retType:ltype), (lor?rtype:retType))) {
 								if (usePrimitiveWrapping() && !lor) {
 									mutantNode = wrapPrimitiveExpression(retType, mutantVar);
@@ -818,7 +822,8 @@ public class PRVO extends mujava.op.util.Mutator {
 						} else if (m instanceof Variable) {
 							mutantCurrent = (Variable)m;
 						}
-						((ParseTreeObject) mutantCurrent).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
+						setParentOf((ParseTreeObject) mutantCurrent, (ParseTreeObject)(lor?e1:e2));
+						//((ParseTreeObject) mutantCurrent).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
 						if (nextCopy == null) {
 							ParseTreeObject mutantNode = null;
 							if (isPrimitiveToObjectAssignment((lor?retType:ltype), (lor?rtype:retType))) {
@@ -1222,7 +1227,8 @@ public class PRVO extends mujava.op.util.Mutator {
 						} else if (m instanceof Variable) {
 							mutant = (Variable) ((Variable)m).makeRecursiveCopy_keepOriginalID();
 						}
-						((ParseTreeObject)mutant).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
+						setParentOf((ParseTreeObject)mutant, (ParseTreeObject)(lor?e1:e2));
+						//((ParseTreeObject)mutant).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
 						if (nextCopy != null) {
 							ParseTreeObject mutantPTO = (ParseTreeObject) addThisSuper(append(nextCopy, mutant));
 							ParseTreeObject mutantNode = null;
@@ -1316,7 +1322,8 @@ public class PRVO extends mujava.op.util.Mutator {
 						} else if (m instanceof Variable) {
 							mutant = (Variable) ((Variable)m).makeRecursiveCopy_keepOriginalID();
 						}
-						((ParseTreeObject)mutant).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
+						setParentOf((ParseTreeObject)mutant, (ParseTreeObject)(lor?e1:e2));
+						//((ParseTreeObject)mutant).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
 						if (nextCopy != null) {
 							if (nextCopy instanceof FieldAccess) {
 								((FieldAccess)nextCopy).setReferenceExpr(mutant);
@@ -1387,13 +1394,15 @@ public class PRVO extends mujava.op.util.Mutator {
 			}
 			for (Object replacement : fnm) {
 				if (replacement instanceof Literal) {
+					replacement = (Literal) ((ParseTreeObject) replacement).makeRecursiveCopy();
 					if (!lor) {
 						OJClass typeToComply = ltype;
 						OJClass litType = getType((Literal)replacement);
 						if (!compatibleAssignType(typeToComply, litType, true)) {
 							continue;
 						} else {
-							((ParseTreeObject)replacement).setParent(((ParseTreeObject)e2).getParent());
+							setParentOf((ParseTreeObject)replacement, (ParseTreeObject)e2);
+							//((ParseTreeObject)replacement).setParent(((ParseTreeObject)e2).getParent());
 							ParseTreeObject mutantNode = null;
 							if (isPrimitiveToObjectAssignment(ltype, litType)) {
 								if (usePrimitiveWrapping() && !lor) {
@@ -1411,7 +1420,8 @@ public class PRVO extends mujava.op.util.Mutator {
 					}
 				} else if (replacement instanceof Variable) {
 					OJClass varType = getType((Variable)replacement);
-					((ParseTreeObject)replacement).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
+					setParentOf((ParseTreeObject)replacement, (ParseTreeObject)(lor?e1:e2));
+					//((ParseTreeObject)replacement).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
 					if (!lor && compatibleAssignType(ltype, varType, true)) {
 						ParseTreeObject mutantNode = null;
 						if (isPrimitiveToObjectAssignment(ltype, varType)) {
@@ -1436,7 +1446,8 @@ public class PRVO extends mujava.op.util.Mutator {
 					OJClass fieldType = ((OJField)replacement).getType();
 					FieldAccess mutant = new FieldAccess((Expression)null, ((OJField)replacement).getName());
 					if (!lor && compatibleAssignType(ltype, fieldType, true)) {
-						((ParseTreeObject)mutant).setParent(((ParseTreeObject)e2).getParent());
+						setParentOf((ParseTreeObject)mutant, (ParseTreeObject)e2);
+						//((ParseTreeObject)mutant).setParent(((ParseTreeObject)e2).getParent());
 						ParseTreeObject mutantNode = (ParseTreeObject) addThisSuper(mutant);
 						if (isPrimitiveToObjectAssignment(ltype, fieldType)) {
 							if (usePrimitiveWrapping()) {
@@ -1447,7 +1458,8 @@ public class PRVO extends mujava.op.util.Mutator {
 						}
 						outputToFile((ParseTreeObject)(e2), mutantNode);
 					} else if (lor && compatibleAssignType(fieldType, rtype, true)) {
-						((ParseTreeObject)mutant).setParent(((ParseTreeObject)e1).getParent());
+						setParentOf((ParseTreeObject)mutant, (ParseTreeObject)e1);
+						//((ParseTreeObject)mutant).setParent(((ParseTreeObject)e1).getParent());
 						if (isPrimitiveToObjectAssignment(fieldType, rtype) && !usePrimitiveWrapping()) {
 							continue;
 						}
@@ -1459,7 +1471,8 @@ public class PRVO extends mujava.op.util.Mutator {
 					OJClass methodType = ((OJMethod)replacement).getReturnType();
 					if (compatibleAssignType(ltype, methodType, true)) {
 						MethodCall mutant = new MethodCall((Expression)null, ((OJMethod)replacement).getName(), new ExpressionList());
-						((ParseTreeObject)mutant).setParent(((ParseTreeObject)e2).getParent());
+						setParentOf((ParseTreeObject)mutant, (ParseTreeObject)e2);
+						//((ParseTreeObject)mutant).setParent(((ParseTreeObject)e2).getParent());
 						ParseTreeObject mutantNode = (ParseTreeObject) addThisSuper(mutant);
 						if (isPrimitiveToObjectAssignment(ltype, methodType)) {
 							if (usePrimitiveWrapping()) {
@@ -1530,7 +1543,8 @@ public class PRVO extends mujava.op.util.Mutator {
 						} else if (m2 instanceof OJMethod) {
 							mutantPart2 = new MethodCall(mutantPart1, ((OJMethod)m2).getName(), new ExpressionList());
 						}
-						((ParseTreeObject)mutantPart1).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
+						setParentOf((ParseTreeObject)mutantPart1, (ParseTreeObject)(lor?e1:e2));
+						//((ParseTreeObject)mutantPart1).setParent(((ParseTreeObject)(lor?e1:e2)).getParent());
 						if (next == null) {
 							boolean ltypeCheck = (lor && (prev==null?(getType(current).isPrimitive()?retType.isPrimitive():!retType.isPrimitive()):true)) || !lor;
 							if ((lor && (ltypeCheck && compatibleAssignType(retType, rtype))) || (!lor && (compatibleAssignType(ltype, retType)))) {
@@ -1868,6 +1882,31 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return false;
 	}
+	
+	public void visit(AllocationExpression p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
+		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
+		unaryVisit(p, p, true);
+		ExpressionList args = p.getArguments();
+		for (int a = 0; a < args.size(); a++) {
+			pushAllowNull(p, compatibleAssignType(getType(args.get(a)), null));
+			if (this.refinedMode) {
+				OJConstructor formalConstructor = getConstructor(p.getClassType(), args);
+				if (formalConstructor != null) {
+					Variable formalArgument = Variable.generateUniqueVariable();
+					getEnvironment().bindVariable(formalArgument.toString(), formalConstructor.getParameterTypes()[a]);
+					pushComplyType(p, formalArgument);
+				} else {
+					pushComplyType(p, args.get(a));
+				}
+			}
+			args.get(a).accept(this);
+			popAllowNull(p);
+		}
+	}
 
 	public void visit(VariableDeclarator p) throws ParseTreeException {
 		if (this.justEvaluating) {
@@ -1955,29 +1994,29 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
-		//Prototype fix to wrong type compliance in mutations on constructor arguments+++
-		Expression surroundingAllocationExpression = surroundingAllocationExpression(p);
-		if (surroundingAllocationExpression != null) {
-			AllocationExpression alloc = surroundingAllocationExpression(p);
-			try {
-				OJClass[] formalParams = getConstructorFormalParams(alloc.getClassType(), (ExpressionList) p.getParent());
-				int argIndex = getArgumentIndex((ExpressionList) p.getParent(), p);
-				if (argIndex >= 0) {
-					popComplyType(p);
-					pushComplyType(p, p);
-					if (formalParams[argIndex].isPrimitive()) {
-						popAllowNull(p);
-						pushAllowNull(p, false);
-					} else {
-						popAllowNull(p);
-						pushAllowNull(p, true);
-					}
-				}
-			} catch (OJClassNotFoundException e) {
-				throw new ParseTreeException(e);
-			}
-		}
-		//Prototype fix to wrong type compliance in mutations on constructor arguments---
+//		//Prototype fix to wrong type compliance in mutations on constructor arguments+++
+//		Expression surroundingAllocationExpression = surroundingAllocationExpression(p);
+//		if (surroundingAllocationExpression != null) {
+//			AllocationExpression alloc = surroundingAllocationExpression(p);
+//			try {
+//				OJClass[] formalParams = getConstructorFormalParams(alloc.getClassType(), (ExpressionList) p.getParent());
+//				int argIndex = getArgumentIndex((ExpressionList) p.getParent(), p);
+//				if (argIndex >= 0) {
+//					popComplyType(p);
+//					pushComplyType(p, p);
+//					if (formalParams[argIndex].isPrimitive()) {
+//						popAllowNull(p);
+//						pushAllowNull(p, false);
+//					} else {
+//						popAllowNull(p);
+//						pushAllowNull(p, true);
+//					}
+//				}
+//			} catch (OJClassNotFoundException e) {
+//				throw new ParseTreeException(e);
+//			}
+//		}
+//		//Prototype fix to wrong type compliance in mutations on constructor arguments---
 		unaryVisit(p, p, true);
 	}
 
@@ -1987,29 +2026,29 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
-		//Prototype fix to wrong type compliance in mutations on constructor arguments+++
-		Expression surroundingAllocationExpression = surroundingAllocationExpression(p);
-		if (surroundingAllocationExpression != null) {
-			AllocationExpression alloc = surroundingAllocationExpression(p);
-			try {
-				OJClass[] formalParams = getConstructorFormalParams(alloc.getClassType(), (ExpressionList) p.getParent());
-				int argIndex = getArgumentIndex((ExpressionList) p.getParent(), p);
-				if (argIndex >= 0) {
-					popComplyType(p);
-					pushComplyType(p, p);
-					if (formalParams[argIndex].isPrimitive()) {
-						popAllowNull(p);
-						pushAllowNull(p, false);
-					} else {
-						popAllowNull(p);
-						pushAllowNull(p, true);
-					}
-				}
-			} catch (OJClassNotFoundException e) {
-				throw new ParseTreeException(e);
-			}
-		}
-		//Prototype fix to wrong type compliance in mutations on constructor arguments---
+//		//Prototype fix to wrong type compliance in mutations on constructor arguments+++
+//		Expression surroundingAllocationExpression = surroundingAllocationExpression(p);
+//		if (surroundingAllocationExpression != null) {
+//			AllocationExpression alloc = surroundingAllocationExpression(p);
+//			try {
+//				OJClass[] formalParams = getConstructorFormalParams(alloc.getClassType(), (ExpressionList) p.getParent());
+//				int argIndex = getArgumentIndex((ExpressionList) p.getParent(), p);
+//				if (argIndex >= 0) {
+//					popComplyType(p);
+//					pushComplyType(p, p);
+//					if (formalParams[argIndex].isPrimitive()) {
+//						popAllowNull(p);
+//						pushAllowNull(p, false);
+//					} else {
+//						popAllowNull(p);
+//						pushAllowNull(p, true);
+//					}
+//				}
+//			} catch (OJClassNotFoundException e) {
+//				throw new ParseTreeException(e);
+//			}
+//		}
+//		//Prototype fix to wrong type compliance in mutations on constructor arguments---
 		sameLength((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false, true);
 		increaseLenght((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false);
 		replaceOneByTwo((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false);
@@ -2022,29 +2061,29 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
-		//Prototype fix to wrong type compliance in mutations on constructor arguments+++
-		Expression surroundingAllocationExpression = surroundingAllocationExpression(p);
-		if (surroundingAllocationExpression != null) {
-			AllocationExpression alloc = surroundingAllocationExpression(p);
-			try {
-				OJClass[] formalParams = getConstructorFormalParams(alloc.getClassType(), (ExpressionList) p.getParent());
-				int argIndex = getArgumentIndex((ExpressionList) p.getParent(), p);
-				if (argIndex >= 0) {
-					popComplyType(p);
-					pushComplyType(p, p);
-					if (formalParams[argIndex].isPrimitive()) {
-						popAllowNull(p);
-						pushAllowNull(p, false);
-					} else {
-						popAllowNull(p);
-						pushAllowNull(p, true);
-					}
-				}
-			} catch (OJClassNotFoundException e) {
-				throw new ParseTreeException(e);
-			}
-		}
-		//Prototype fix to wrong type compliance in mutations on constructor arguments---
+//		//Prototype fix to wrong type compliance in mutations on constructor arguments+++
+//		Expression surroundingAllocationExpression = surroundingAllocationExpression(p);
+//		if (surroundingAllocationExpression != null) {
+//			AllocationExpression alloc = surroundingAllocationExpression(p);
+//			try {
+//				OJClass[] formalParams = getConstructorFormalParams(alloc.getClassType(), (ExpressionList) p.getParent());
+//				int argIndex = getArgumentIndex((ExpressionList) p.getParent(), p);
+//				if (argIndex >= 0) {
+//					popComplyType(p);
+//					pushComplyType(p, p);
+//					if (formalParams[argIndex].isPrimitive()) {
+//						popAllowNull(p);
+//						pushAllowNull(p, false);
+//					} else {
+//						popAllowNull(p);
+//						pushAllowNull(p, true);
+//					}
+//				}
+//			} catch (OJClassNotFoundException e) {
+//				throw new ParseTreeException(e);
+//			}
+//		}
+//		//Prototype fix to wrong type compliance in mutations on constructor arguments---
 		sameLength((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false, true);
 		increaseLenght((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false);
 		replaceOneByTwo((NonLeaf) getStatement(p), this.refModeComplyTypeStack.peek(), p, false);
@@ -2139,6 +2178,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (this.useLiterals && this.allowReplacementWithLiterals() && mutGenLimitIsPositive && origIsValid && mutatingRightOrUnary && origIsNotAChain) {
 			searchForLiteralsInMethod((ParseTreeObject) orig);
 			for (Literal lit : this.literals) {
+				lit = (Literal) ((ParseTreeObject) lit).makeRecursiveCopy();
 				if (complyWith != null) {
 					OJClass typeToComply = getType(complyWith);
 					OJClass litType = getType(lit);
@@ -2147,7 +2187,19 @@ public class PRVO extends mujava.op.util.Mutator {
 						continue;
 					}
 				}
-				outputToFile((ParseTreeObject) orig.makeCopy_keepOriginalID(), lit);
+				ParseTreeObject mutantNode = null;
+				if (complyWith != null && isPrimitiveToObjectAssignment(getType(complyWith), getType(lit))) {
+					if (usePrimitiveWrapping()) {
+						mutantNode = wrapPrimitiveExpression(getType(lit), (ParseTreeObject) lit);
+					} else if (allowPrimitiveToObjectMutants()) {
+						mutantNode = (ParseTreeObject) lit;
+					} else {
+						continue;
+					}
+				} else {
+					mutantNode = (ParseTreeObject) lit;
+				}
+				outputToFile((ParseTreeObject) orig.makeCopy_keepOriginalID(), mutantNode);
 			}
 		}
 	}
@@ -2363,11 +2415,12 @@ public class PRVO extends mujava.op.util.Mutator {
 			} else if (primitiveClass.getSimpleName().compareTo(openjava.mop.OJSystem.FLOAT.getSimpleName()) == 0) {
 				constructorType = new TypeName("java.lang.Float");
 			}
-			ParseTreeObject originalExpressionParent = (ParseTreeObject) originalExpression.getParent().makeRecursiveCopy_keepOriginalID();
+			//ParseTreeObject originalExpressionParent = (ParseTreeObject) originalExpression.getParent().makeRecursiveCopy_keepOriginalID();
 			ExpressionList params = new ExpressionList();
 			params.add((Expression) originalExpression.makeRecursiveCopy_keepOriginalID());
 			AllocationExpression wrappedExpression = new AllocationExpression(constructorType, params);
-			wrappedExpression.setParent(originalExpressionParent);
+			setParentOf(wrappedExpression, originalExpression);
+			//wrappedExpression.setParent(originalExpressionParent);
 			return wrappedExpression;
 		} else {
 			return originalExpression;
@@ -2390,57 +2443,57 @@ public class PRVO extends mujava.op.util.Mutator {
 		return false;
 	}
 	
-	private AllocationExpression surroundingAllocationExpression(ParseTreeObject p) {
-		if (p instanceof AllocationExpression) {
-			return (AllocationExpression) p;
-		}
-		if (p.getParent() != null && p.getParent() instanceof ExpressionList && p.getParent().getParent() instanceof AllocationExpression) {
-			return (AllocationExpression) p.getParent().getParent();
-		}
-		return null;
-	}
+//	private AllocationExpression surroundingAllocationExpression(ParseTreeObject p) {
+//		if (p instanceof AllocationExpression) {
+//			return (AllocationExpression) p;
+//		}
+//		if (p.getParent() != null && p.getParent() instanceof ExpressionList && p.getParent().getParent() instanceof AllocationExpression) {
+//			return (AllocationExpression) p.getParent().getParent();
+//		}
+//		return null;
+//	}
 	
-	private OJClass[] getConstructorFormalParams(TypeName tn, ExpressionList actualParams) throws OJClassNotFoundException, ParseTreeException {
-		TypeName constructorType = tn;
-		try {
-			OJClass constructorTypeAsOJClass = OJClass.forName(constructorType.getName());
-			OJConstructor[] constructors = constructorTypeAsOJClass.getConstructors();
-			OJConstructor matchedConstructor = null;
-			if (constructors != null) {
-				for (OJConstructor c : constructors) {
-					if (c.getParameterTypes().length == actualParams.size()) {
-						OJClass[] formalParams = c.getParameterTypes();
-						boolean matches = true;
-						int a = 0;
-						for (OJClass formalParam : formalParams) {
-							if (!compatibleAssignType(formalParam, getType(actualParams.get(a)))) {
-								matches = false;
-								break;
-							}
-							a++;
-						}
-						if (matches) {
-							matchedConstructor = c;
-							break;
-						}
-					}
-				}
-				if (matchedConstructor != null) {
-					return matchedConstructor.getParameterTypes();
-				}
-			}
-		} catch (OJClassNotFoundException e) {
-			throw e;
-		}
-		return null;
-	}
-	
-	private int getArgumentIndex(ExpressionList args, Expression arg) {
-		for (int a = 0; a < args.size(); a++) {
-			if (isSameObject(args.get(a), arg)) return a;
-		}
-		return -1;
-	}
+//	private OJClass[] getConstructorFormalParams(TypeName tn, ExpressionList actualParams) throws OJClassNotFoundException, ParseTreeException {
+//		TypeName constructorType = tn;
+//		try {
+//			OJClass constructorTypeAsOJClass = OJClass.forName(constructorType.getName());
+//			OJConstructor[] constructors = constructorTypeAsOJClass.getConstructors();
+//			OJConstructor matchedConstructor = null;
+//			if (constructors != null) {
+//				for (OJConstructor c : constructors) {
+//					if (c.getParameterTypes().length == actualParams.size()) {
+//						OJClass[] formalParams = c.getParameterTypes();
+//						boolean matches = true;
+//						int a = 0;
+//						for (OJClass formalParam : formalParams) {
+//							if (!compatibleAssignType(formalParam, getType(actualParams.get(a)))) {
+//								matches = false;
+//								break;
+//							}
+//							a++;
+//						}
+//						if (matches) {
+//							matchedConstructor = c;
+//							break;
+//						}
+//					}
+//				}
+//				if (matchedConstructor != null) {
+//					return matchedConstructor.getParameterTypes();
+//				}
+//			}
+//		} catch (OJClassNotFoundException e) {
+//			throw e;
+//		}
+//		return null;
+//	}
+//	
+//	private int getArgumentIndex(ExpressionList args, Expression arg) {
+//		for (int a = 0; a < args.size(); a++) {
+//			if (isSameObject(args.get(a), arg)) return a;
+//		}
+//		return -1;
+//	}
 
 	private void outputToFile(ParseTreeObject original, ParseTreeObject mutant) {
 		Expression modifiedMutant = (Expression) mutant.makeCopy_keepOriginalID();
