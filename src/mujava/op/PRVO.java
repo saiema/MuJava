@@ -1889,7 +1889,9 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
+		pushComplyType(p, p);
 		unaryVisit(p, p, true);
+		popComplyType(p);
 		ExpressionList args = p.getArguments();
 		for (int a = 0; a < args.size(); a++) {
 			pushAllowNull(p, compatibleAssignType(getType(args.get(a)), null));

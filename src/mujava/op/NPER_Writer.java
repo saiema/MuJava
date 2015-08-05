@@ -69,7 +69,10 @@ public class NPER_Writer extends MutantCodeWriter {
 				StatementList m = this.mutant_statements;
 				this.original_for = null;
 				this.mutant_statements = null;
-				super.visit(m);
+				for (int s = 0; s < m.size(); s++) {
+					Statement st = m.get(s);
+					super.visit(st);
+				}
 			}
 			else throw new ParseTreeException("NPER_Writer is being called with a mutant that's not a statement or a statement list");
 			// -------------------------------------------------------------
@@ -91,7 +94,10 @@ public class NPER_Writer extends MutantCodeWriter {
 				StatementList m = this.mutant_statements;
 				this.original_while = null;
 				this.mutant_statement = null;
-				super.visit(m);
+				for (int s = 0; s < m.size(); s++) {
+					Statement st = m.get(s);
+					super.visit(st);
+				}
 			}
 			else throw new ParseTreeException("NPER_Writer is being called with a mutant that's not a statement or a statement list");
 			// -------------------------------------------------------------
@@ -140,7 +146,10 @@ public class NPER_Writer extends MutantCodeWriter {
 			StatementList m = this.mutant_statements;
 			this.original_if = null;
 			this.mutant_statements = null;
-			super.visit(m);
+			for (int s = 0; s < m.size(); s++) {
+				Statement st = m.get(s);
+				super.visit(st);
+			}
 			mutated_line = line_num;
 		} else {
 			super.visit(p);

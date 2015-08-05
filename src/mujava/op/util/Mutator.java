@@ -352,6 +352,12 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 				else
 					return -1;
 			}
+			if (parent instanceof ThrowStatement) {
+				if (((ThrowStatement) parent).hasMutGenLimit())
+					return ((ThrowStatement) parent).getMutGenLimit();
+				else
+					return -1;
+			}
 			parent = parent.getParent();
 		}
 		return -1;

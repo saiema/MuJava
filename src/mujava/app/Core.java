@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import org.junit.runner.notification.Failure;
@@ -197,8 +198,25 @@ public class Core {
 				if (killed) mutantsKilled++;
 			}
 		}
-		System.out.println("Mutants : "+ mutants + " | didn't compile : " + failedToCompile + " | mutants killed by tests : "+ mutantsKilled + " | surviving mutants : " + (mutants-failedToCompile-mutantsKilled) + " | total tests that timedout : " + timedOut + " | mutation score : "+((mutantsKilled+failedToCompile)*100.0)/mutants+'\n');
+		System.out.println("Mutants : "+ mutants + " | didn't compile : " + failedToCompile + " | mutants killed by tests : "+ mutantsKilled + " | surviving mutants : " + (mutants-failedToCompile-mutantsKilled) + " | total tests that timedout : " + timedOut + " | mutation score : "+((mutantsKilled+failedToCompile)*100.0)/mutants+ " | mutation score (only compiling mutants) : " + (mutantsKilled*100.0)/(mutants-failedToCompile) + '\n');
 		return ((mutantsKilled+failedToCompile)*(float)100.0)/mutants;
+	}
+	
+	@SuppressWarnings("deprecation")
+	public static void killStillRunningJUnitTestcaseThreads() {
+	    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+	    for (Thread thread : threadSet) {
+	        if (!(thread.isDaemon())) {
+	            final StackTraceElement[] threadStackTrace = thread.getStackTrace();
+	            if (threadStackTrace.length > 1) {
+	                StackTraceElement firstMethodInvocation = threadStackTrace[threadStackTrace.length - 1];
+	                if (firstMethodInvocation.getClassName().startsWith("org.junit")) {
+	                    // HACK: must use deprecated method
+	                    thread.stop();
+	                }
+	            }
+	        }
+	    }
 	}
 
 }

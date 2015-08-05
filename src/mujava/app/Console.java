@@ -363,25 +363,8 @@ public class Console {
 			core.setMutationScore(ms);
 			float mutationScoreResult = core.calculateMutationScore(testClasses, classToMutate);
 			System.out.println(classToMutate + " scored : " + mutationScoreResult + " with tests : " + Arrays.asList(testClasses).toString());
-			killStillRunningJUnitTestcaseThreads();
+			Core.killStillRunningJUnitTestcaseThreads();
 		}
-	}
-	
-	@SuppressWarnings("deprecation")
-	private static void killStillRunningJUnitTestcaseThreads() {
-	    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
-	    for (Thread thread : threadSet) {
-	        if (!(thread.isDaemon())) {
-	            final StackTraceElement[] threadStackTrace = thread.getStackTrace();
-	            if (threadStackTrace.length > 1) {
-	                StackTraceElement firstMethodInvocation = threadStackTrace[threadStackTrace.length - 1];
-	                if (firstMethodInvocation.getClassName().startsWith("org.junit")) {
-	                    // HACK: must use deprecated method
-	                    thread.stop();
-	                }
-	            }
-	        }
-	    }
 	}
 	
 	private static void fullHelp() {

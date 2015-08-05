@@ -110,6 +110,7 @@ public class MutationScore {
 				testToRun = MutationScore.reloader.rloadClass(test, true);
 				MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, MutationScore.quickDeath);
 				Result testResult = mjTestRunner.run();
+				Core.killStillRunningJUnitTestcaseThreads();
 				testResults.add(new TestResult(testResult));
 				if (!testResult.wasSuccessful() && MutationScore.quickDeath) {
 					break;

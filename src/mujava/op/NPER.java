@@ -195,6 +195,7 @@ public class NPER extends Mutator {
 			ifStatements.add(whileStatement);
 			IfStatement ifStatement = createIfStatement(ifStatements, new Variable(initBoolVarDecl.getVariable()));
 			mutant.add(ifStatement);
+			mutant.setParent(p.getParent());
 			outputToFile(pCopy, mutant);
 		}
 		super.visit(p);
@@ -220,6 +221,7 @@ public class NPER extends Mutator {
 			whileStatements.add(conditionTryInside);
 			WhileStatement newWhile = new WhileStatement(new Variable(condBoolVarDecl.getVariable()), whileStatements);
 			mutant.add(newWhile);
+			mutant.setParent(p.getParent());
 			outputToFile(p, mutant);
 		}
 		super.visit(p);
@@ -227,9 +229,10 @@ public class NPER extends Mutator {
 	
 
 	public void visit(AssignmentExpression p) throws ParseTreeException {
-		if (getMutationsLeft(p) > 0) {
+		if (getMutationsLeft(p) > 0 && p.getParent() instanceof ExpressionStatement) {
 			AssignmentExpression pCopy = (AssignmentExpression) p.makeRecursiveCopy_keepOriginalID();
 			TryStatement catchedExpressionStatement = createNullPointerExceptionTryStatement(new StatementList(new ExpressionStatement(pCopy)), new StatementList(), "NPE detected");
+			catchedExpressionStatement.setParent(p.getParent());
 			outputToFile(p, catchedExpressionStatement);
 		}
 		super.visit(p);
@@ -247,6 +250,7 @@ public class NPER extends Mutator {
 					ReturnStatement defaultReturn = new ReturnStatement(defaultValue);
 					StatementList catchStatements = new StatementList(defaultReturn);
 					TryStatement mutant = createNullPointerExceptionTryStatement(tryStatements, catchStatements, "NPE detected in return statement");
+					mutant.setParent(p.getParent());
 					outputToFile(p, mutant);
 				} catch (OJClassNotFoundException e) {
 					// TODO Auto-generated catch block
@@ -288,6 +292,7 @@ public class NPER extends Mutator {
 			TryStatement tryStatement = createNullPointerExceptionTryStatement(tryStatements, catchStatements, "NPE detected in condition evaluation before if statement");
 			mutant.add(tryStatement);
 			mutant.add(modifiedIfStatement);
+			mutant.setParent(p.getParent());
 			outputToFile(p, mutant);
 		}
 		super.visit(p);
