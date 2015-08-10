@@ -7,7 +7,9 @@ import java.io.IOException;
 //import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
@@ -23,11 +25,11 @@ import java.util.TreeSet;
  * <p>
  * <p>
  * Main changes from previous version:
- * <li>no longer requires to load a class to make it reloadable</li>
+ * <li>Allows to define path per class, this avoids the need to move .class files</li>
  * <p>
  * 
  * @author Simon Emmanuel Gutierrez Brida
- * @version 2.9.1
+ * @version 2.10
  */
 public class Reloader extends ClassLoader {
 	protected Set<String> classpath;
@@ -35,6 +37,10 @@ public class Reloader extends ClassLoader {
 	protected Set<String> reloadableCache;
 	protected List<Class<?>> reloadableClassCache;
 	protected Reloader child;
+	/**
+	 * This map allows to define a specific path for each class
+	 */
+	protected Map<String, String> specificClassPaths;
 
 	public Reloader(List<String> classpath, ClassLoader parent) {
 		super(parent);
@@ -42,17 +48,23 @@ public class Reloader extends ClassLoader {
 		this.classpath.addAll(classpath);
 		this.reloadableCache = new TreeSet<String>();
 		this.reloadableClassCache = new LinkedList<Class<?>>();
+		this.specificClassPaths = new TreeMap<String, String>();
 	}
 	
-	private Reloader(Set<String> classpath, ClassLoader parent, Set<String> reloadableCache) {
+	private Reloader(Set<String> classpath, ClassLoader parent, Set<String> reloadableCache, Map<String, String> specificClassPaths) {
 		this(classpath, parent);
 		this.reloadableCache = reloadableCache;
+		this.specificClassPaths = specificClassPaths;
 	}
 	
 	private Reloader(Set<String> classpath, ClassLoader parent) {
 		super(parent);
 		this.classpath = classpath;
 		this.reloadableClassCache = new LinkedList<Class<?>>();
+	}
+	
+	public void setSpecificClassPath(String className, String path) {
+		this.specificClassPaths.put(className, path);
 	}
 	
 
@@ -165,7 +177,7 @@ public class Reloader extends ClassLoader {
 		Class<?> clazz = null;
 		Set<String> childReloadableCache = new TreeSet<String>();
 		childReloadableCache.addAll(this.reloadableCache);
-		Reloader r = new Reloader(this.classpath, this, childReloadableCache);
+		Reloader r = new Reloader(this.classpath, this, childReloadableCache, this.specificClassPaths);
 		for (String c : this.reloadableCache) {
 			if (c.compareTo(s) != 0) {
 				Class<?> newClass = r.loadAgain(c);
@@ -205,9 +217,18 @@ public class Reloader extends ClassLoader {
 	protected byte[] loadClassData(String className) throws IOException {
 		boolean found = false;
 		File f = null;
-		if (this.priorityPath != null) f = new File(this.priorityPath + className.replaceAll("\\.", File.separator) + ".class");
-		if (f != null && f.exists()) {
-			found = true;
+		if (this.specificClassPaths.containsKey(className)) {
+			String specificPath = this.specificClassPaths.get(className);
+			f = new File(specificPath + className.replaceAll("\\.", File.separator) + ".class");
+			if (f != null && f.exists()) {
+				found = true;
+			}
+		}
+		if (!found) {
+			if (this.priorityPath != null) f = new File(this.priorityPath + className.replaceAll("\\.", File.separator) + ".class");
+			if (f != null && f.exists()) {
+				found = true;
+			}
 		}
 		if (!found) {
 			for (String cp : this.classpath) {
@@ -219,6 +240,7 @@ public class Reloader extends ClassLoader {
 		if (!found) {
 			throw new IOException("File " + className + " doesn't exist\n");
 		}
+		System.out.println("DEBUG: loading " + className + " from " + f.getAbsolutePath());
 		int size = (int) f.length();
 		byte buff[] = new byte[size];
 		FileInputStream fis = new FileInputStream(f);

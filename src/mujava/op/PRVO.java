@@ -2421,7 +2421,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			ExpressionList params = new ExpressionList();
 			params.add((Expression) originalExpression.makeRecursiveCopy_keepOriginalID());
 			AllocationExpression wrappedExpression = new AllocationExpression(constructorType, params);
-			setParentOf(wrappedExpression, originalExpression);
+			setParentOf(wrappedExpression, originalExpression, true);
 			//wrappedExpression.setParent(originalExpressionParent);
 			return wrappedExpression;
 		} else {

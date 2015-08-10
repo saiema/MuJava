@@ -18,13 +18,14 @@ public class Generate {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		String clazz = "pldi" + Core.SEPARATOR + "nodecachinglinkedlist" + Core.SEPARATOR + "NodeCachingLinkedList";
+		//String clazz = "pldi" + Core.SEPARATOR + "nodecachinglinkedlist" + Core.SEPARATOR + "NodeCachingLinkedList";
+		String clazz = "roops" + Core.SEPARATOR + "core" + Core.SEPARATOR + "objects" + Core.SEPARATOR + "SinglyLinkedList";
 		//String[] methods = {"addFirstUglyCopy"};
-		String[] methods = {"contains"};
+		String[] methods = {"containsBugged"};
 		Mutant[] ops = {	
 //				Mutant.PRVOL_SMART,
 //		        Mutant.PRVOR_REFINED,
-//		        Mutant.PRVOU_REFINED,
+		        Mutant.PRVOU_REFINED,
 //				Mutant.AODS,
 //				Mutant.AODU,
 //				Mutant.AOIS,
@@ -40,7 +41,7 @@ public class Generate {
 //				Mutant.LOR,
 //				Mutant.ROR,
 //				Mutant.SOR 	
-				Mutant.NPER
+//				Mutant.NPER
 						};
 		String basePathOriginals = args[0]; //test/
 		String basePathMutants = args[1];	//mutants/

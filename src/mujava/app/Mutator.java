@@ -351,6 +351,7 @@ public class Mutator implements Runnable{
 		//|--------------------Generation loop--------------------|
 		for (String currentMethod : request.methods) {
 			//|--------------------Mutants Generation--------------------|
+			ParseTreeObject.resetObjectID();
 			MutantsInformationHolder mih = Api.generateMutants(fileToMutate, className, currentMethod, mutOps);
 			//|--------------------Mutants Generation--------------------|
 

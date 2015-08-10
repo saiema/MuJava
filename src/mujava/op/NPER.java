@@ -135,7 +135,7 @@ public class NPER extends Mutator {
 			ForStatement pCopy = (ForStatement) p.makeRecursiveCopy_keepOriginalID();
 			
 			VariableDeclarator initBoolVarDecl = createRandomBooleanVar("initOk_", true);
-			VariableDeclaration initBoolVarDeclaration = new VariableDeclaration(new TypeName("java.lang.boolean"), initBoolVarDecl);
+			VariableDeclaration initBoolVarDeclaration = new VariableDeclaration(new TypeName("boolean"), initBoolVarDecl);
 			mutant.add(initBoolVarDeclaration);
 			
 			ExpressionList inits = pCopy.getInit();
@@ -189,7 +189,7 @@ public class NPER extends Mutator {
 			forStatements.add(insideForExpressionTry);
 			WhileStatement whileStatement = createWhileStatement(forStatements, new Variable(condBoolVarDecl.getVariable()));
 			StatementList ifStatements = new StatementList();
-			VariableDeclaration condVarDeclaration = new VariableDeclaration(new TypeName("java.lang.boolean"), condBoolVarDecl);
+			VariableDeclaration condVarDeclaration = new VariableDeclaration(new TypeName("boolean"), condBoolVarDecl);
 			ifStatements.add(condVarDeclaration);
 			ifStatements.add(expressionTry);
 			ifStatements.add(whileStatement);
@@ -206,7 +206,7 @@ public class NPER extends Mutator {
 			StatementList mutant = new StatementList();
 			WhileStatement pCopy = (WhileStatement) p.makeRecursiveCopy_keepOriginalID();
 			VariableDeclarator condBoolVarDecl = createRandomBooleanVar("cond_", false);
-			VariableDeclaration condBoolVarDeclaration = new VariableDeclaration(new TypeName("java.lang.boolean"), condBoolVarDecl);
+			VariableDeclaration condBoolVarDeclaration = new VariableDeclaration(new TypeName("boolean"), condBoolVarDecl);
 			AssignmentExpression failureAssignment = new AssignmentExpression(new Variable(condBoolVarDecl.getVariable()), AssignmentExpression.EQUALS, Literal.makeLiteral(false));
 			AssignmentExpression conditionAssignment = new AssignmentExpression(new Variable(condBoolVarDecl.getVariable()), AssignmentExpression.EQUALS, pCopy.getExpression());
 			StatementList conditionTryStatements = new StatementList();
@@ -281,7 +281,7 @@ public class NPER extends Mutator {
 			StatementList mutant = new StatementList();
 			Expression conditionCopy = (Expression) p.getExpression().makeRecursiveCopy_keepOriginalID();
 			VariableDeclarator condBoolVarDecl = createRandomBooleanVar("cond_", false);
-			VariableDeclaration condBoolVarDeclaration = new VariableDeclaration(new TypeName("java.lang.boolean"), condBoolVarDecl);
+			VariableDeclaration condBoolVarDeclaration = new VariableDeclaration(new TypeName("boolean"), condBoolVarDecl);
 			AssignmentExpression failureAssignment = new AssignmentExpression(new Variable(condBoolVarDecl.getVariable()), AssignmentExpression.EQUALS, Literal.makeLiteral(false));
 			AssignmentExpression conditionAssignment = new AssignmentExpression(new Variable(condBoolVarDecl.getVariable()), AssignmentExpression.EQUALS, conditionCopy);
 			IfStatement modifiedIfStatement = (IfStatement) p.makeRecursiveCopy_keepOriginalID();

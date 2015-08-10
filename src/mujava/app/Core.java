@@ -37,7 +37,7 @@ public class Core {
 	private Exception error;
 	private MutationScore ms;
 	public static boolean fullVerbose = false;
-	public static final int mujavappVersion = 2015060701;
+	public static final int mujavappVersion = 20151008;
 	
 	public static Core newInstance(String inputDirP, String outputDirP) {
 		if (instance == null) {

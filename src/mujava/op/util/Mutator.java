@@ -1266,8 +1266,21 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * @param o2 :	the object with the new parent to set
 	 */
 	public static void setParentOf(ParseTreeObject o, ParseTreeObject o2) {
+		setParentOf(o, o2, false);
+	}
+	
+	/**
+	 * This method will replace the parent of a {@code ParseTreeObject} with the parent of another
+	 * the difference between this method and {@code ParseTreeObject#setParent(ParseTreeObject)} is that
+	 * this one will detect special cases like when the new parent is an {@code ExpressionList} object
+	 * and will make the necessary adjustments
+	 * @param o :	the object whose parent will be changed
+	 * @param o2 :	the object with the new parent to set
+	 * @param useOnlySetParent : if {@code true} then this method will simply call {@code o.setParent(o2)}
+	 */
+	public static void setParentOf(ParseTreeObject o, ParseTreeObject o2, boolean useOnlySetParent) {
 		ParseTreeObject newParent = o2.getParent();
-		if (newParent instanceof ExpressionList) {
+		if (newParent instanceof ExpressionList && !useOnlySetParent) {
 			ExpressionList newParentAsList = (ExpressionList) newParent.makeRecursiveCopy_keepOriginalID();
 			int indexOfo2 = getArgumentIndex(newParentAsList, (Expression) o2);
 			newParentAsList.remove(indexOfo2);

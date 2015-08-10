@@ -299,7 +299,8 @@ public class OLMO extends ParseTreeVisitor {
 						this.nodeFound = true;
 						return;
 					} else {
-						pto.replace(this.mi.getMutant());
+						//pto.replace(this.mi.getMutant());
+						pto = replace(pto, this.mi.getMutant());
 						if (!this.modifyAST) return;
 					}
 				}
@@ -314,6 +315,55 @@ public class OLMO extends ParseTreeVisitor {
 				if (isSameObject(pto, getNodeStatement(this.mi.getOriginal()))) this.guardMutation_mutGenLimitLineFound = true;
 			}
 		}
+	}
+	
+	private ParseTreeObject replace(ParseTreeObject original, ParseTreeObject replacement) throws ParseTreeException {
+		if (replacement instanceof StatementList) {
+			if (original instanceof StatementList) {
+				original.replace(replacement);
+				return original;
+			} else if (original instanceof Statement) {
+				StatementList originalList = Mutator.getStatementList(original);
+				if (originalList != null) {
+					replaceStatementInStatementListWithStatementList(originalList, (Statement) original, (StatementList) replacement);
+					return (ParseTreeObject) ((StatementList)replacement).get(0);
+				} else {
+					throw new ParseTreeException("Couldn't find StatementList for " + original.toFlattenString());
+				}
+			} else {
+				throw new ParseTreeException("can't replace a " + original.getClass().getName() + " node with a StatementList node");
+			}
+		} else {
+			original.replace(replacement);
+			return original;
+		}
+	}
+	
+	private void replaceStatementInStatementListWithStatementList(StatementList originalList, Statement originalStatement, StatementList replacement) throws ParseTreeException {
+		int originalStatementIndex = getStatementIndex(originalList, originalStatement);
+		if (originalStatementIndex >= 0) {
+			StatementList originalListCopy = (StatementList) originalList.makeRecursiveCopy_keepOriginalID();
+			StatementList firstPart = originalListCopy.subList(0, originalStatementIndex);
+			StatementList lastPart = originalListCopy.subList(originalStatementIndex+1, originalListCopy.size());
+			firstPart.addAll(replacement);
+			firstPart.addAll(lastPart);
+			originalListCopy.removeAll();
+			originalListCopy.addAll(firstPart);
+			originalList.replace(originalListCopy);
+			((ParseTreeObject)originalStatement).setParent(originalListCopy);
+		} else {
+			throw new ParseTreeException("Can't find statement " + originalList.toFlattenString() + " in StatementList");
+		}
+	}
+	
+	private int getStatementIndex(StatementList list, Statement st) {
+		for (int s = 0; s < list.size(); s++) {
+			Statement curr = list.get(s);
+			if (Mutator.isSameObject(st, curr)) {
+				return s;
+			}
+		}
+		return -1;
 	}
 	
 	private boolean isStatement(ParseTreeObject pto) {

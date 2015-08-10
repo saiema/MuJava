@@ -71,9 +71,9 @@ public class Api {
 		Api.methodToConsider = methodToConsider;
 		Debug.setDebugLevel(0);
 		Api.currentFilePath = javaFile.getAbsolutePath();
-		NotDirBasedMutantsGenerator gen = new NotDirBasedMutantsGenerator(javaFile, mutOps);
+		NotDirBasedMutantsGenerator mutGen = new NotDirBasedMutantsGenerator(javaFile, mutOps);
 		MutationSystem.CLASS_NAME = Api.getMainClassName(className);
-		gen.makeMutants();
+		mutGen.makeMutants();
 		MutantsInformationHolder ret = MutantsInformationHolder.mainHolder();
 		MutantsInformationHolder.resetMainHolder();
 		return ret;

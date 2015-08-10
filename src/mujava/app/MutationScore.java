@@ -1,14 +1,14 @@
 package mujava.app;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+//import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+//import java.nio.file.Files;
+//import java.nio.file.Path;
+//import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -87,14 +87,14 @@ public class MutationScore {
 	
 	public List<TestResult> runTestsWithMutants(List<String> testClasses, String pathToMutant, String className) {
 		this.lastError = null;
-		String originalFile = MutationScore.originalBinFolder+className;
-		String mutantFile = MutationScore.mutantsSourceFolder+pathToMutant+className;
-		this.backupOriginal(originalFile);
-		if (!this.moveMutant(mutantFile, originalFile)) {
-			this.delete(originalFile);
-			this.restoreOriginal(originalFile);
-			return null;
-		}
+//		String originalFile = MutationScore.originalBinFolder+className;
+//		String mutantFile = MutationScore.mutantsSourceFolder+pathToMutant+className;
+//		this.backupOriginal(originalFile);
+//		if (!this.moveMutant(mutantFile, originalFile)) {
+//			this.delete(originalFile);
+//			this.restoreOriginal(originalFile);
+//			return null;
+//		}
 		if (MutationScore.reloader == null) {
 			List<String> classpath = Arrays.asList(new String[]{MutationScore.originalBinFolder, MutationScore.testsBinFolder});
 			MutationScore.reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
@@ -107,6 +107,8 @@ public class MutationScore {
 			Class<?> testToRun;
 			try {
 				MutationScore.reloader = MutationScore.reloader.getLastChild();
+				System.out.println("DEBUG: setting path " + pathToMutant + " for class " + className);
+				MutationScore.reloader.setSpecificClassPath(className, MutationScore.mutantsSourceFolder+pathToMutant);
 				testToRun = MutationScore.reloader.rloadClass(test, true);
 				MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, MutationScore.quickDeath);
 				Result testResult = mjTestRunner.run();
@@ -118,10 +120,11 @@ public class MutationScore {
 			} catch (ClassNotFoundException | IllegalArgumentException | MuJavaTestRunnerException | InitializationError e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				this.lastError = e;
 			}
 		}
-		this.delete(originalFile);
-		this.restoreOriginal(originalFile);
+//		this.delete(originalFile);
+//		this.restoreOriginal(originalFile);
 		return testResults;
 	}
 	
@@ -153,47 +156,47 @@ public class MutationScore {
 		return clazz;
 	}
 	
-	private void backupOriginal(String path) {
-		String fixedPath = path.replaceAll("\\.", Core.SEPARATOR)+".class";
-		File original = new File(fixedPath);
-		original.renameTo(new File(fixedPath+".backup"));
-	}
+//	private void backupOriginal(String path) {
+//		String fixedPath = path.replaceAll("\\.", Core.SEPARATOR)+".class";
+//		File original = new File(fixedPath);
+//		original.renameTo(new File(fixedPath+".backup"));
+//	}
 	
-	private void restoreOriginal(String path) {
-		String fixedPath = path.replaceAll("\\.", Core.SEPARATOR)+".class";
-		File backup = new File(fixedPath+".backup");
-		backup.renameTo(new File(fixedPath));
-	}
+//	private void restoreOriginal(String path) {
+//		String fixedPath = path.replaceAll("\\.", Core.SEPARATOR)+".class";
+//		File backup = new File(fixedPath+".backup");
+//		backup.renameTo(new File(fixedPath));
+//	}
 	
-	private boolean moveMutant(String mutantPath, String originalPath) {
-		String fixedMutantPath = mutantPath.replaceAll("\\.", Core.SEPARATOR)+".class";
-		String fixedOriginalPath = originalPath.replaceAll("\\.", Core.SEPARATOR)+".class";
-		File mutant = new File(fixedMutantPath);
-		if (!mutant.exists()) {
-			this.lastError = new FileNotFoundException("File : " + fixedMutantPath + " doesn't exist!\n");
-			return false;
-		}
-		File original = new File(fixedOriginalPath);
-		if (original.getParentFile()==null?!original.exists():!original.getParentFile().exists()) {
-			this.lastError = new FileNotFoundException("File : " + fixedOriginalPath + " doesn't exist!\n");
-			return false;
-		}
-		try {
-			Path dest = original.getParentFile()==null?original.toPath():original.getParentFile().toPath();
-			Files.copy(mutant.toPath(), dest.resolve(mutant.toPath().getFileName()), StandardCopyOption.REPLACE_EXISTING);
-		} catch (IOException e) {
-			this.lastError = e;
-			return false;
-		}
-		return true;
-	}
+//	private boolean moveMutant(String mutantPath, String originalPath) {
+//		String fixedMutantPath = mutantPath.replaceAll("\\.", Core.SEPARATOR)+".class";
+//		String fixedOriginalPath = originalPath.replaceAll("\\.", Core.SEPARATOR)+".class";
+//		File mutant = new File(fixedMutantPath);
+//		if (!mutant.exists()) {
+//			this.lastError = new FileNotFoundException("File : " + fixedMutantPath + " doesn't exist!\n");
+//			return false;
+//		}
+//		File original = new File(fixedOriginalPath);
+//		if (original.getParentFile()==null?!original.exists():!original.getParentFile().exists()) {
+//			this.lastError = new FileNotFoundException("File : " + fixedOriginalPath + " doesn't exist!\n");
+//			return false;
+//		}
+//		try {
+//			Path dest = original.getParentFile()==null?original.toPath():original.getParentFile().toPath();
+//			Files.copy(mutant.toPath(), dest.resolve(mutant.toPath().getFileName()), StandardCopyOption.REPLACE_EXISTING);
+//		} catch (IOException e) {
+//			this.lastError = e;
+//			return false;
+//		}
+//		return true;
+//	}
 	
-	private void delete(String path) {
-		String fixedPath = path.replaceAll("\\.", Core.SEPARATOR)+".class";
-		File f = new File(fixedPath);
-		if (f.exists()) {
-			f.delete();
-		}
-	}
+//	private void delete(String path) {
+//		String fixedPath = path.replaceAll("\\.", Core.SEPARATOR)+".class";
+//		File f = new File(fixedPath);
+//		if (f.exists()) {
+//			f.delete();
+//		}
+//	}
 
 }
