@@ -240,7 +240,6 @@ public class Reloader extends ClassLoader {
 		if (!found) {
 			throw new IOException("File " + className + " doesn't exist\n");
 		}
-		System.out.println("DEBUG: loading " + className + " from " + f.getAbsolutePath());
 		int size = (int) f.length();
 		byte buff[] = new byte[size];
 		FileInputStream fis = new FileInputStream(f);

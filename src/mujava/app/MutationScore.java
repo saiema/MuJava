@@ -107,7 +107,6 @@ public class MutationScore {
 			Class<?> testToRun;
 			try {
 				MutationScore.reloader = MutationScore.reloader.getLastChild();
-				System.out.println("DEBUG: setting path " + pathToMutant + " for class " + className);
 				MutationScore.reloader.setSpecificClassPath(className, MutationScore.mutantsSourceFolder+pathToMutant);
 				testToRun = MutationScore.reloader.rloadClass(test, true);
 				MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, MutationScore.quickDeath);
