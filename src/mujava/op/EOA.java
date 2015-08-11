@@ -113,7 +113,8 @@ public class EOA extends mujava.op.util.Mutator {
 		Expression right = (Expression) p.getInitializer();
 		Variable left = new Variable(p.getVariable());
 
-		boolean isApplicable = !getType(right).isPrimitive()
+		boolean isApplicable = right != null 
+				&& !getType(right).isPrimitive()
 				&& !(right instanceof Literal);
 
 		if (isApplicable) {
@@ -136,7 +137,7 @@ public class EOA extends mujava.op.util.Mutator {
 				outputToFile(p, mutant);
 			}
 		}
-		super.visit(p.getInitializer());
+		if (right != null) super.visit(p.getInitializer());
 	}
 
 	private boolean validateClone(OJClass leftType, OJClass cloneType) {

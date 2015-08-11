@@ -17,6 +17,7 @@ import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.AllocationExpression;
 import openjava.ptree.ArrayAccess;
+import openjava.ptree.ArrayAllocationExpression;
 import openjava.ptree.ArrayInitializer;
 import openjava.ptree.AssignmentExpression;
 import openjava.ptree.BinaryExpression;
@@ -355,7 +356,8 @@ public class PRVO extends mujava.op.util.Mutator {
 		} else if (expr instanceof MethodCall) {
 			return ((MethodCall)expr).getReferenceExpr() != null;
 		} else if (expr instanceof ArrayAccess) {
-			return ((ArrayAccess)expr).getReferenceExpr() != null;
+			Expression arrayExpr = ((ArrayAccess)expr).getReferenceExpr();
+			return canGetPrev(arrayExpr);
 		} else {
 			return false;
 		}
@@ -367,6 +369,10 @@ public class PRVO extends mujava.op.util.Mutator {
 		} else if (expr instanceof MethodCall) {
 			((MethodCall)expr).setReferenceExpr(null);
 		} else if (expr instanceof ArrayAccess) {
+			Expression arrayExpr = ((ArrayAccess)expr).getReferenceExpr();
+			if (canGetPrev(arrayExpr)) {
+				setReferencedExpr(arrayExpr, null);
+			}
 			((ArrayAccess)expr).setReferenceExpr(null);
 		}
 	}
@@ -688,6 +694,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		String e2Name = null;
 		if (e2 instanceof MethodCall) e2Name = ((MethodCall) e2).getName();
 		if (e2 instanceof FieldAccess) e2Name = ((FieldAccess) e2).getName();
+		if (e2 instanceof ArrayAccess) e2Name = setReferencedExpr((Expression) ((ArrayAccess) e2).getReferenceExpr().makeRecursiveCopy_keepOriginalID(), null).toFlattenString();
 		for (Object m : fieldAndMethods(e1c, null)) {
 			if (m instanceof OJField || m instanceof OJMethod) {
 				if (((OJMember) m).getName().compareTo(e2Name)==0) return true;
@@ -705,6 +712,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		String e2Name = null;
 		if (e2 instanceof MethodCall) e2Name = ((MethodCall) e2).getName();
 		if (e2 instanceof FieldAccess) e2Name = ((FieldAccess) e2).getName();
+		if (e2 instanceof ArrayAccess) e2Name = setReferencedExpr((Expression) ((ArrayAccess) e2).getReferenceExpr().makeRecursiveCopy_keepOriginalID(), null).toFlattenString();
 		for (Object m : fieldAndMethods(e1c, null)) {
 			if (m instanceof OJField || m instanceof OJMethod) {
 				if (((OJMember) m).getName().compareTo(e2Name)==0) return true;
@@ -737,7 +745,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			Expression prev = null;
 			Expression next = null;
 			Expression rightPart = null;
-			if (!lor && (e2 instanceof Variable) && compatibleAssignType(ltype, null) && this.allowLiteralNull() && ((refined && this.refModeAllowNullStack.peek()) || !refined)) outputToFile((ParseTreeObject)(lor?e1:e2), Literal.constantNull());
+			if (!lor && (e2 instanceof Variable || e2 instanceof AllocationExpression || e2 instanceof ArrayAllocationExpression) && compatibleAssignType(ltype, null) && this.allowLiteralNull() && ((refined && this.refModeAllowNullStack.peek()) || !refined)) outputToFile((ParseTreeObject)(lor?e1:e2), Literal.constantNull());
 			do {
 				prev = getPreviousExpression(current);
 				java.util.List<Object> fnm = this.smartMode?fieldAndMethods(orig, prev, false):fieldAndMethods(prev, (ParseTreeObject) (lor?e1:e2));
@@ -1675,8 +1683,10 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (this.refinedMode && getMutationsLeft(p) > 0) {
 			if (this.unary) {
 				VariableDeclarator[] varDecls = p.getInitDecls();
-				for (VariableDeclarator vd : varDecls) {
-					visit(vd);
+				if (varDecls != null) {
+					for (VariableDeclarator vd : varDecls) {
+						visit(vd);
+					}
 				}
 			}
 			//FIXME: CHECK IF THE FOLLOWING CODE IS NECESSARY
@@ -1699,7 +1709,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			}
 			if (this.unary) {
 				ExpressionList increments = p.getIncrement();
-				for (int i = 0; i < increments.size(); i++) {
+				for (int i = 0; increments != null && i < increments.size(); i++) {
 					increments.accept(this);
 				}
 			}
@@ -1812,6 +1822,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	public void visit(BinaryExpression p) throws ParseTreeException {
 		if (this.justEvaluating) {
 			super.visit(p);
+			return;
 		}
 		Expression lexp = p.getLeft();
 		Expression rexp = p.getRight();
@@ -1889,9 +1900,10 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
-		pushComplyType(p, p);
+		boolean addAllocationToTypeStack = this.refModeComplyTypeStack.empty();
+		if (addAllocationToTypeStack) pushComplyType(p, p);
 		unaryVisit(p, p, true);
-		popComplyType(p);
+		if (addAllocationToTypeStack) popComplyType(p);
 		ExpressionList args = p.getArguments();
 		for (int a = 0; a < args.size(); a++) {
 			pushAllowNull(p, compatibleAssignType(getType(args.get(a)), null));

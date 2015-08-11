@@ -454,8 +454,11 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			} else if (current instanceof VariableDeclaration) {
 				addVar(variables, allVars, new Variable(((VariableDeclaration) current).getVariable()));
 			} else if (current instanceof ForStatement) {
-				for (VariableDeclarator vd : ((ForStatement) current).getInitDecls()) {
-					addVar(variables, allVars, new Variable(vd.getVariable()));
+				VariableDeclarator[] vds = ((ForStatement) current).getInitDecls();
+				if (vds != null) {
+					for (VariableDeclarator vd : vds) {
+						addVar(variables, allVars, new Variable(vd.getVariable()));
+					}
 				}
 			} else if (current instanceof StatementList) {
 				StatementList stList = (StatementList) current;
@@ -494,7 +497,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		if (current instanceof ForStatement) {
 			VariableDeclarator[] init = ((ForStatement) current).getInitDecls();
 			boolean found = false;
-			for (int i = 0; i < init.length && !found; i++) {
+			for (int i = 0; init != null && i < init.length && !found; i++) {
 				VariableDeclarator vd = init[i];
 				if (vd == exp) {
 					found = true;
@@ -512,9 +515,11 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 				}
 			}
 			if (!found) {
-				for (VariableDeclarator vd : ((ForStatement) current)
-						.getInitDecls()) {
-					addVar(variables, allVars, new Variable(vd.getVariable()));
+				VariableDeclarator[] vds = ((((ForStatement) current).getInitDecls()));
+				if (vds != null) {
+					for (VariableDeclarator vd : vds) {
+						addVar(variables, allVars, new Variable(vd.getVariable()));
+					}
 				}
 			}
 		}
@@ -953,13 +958,22 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	public OJClass lookupType(Expression p, OJClass c) {
 		OJClass result = null;
 		OJClass currentClass = c;
+		boolean exceptionOcurred = false;
 		do {
 			try {
 				result = p.getType(currentClass.getEnvironment());
 			} catch (NoSuchMemberException ex) {
-
+				exceptionOcurred = true;
 			} catch (Exception e) {
-
+				exceptionOcurred = true;
+			}
+			if (exceptionOcurred && result == null) {
+				try {
+					result = p.getType(env);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			if (result == null) {
 				currentClass = currentClass.getSuperclass();
@@ -1115,6 +1129,18 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		String name1NoPak = name1.substring(pakLastIndex1);
 		String name2NoPak = name2.substring(pakLastIndex2);
 		return name1NoPak.equals(name2NoPak);
+	}
+	
+	public static boolean sameType(OJClass c1, OJClass c2) {
+		if (c1 == null && c2 == null) return true;
+		if (c1 == null || c2 == null) return false;
+		if (c1 == null || c1.toString().compareTo("<type>null") == 0) {
+			return c2 == null || c2.toString().compareTo("<type>null") == 0;
+		}
+		if (c1 == null || "void".equalsIgnoreCase(c1.getName())) {
+			return c2 == null || "void".equalsIgnoreCase(c2.getName());
+		}
+		return compareNamesWithoutPackage(c1.getName(), c2.getName());
 	}
 
 	public static boolean compareNamesWithoutGenerics(String name1,

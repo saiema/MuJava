@@ -104,7 +104,7 @@ public class AOIU extends Arithmetic_OP {
 
 	public void visit(ReturnStatement p) throws ParseTreeException {
 		Expression exp = p.getExpression();
-		exp.accept(this);
+		if (exp != null) exp.accept(this);
 	}
 	
 	public void outputToFile(BinaryExpression original, UnaryExpression mutant) {

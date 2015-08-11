@@ -61,7 +61,7 @@ public class COD extends MethodLevelMutator {
 	public void visit(ReturnStatement p) throws ParseTreeException {
 		if (!(getMutationsLeft(p) > 0)) return;
 		Expression exp = p.getExpression();
-		exp.accept(this);
+		if (exp != null) exp.accept(this);
 	}
 
 	public void outputToFile(UnaryExpression original, Expression mutant) {

@@ -13,10 +13,13 @@ import openjava.ptree.CompilationUnit;
 import openjava.ptree.Expression;
 import openjava.ptree.ExpressionList;
 import openjava.ptree.MethodCall;
+import openjava.ptree.MethodDeclaration;
 import openjava.ptree.ParseTreeException;
 import openjava.ptree.ReturnStatement;
 import openjava.ptree.SelfAccess;
+import openjava.ptree.StatementList;
 import openjava.ptree.VariableDeclarator;
+import mujava.api.Api;
 import mujava.api.Mutant;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.util.Mutator;
@@ -88,7 +91,10 @@ public class OAN extends Mutator {
 				continue;
 			}
 			OJClass methodType = m.getReturnType();
-			if (!compareNamesWithoutPackage(mcType.getName(), methodType.getName())) {
+//			if (!compareNamesWithoutPackage(mcType.getName(), methodType.getName())) {
+//				continue;
+//			}
+			if (!sameType(mcType, methodType)) {
 				continue;
 			}
 			List<Integer> compatibleArgs = compatibleArguments(args, m.getParameterTypes());
@@ -151,7 +157,7 @@ public class OAN extends Mutator {
 	
 	public void visit(ReturnStatement p) throws ParseTreeException {
 		Expression exp = p.getExpression();
-		exp.accept(this);
+		if (exp != null) exp.accept(this);
 	}
 	
 	public void visit(VariableDeclarator p) throws ParseTreeException {
@@ -172,6 +178,18 @@ public class OAN extends Mutator {
 			
 			super.visit(lexp);
 			super.visit(rexp);
+		}
+	}
+	
+	public void visit(MethodDeclaration md) throws ParseTreeException {
+		if (Api.usingApi() && (!Api.insideClassToMutate() || !md.getName().equals(Api.getMethodUnderConsideration()))) {
+			return;
+		}
+		bindMethodParams(md);
+		bindLocalVariables(md.getBody());
+		StatementList body = md.getBody();
+		for (int s = 0; s < body.size(); s++) {
+			body.get(s).accept(this);
 		}
 	}
 

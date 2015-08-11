@@ -12,6 +12,7 @@ public class PRVO_Writer extends MutantCodeWriter {
 	private Literal original_lit;
 	private SelfAccess original_sa;
 	private AllocationExpression original_new;
+	private ArrayAccess original_aa;
 	
 	private FieldAccess mutant_fa;
 	private MethodCall mutant_mc;
@@ -55,6 +56,8 @@ public class PRVO_Writer extends MutantCodeWriter {
 			this.original_sa = (SelfAccess) v1;
 		} else if (v1 instanceof AllocationExpression) {
 			this.original_new = (AllocationExpression) v1;
+		} else if (v1 instanceof ArrayAccess) {
+			this.original_aa = (ArrayAccess) v1;
 		}
 	}
 	
@@ -185,6 +188,28 @@ public class PRVO_Writer extends MutantCodeWriter {
 	public void visit(AllocationExpression o) throws ParseTreeException {
 		if (isSameObject(o, this.original_new)) {
 			this.original_new = null;
+			if (this.mutant_fa != null) {
+				super.visit(this.mutant_fa);
+			} else if (this.mutant_lit != null) {
+				super.visit(this.mutant_lit);
+			} else if (this.mutant_mc != null) {
+				super.visit(this.mutant_mc);
+			} else if (this.mutant_sa != null) {
+				super.visit(this.mutant_sa);
+			} else if (this.mutant_var != null) {
+				super.visit(this.mutant_var);
+			}
+			// -------------------------------------------------------------
+		    mutated_line = line_num;
+			// -------------------------------------------------------------
+		} else {
+			super.visit(o);
+		}
+	}
+	
+	public void visit(ArrayAccess o) throws ParseTreeException {
+		if (isSameObject(o, this.original_aa)) {
+			this.original_aa = null;
 			if (this.mutant_fa != null) {
 				super.visit(this.mutant_fa);
 			} else if (this.mutant_lit != null) {

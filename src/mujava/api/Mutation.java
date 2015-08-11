@@ -176,18 +176,31 @@ public class Mutation {
 			if (res && mutantAsExpression != null) {
 				Expression mutantTerm = Mutator.getPreviousExpression(mutantAsExpression);
 				CompilationUnit comp_unit = Mutator.getCompilationUnit((ParseTreeObject) mutantTerm);
-				InstantiationSearcher instSearcher = new InstantiationSearcher(null, comp_unit, mutantTerm);
-				try {
-					instSearcher.visit(comp_unit);
-				} catch (ParseTreeException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-				}
-				if (instSearcher.allocationExpressionFound()) res = false;
+				if (findAllocationFor(comp_unit, mutantTerm)) res = false;
 			}
 			return res;
 		}
 		return res;
+	}
+	
+	private boolean findAllocationFor(CompilationUnit cu, Expression term) {
+		boolean found = false;
+		boolean error = false;
+		Expression currentTerm = term;
+		while (!error && !found && currentTerm != null) {
+			InstantiationSearcher instSearcher = new InstantiationSearcher(null, cu, currentTerm);
+			try {
+				instSearcher.visit(cu);
+				found = instSearcher.allocationExpressionFound();
+			} catch (ParseTreeException e) {
+//				e.printStackTrace();
+				error = true;
+			}
+			if (!error && !found) {
+				currentTerm = Mutator.getPreviousExpression(currentTerm);
+			}
+		}
+		return found;
 	}
 	
 	private String getLastName(Expression exp) {
