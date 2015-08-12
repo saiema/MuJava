@@ -961,7 +961,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		boolean exceptionOcurred = false;
 		do {
 			try {
-				result = p.getType(currentClass.getEnvironment());
+				result = p.getType(env);
 			} catch (NoSuchMemberException ex) {
 				exceptionOcurred = true;
 			} catch (Exception e) {
@@ -969,7 +969,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			}
 			if (exceptionOcurred && result == null) {
 				try {
-					result = p.getType(env);
+					result = p.getType(currentClass.getEnvironment());
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

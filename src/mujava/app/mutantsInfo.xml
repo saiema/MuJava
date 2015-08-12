@@ -345,14 +345,14 @@
             type="MethodLevel"
             isBasic="false"
             shortDescription="replace method calls with overriding method calls with compatible arguments, using strict type comparison"
-            fullDescription="replace f(args) with f'(args') such that args is (args', xs), each argument in args' is the same type as the corresponding one in args"
+            fullDescription="replace f(args) with f(args') such that args is (args', xs), each argument in args' is the same type as the corresponding one in args"
             affectsOneLine="true"
     />
     <mutant name="OAN_RELAXED"
             type="MethodLevel"
             isBasic="false"
             shortDescription="replace method calls with overriding method calls with compatible arguments"
-            fullDescription="replace f(args) with f'(args') such that args is (args', xs), each argument in args' has a type compatible with the corresponding one in args"
+            fullDescription="replace f(args) with f(args') such that args is (args', xs), each argument in args' has a type compatible with the corresponding one in args"
             affectsOneLine="true"
     />
     <mutant name="PCC"
