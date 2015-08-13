@@ -24,6 +24,11 @@ import openjava.ptree.ParseTreeException;
  */
 public class Api {
 	
+	/**
+	 * Option to enable/disable the acknowledge of //mutGenLimit K annotations
+	 * <p>
+	 * this option is enabled by default
+	 */
 	public static final String USE_MUTGENLIMIT = "api_use_mutgenlimit";
 
 	private static boolean usingApi = false;

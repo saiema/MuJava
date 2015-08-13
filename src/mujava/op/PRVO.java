@@ -32,6 +32,7 @@ import openjava.ptree.ConstructorInvocation;
 import openjava.ptree.DoWhileStatement;
 import openjava.ptree.Expression;
 import openjava.ptree.ExpressionList;
+import openjava.ptree.ExpressionStatement;
 import openjava.ptree.FieldAccess;
 import openjava.ptree.ForStatement;
 import openjava.ptree.IfStatement;
@@ -209,7 +210,12 @@ public class PRVO extends mujava.op.util.Mutator {
 	 * this option is enabled by default
 	 */
 	public static final String ENABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS = "prvo_primitive_to_object_assignments";
-	
+	/**
+	 * Option to enable/disable refinement in statements that only contains a method call
+	 * <p>
+	 * this option is disabled by default
+	 */
+	public static final String ENABLE_REFINEMENT_IN_METHOD_CALL_STATEMENTS = "prvo_enable_refinement_in_method_call_statements";
 	ParseTreeObject parent = null;
 
 	private boolean allowNonStatic = true;
@@ -237,7 +243,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	private Mutant op;
 
 	private HashMap<String, java.util.List<Object>> fieldsAndMethodsPerClass = new HashMap<String, java.util.List<Object>>();
-
+	
 	@SuppressWarnings("unchecked")
 	public PRVO(FileEnvironment file_env, ClassDeclaration cdecl,CompilationUnit comp_unit) {
 		super(file_env, comp_unit);
@@ -1132,6 +1138,13 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		return true;
 	}
+	
+	private boolean allowRefinementInMethodCallStatements() {
+		if (Configuration.argumentExist(ENABLE_REFINEMENT_IN_METHOD_CALL_STATEMENTS)) {
+			return (Boolean) Configuration.getValue(ENABLE_REFINEMENT_IN_METHOD_CALL_STATEMENTS);
+		}
+		return false;
+	}
 
 	private Expression addThisSuper(Expression exp) throws ParseTreeException {
 		if (exp == null) return null;
@@ -1921,6 +1934,15 @@ public class PRVO extends mujava.op.util.Mutator {
 			popAllowNull(p);
 		}
 	}
+	
+	public void visit(ExpressionStatement p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
+		Expression expr = p.getExpression();
+		if (expr != null) expr.accept(this);
+	}
 
 	public void visit(VariableDeclarator p) throws ParseTreeException {
 		if (this.justEvaluating) {
@@ -1967,10 +1989,9 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
-		if (p.getParent() instanceof Statement) {
-			return;
-		}
-		unaryVisit(p, p, true);
+		boolean parentIsStatement = p.getParent() instanceof Statement;
+		if (!parentIsStatement) unaryVisit(p, p, true);
+		if (parentIsStatement && !allowRefinementInMethodCallStatements()) return;
 		ExpressionList args = p.getArguments();
 		for (int a = 0; a < args.size(); a++) {
 			pushAllowNull(p, compatibleAssignType(getType(args.get(a)), null));
