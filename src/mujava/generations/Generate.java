@@ -20,12 +20,40 @@ public class Generate {
 	public static void main(String[] args) {
 		//String clazz = "pldi" + Core.SEPARATOR + "nodecachinglinkedlist" + Core.SEPARATOR + "NodeCachingLinkedList";
 		String clazz = "roops" + Core.SEPARATOR + "core" + Core.SEPARATOR + "objects" + Core.SEPARATOR + "SinglyLinkedList";
-		//String[] methods = {"addFirstUglyCopy"};
-		String[] methods = {"containsBugged"};
+		//String clazz = "rfm" + Core.SEPARATOR + "testingtool" + Core.SEPARATOR + "structures" + Core.SEPARATOR + "bstree" + Core.SEPARATOR + "BSTree";
+		String[] methods = {"insertBackBis"};
+		//String[] methods = {"remove"};// newNode removeNode smallest"};
 		Mutant[] ops = {	
-//				Mutant.PRVOL_SMART,
-//		        Mutant.PRVOR_REFINED,
+				Mutant.PRVOL_SMART,
+		        Mutant.PRVOR_REFINED,
 		        Mutant.PRVOU_REFINED,
+//		        Mutant.AODS,
+//		        Mutant.AODU,
+//		        Mutant.AOIS,
+//		        Mutant.AORB,
+//		        Mutant.AORS,
+//		        Mutant.AORU,
+//		        Mutant.ASRS,
+//		        Mutant.COI,
+//		        Mutant.COR,
+//		        Mutant.LOD,
+//		        Mutant.LOI,
+//		        Mutant.LOR,
+//		        Mutant.ROR,
+//		        Mutant.SOR,
+//		        Mutant.EMM,
+//		        Mutant.EOC,
+//		        Mutant.IPC,
+//		        Mutant.EAM,
+//		        Mutant.IOP,
+//		        Mutant.JTI_SMART,
+//		        Mutant.JTD,
+//		        Mutant.ISD_SMART,
+//		        Mutant.ISI_SMART,
+//		        Mutant.COD,
+//		        Mutant.AOIU,
+//		        Mutant.OAN_RELAXED,
+//		        Mutant.EOA,
 //				Mutant.AODS,
 //				Mutant.AODU,
 //				Mutant.AOIS,

@@ -27,7 +27,7 @@ public class MutationExpected {
 	}
 	
 	public boolean compareExpectedWithObtained(String orig, String mut, int line, Mutant op) {
-		boolean usualCompare = this.compareExpectedWithObtained(orig, mut, mutatedLine);
+		boolean usualCompare = this.compareExpectedWithObtained(orig, mut, line);
 		boolean operatorsMatch = this.op.toString().compareTo(op.toString()) == 0;
 		return usualCompare && operatorsMatch;
 	}

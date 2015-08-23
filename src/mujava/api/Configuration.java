@@ -6,6 +6,7 @@ import java.util.Map;
 import mujava.op.PRVO;
 import mujava.op.basic.COR;
 import mujava.op.basic.ROR;
+import mujava.op.util.OLMO;
 
 /**
  * This class allows to specify certain arguments to alter muJava++ behaviour
@@ -172,7 +173,10 @@ public final class Configuration {
 	 */
 	public static final String ENABLE_REFINEMENT_IN_METHOD_CALL_STATEMENTS = PRVO.ENABLE_REFINEMENT_IN_METHOD_CALL_STATEMENTS;
 	
-	
+	/**
+	 * {@link mujava.op.util.OLMO#DEBUG}
+	 */
+	public static final String ENABLE_OLMO_DEBUG_MODE = OLMO.DEBUG;
 	
 	
 	/**

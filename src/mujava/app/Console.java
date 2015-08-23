@@ -66,6 +66,7 @@ public class Console {
 		flags.setNoValueFlag('V'); //enable full verbose mode
 		flags.setNoValueFlag('p'); //disable mutations of the form a = b where a is of type Object and b is a primitive type expression
 		flags.setNoValueFlag('w'); //wrap mutations of the form a = b to a = new T(b), where a is of type Object and b is a primitive type expression
+		flags.setNoValueFlag('r'); //apply refined versions of PRVO to mutate arguments in statements containing only a method call
 		flags.setDependence('T', 'S');
 		flags.setDependence('S', 'T');
 		flags.setDependence('t', 'T');
@@ -80,6 +81,7 @@ public class Console {
 		flags.setDependence('Q', 'm');
 		flags.setDependence('p', 'm');
 		flags.setDependence('w', 'm');
+		flags.setDependence('r', 'm');
 		
 		
 		System.out.println("Validating parameters...");
@@ -341,6 +343,13 @@ public class Console {
 			Configuration.add(PRVO.ENABLE_PRIMITIVE_WRAPPING, Boolean.FALSE);
 		}
 		
+		if (flags.flagExist('r')) {
+			System.out.println("Apply PRVOX_REFINED to mutate arguments in statements containing only a method call");
+			Configuration.add(Configuration.ENABLE_REFINEMENT_IN_METHOD_CALL_STATEMENTS, Boolean.TRUE);
+		} else {
+			Configuration.add(Configuration.ENABLE_REFINEMENT_IN_METHOD_CALL_STATEMENTS, Boolean.FALSE);
+		}
+		
 		
 		
 		System.out.println("Parameters validated\n\n");
@@ -395,6 +404,7 @@ public class Console {
 		System.out.println("-V								| optional parameter | effect : enable full verbose mode");
 		System.out.println("-p								| optional parameter | effect : disable mutations of the form a = b where a is of type Object and b is a primitive type expression");
 		System.out.println("-w								| optional parameter | effect : wrap mutations of the form a = b to a = new T(b), where a is of type Object and b is a primitive type expression");
+		System.out.println("-r								| optional parameter | effect : apply refined versions of PRVO to mutate arguments in statements containing only a method call");
 	}
 	
 	private static void mutopsHelp() {

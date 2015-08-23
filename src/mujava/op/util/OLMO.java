@@ -4,7 +4,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
+
 import mujava.api.Api;
+import mujava.api.Configuration;
 import mujava.api.Mutant;
 import mujava.api.Mutation;
 import openjava.ptree.AllocationExpression;
@@ -86,6 +88,8 @@ import openjava.ptree.util.ParseTreeVisitor;
  */
 
 public class OLMO extends ParseTreeVisitor {
+	
+	public static final String DEBUG = "olmo.debug";
 	
 	private Mutation mi;
 	private java.util.List<Mutation> mis;
@@ -287,6 +291,16 @@ public class OLMO extends ParseTreeVisitor {
 		if (pto != null && !this.modifyAST && !this.mergingMutants && (this.stopCountingLines && ((this.guardMutation_getMutGenLimitLine && this.guardMutation_mutGenLimitLineFound) || !this.guardMutation_getMutGenLimitLine))) return;
 		if (pto != null) {
 			if (this.mergingMutants || this.modifyAST || this.searchingNode) {
+				if (debugMode()) {
+					try {
+						System.out.println("***DEBUG: OLMO#acceptPTO");
+						System.out.println("***DEBUG: current node: " + pto.toFlattenString() + "ID(" + pto.getObjectID()+")");
+						System.out.println("***DEBUG: original node to replace: " + this.mi.getOriginal().toFlattenString() + "ID(" + this.mi.getOriginal().getObjectID() + ")");
+					} catch (Exception e) {
+						System.err.println("***DEBUG: ERROR IN OLMO#acceptPTO");
+						e.printStackTrace();
+					}
+				}
 				if (isSameObject(this.mi.getOriginal(), pto)) {
 					if (this.decreaseMutGenLimit) {
 						ParseTreeObject parent = null;
@@ -318,6 +332,20 @@ public class OLMO extends ParseTreeVisitor {
 	}
 	
 	private ParseTreeObject replace(ParseTreeObject original, ParseTreeObject replacement) throws ParseTreeException {
+		if (debugMode()) {
+			try {
+				ParseTreeObject originalParent = original.getParent();
+				ParseTreeObject replacementParent = replacement.getParent();
+				System.out.println("***DEBUG: OLMO#replace");
+				System.out.println("***DEBUG: original: " + original.toFlattenString() + "ID(" + original.getObjectID() + ")");
+				System.out.println("***DEBUG: original parent: " + (originalParent!=null?originalParent.toFlattenString():"null parent") + "ID(" + (originalParent!=null?originalParent.getObjectID():"null parent") + ")");
+				System.out.println("***DEBUG: replacement: " + replacement.toFlattenString() + "ID(" + replacement.getObjectID() + ")");
+				System.out.println("***DEBUG: replacement parent: " + (replacementParent!=null?replacementParent.toFlattenString():"null parent") + "ID(" + (replacementParent!=null?replacementParent.getObjectID():"null parent" + ")"));
+			} catch (Exception e) {
+				System.err.println("***DEBUG: ERROR IN OLMO#replace");
+				e.printStackTrace();
+			}
+		}
 		if (replacement instanceof StatementList) {
 			if (original instanceof StatementList) {
 				original.replace(replacement);
@@ -882,6 +910,14 @@ public class OLMO extends ParseTreeVisitor {
 	@Override
 	public void visit(TypeParameterList p) throws ParseTreeException {
 		//ignore all
+	}
+	
+	
+	private boolean debugMode() {
+		if (Configuration.argumentExist(DEBUG)) {
+			return (Boolean) Configuration.getValue(DEBUG);
+		}
+		return false;
 	}
 
 

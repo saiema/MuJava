@@ -188,6 +188,14 @@ public class ConfigReader {
 			public String getFlag() {
 				return "-w";
 			}
+		},
+		APPLY_REF_PRVO_TO_METHODCALLS_STATEMENTS {
+			public String getKey() {
+				return "mutation.advanced.applyRefinedPRVOInMethodCallStatements";
+			}
+			public String getFlag() {
+				return "-r";
+			}
 		}
 		;
 		//MUTATION ADVANCED
@@ -320,6 +328,7 @@ public class ConfigReader {
 		conf.allowFieldMutations(getBooleanArgument(Config_key.ALLOW_FIELD_MUTATIONS));
 		conf.allowPrimitiveToObjectAssignments(getBooleanArgument(Config_key.DISABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS));
 		conf.wrapPrimitiveToObjectAssignments(getBooleanArgument(Config_key.WRAP_PRIMITIVE_TO_OBJECT_ASSIGNMENTS));
+		conf.applyRefinedPRVOInMethodCallStatements(getBooleanArgument(Config_key.APPLY_REF_PRVO_TO_METHODCALLS_STATEMENTS));
 		for (String bannedField : stringArgumentsAsArray(getStringArgument(Config_key.BANNED_FIELDS))) {
 			conf.addBannedField(bannedField);
 		}
@@ -400,6 +409,7 @@ public class ConfigReader {
 			case FULL_VERBOSE:
 			case DISABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS:
 			case WRAP_PRIMITIVE_TO_OBJECT_ASSIGNMENTS:
+			case APPLY_REF_PRVO_TO_METHODCALLS_STATEMENTS:
 			case ALLOW_NUMERIC_LITERAL_VARIATIONS: return true;
 			case BANNED_FIELDS:
 			case BANNED_METHODS:

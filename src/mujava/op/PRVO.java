@@ -70,7 +70,7 @@ import java.util.List;
  * @author Nicolás Magni
  * @author Santiago José Samra
  * @author Matías Williams
- * <hr> rewritten by
+ * <hr> <p> rewritten by
  * @author Simón Emmanuel Gutiérrez Brida
  * @version 3.3
  */

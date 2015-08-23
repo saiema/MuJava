@@ -9,6 +9,7 @@ package mujava.op.basic;
 import mujava.api.Configuration;
 import mujava.api.Mutant;
 import mujava.api.MutantsInformationHolder;
+import mujava.op.util.Mutator;
 import openjava.mop.FileEnvironment;
 import openjava.ptree.BinaryExpression;
 import openjava.ptree.ClassDeclaration;
@@ -87,36 +88,42 @@ public class ROR extends Arithmetic_OP {
 		if (op != BinaryExpression.GREATER) {
 			mutant = (BinaryExpression) (exp.makeRecursiveCopy_keepOriginalID());
 			mutant.setOperator(BinaryExpression.GREATER);
+			Mutator.setParentOf(mutant, exp, true);
 			outputToFile(exp, mutant);
 		}
 
 		if (op != BinaryExpression.GREATEREQUAL) {
 			mutant = (BinaryExpression) (exp.makeRecursiveCopy_keepOriginalID());
 			mutant.setOperator(BinaryExpression.GREATEREQUAL);
+			Mutator.setParentOf(mutant, exp, true);
 			outputToFile(exp, mutant);
 		}
 
 		if (op != BinaryExpression.LESS) {
 			mutant = (BinaryExpression) (exp.makeRecursiveCopy_keepOriginalID());
 			mutant.setOperator(BinaryExpression.LESS);
+			Mutator.setParentOf(mutant, exp, true);
 			outputToFile(exp, mutant);
 		}
 
 		if (op != BinaryExpression.LESSEQUAL) {
 			mutant = (BinaryExpression) (exp.makeRecursiveCopy_keepOriginalID());
 			mutant.setOperator(BinaryExpression.LESSEQUAL);
+			Mutator.setParentOf(mutant, exp, true);
 			outputToFile(exp, mutant);
 		}
 
 		if (op != BinaryExpression.EQUAL) {
 			mutant = (BinaryExpression) (exp.makeRecursiveCopy_keepOriginalID());
 			mutant.setOperator(BinaryExpression.EQUAL);
+			Mutator.setParentOf(mutant, exp, true);
 			outputToFile(exp, mutant);
 		}
 
 		if (op != BinaryExpression.NOTEQUAL) {
 			mutant = (BinaryExpression) (exp.makeRecursiveCopy_keepOriginalID());
 			mutant.setOperator(BinaryExpression.NOTEQUAL);
+			Mutator.setParentOf(mutant, exp, true);
 			outputToFile(exp, mutant);
 		}
 		if (allowReplacementWithFalse()) outputToFile(exp, Literal.constantFalse());
@@ -128,12 +135,14 @@ public class ROR extends Arithmetic_OP {
 		if (op != BinaryExpression.EQUAL) {
 			mutant = (BinaryExpression) (exp.makeRecursiveCopy_keepOriginalID());
 			mutant.setOperator(BinaryExpression.EQUAL);
+			Mutator.setParentOf(mutant, exp, true);
 			outputToFile(exp, mutant);
 		}
 
 		if (op != BinaryExpression.NOTEQUAL) {
 			mutant = (BinaryExpression) (exp.makeRecursiveCopy_keepOriginalID());
 			mutant.setOperator(BinaryExpression.NOTEQUAL);
+			Mutator.setParentOf(mutant, exp, true);
 			outputToFile(exp, mutant);
 		}
 		if (allowReplacementWithFalse()) outputToFile(exp, Literal.constantFalse());

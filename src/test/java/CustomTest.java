@@ -195,59 +195,23 @@ public class CustomTest {
 									TestingTools.NO_PATTERN_EXPECTED);
 		
 		List<Mutant> operators10 = Arrays.asList(new Mutant[]{
-				Mutant.AMC,
-				Mutant.AODS,
-				Mutant.AODU,
-				Mutant.AOIS,
-				Mutant.AOIU,
-				Mutant.AORB,
-				Mutant.AORS,
-				Mutant.AORU,
-				Mutant.ASRS,
-				Mutant.COD,
-				Mutant.COI,
-				Mutant.COR,
-				Mutant.COR,
-				Mutant.EAM,
-				Mutant.EMM,
 				Mutant.ROR,
-				Mutant.SOR,
-				Mutant.EOA_STRICT,
-				Mutant.EOC_SMART,
-				Mutant.IHD,
-				Mutant.IHI,
-				Mutant.IOD,
-				Mutant.IOP,
-				Mutant.IPC,
-				Mutant.ISD_SMART,
-				Mutant.ISI_SMART,
-				Mutant.JDC,
-				Mutant.JID,
-				Mutant.JSD,
-				Mutant.JSI,
-				Mutant.JTD,
-				Mutant.JTI_SMART,
-				Mutant.LOD,
-				Mutant.LOI,
-				Mutant.LOR,
-				Mutant.OAN_RELAXED,
-				Mutant.OMR,
-				Mutant.PCC,
-				Mutant.PCD,
-				Mutant.PNC,
-				Mutant.PPD,
-				Mutant.PRVOL_SMART,
-				Mutant.PRVOR_REFINED,
 				Mutant.PRVOU_REFINED
 		});
+		List<MutationExpected> expectedMutations10 = new LinkedList<>();
+		MutationExpected prvou_refined_line_10 = new MutationExpected("null", "valueParam", 10, Mutant.PRVOU_REFINED);
+		MutationExpected ror_line_7 = new MutationExpected("current.value != null", "current.value == null", 7, Mutant.ROR);
+		expectedMutations10.add(prvou_refined_line_10);
+		expectedMutations10.add(ror_line_7);
+		SpecificMutationsFilter filter10 = new SpecificMutationsFilter(expectedMutations10);
 		Property propCustom10 = new Property(operators10,
-											"roops/core/objects/SinglyLinkedList_stryker",
-											"getNode",
+											"roops/core/objects/SinglyLinkedList",
+											"containsBis",
 											TestingTools.NO_MUTANTS_EXPECTED,
 											TestingTools.NO_MUTANTS_EXPECTED,
 											TestingTools.NO_PATTERN_EXPECTED,
 											TestingTools.NO_PATTERN_EXPECTED,
-											new MultiMutationsFilter(),
+											filter10,
 											true);
 		
 		

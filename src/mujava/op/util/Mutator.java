@@ -439,12 +439,23 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	}
 
 	public Map<OJClass, List<Variable>> getReachableVariables(ParseTreeObject exp) throws ParseTreeException {
-		return getReachableVariables((Statement)getStatement(exp, -1));
+		Statement previousStatement = (Statement)getStatement(exp, -1);
+		Map<OJClass, List<Variable>> variables = new HashMap<OJClass, List<Variable>>();
+		List<Variable> allVars = new LinkedList<Variable>();
+		getReachableVariables(previousStatement, variables, allVars);
+		getMethodDeclarationVariables(exp, variables, allVars);
+		return variables;
 	}
 	
 	public Map<OJClass, List<Variable>> getReachableVariables(Statement exp) throws ParseTreeException {
 		Map<OJClass, List<Variable>> variables = new HashMap<OJClass, List<Variable>>();
 		List<Variable> allVars = new LinkedList<Variable>();
+		getReachableVariables(exp, variables, allVars);
+		getMethodDeclarationVariables((ParseTreeObject) exp, variables, allVars);
+		return variables;
+	}
+	
+	private void getReachableVariables(Statement exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars ) throws ParseTreeException {
 		addForVariables((ParseTreeObject) exp, variables, allVars);
 		ParseTreeObject current = (ParseTreeObject) exp;
 		ParseTreeObject limit = current;
@@ -480,7 +491,10 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 				limit = current;
 			current = current.getParent();
 		}
-		ParseTreeObject methodDeclaration = getMethodDeclaration((ParseTreeObject) exp);
+	}
+	
+	private void getMethodDeclarationVariables(ParseTreeObject exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars) throws ParseTreeException {
+		ParseTreeObject methodDeclaration = getMethodDeclaration(exp);
 		if (methodDeclaration != null) {
 			ParameterList params = ((MethodDeclaration) methodDeclaration)
 					.getParameters();
@@ -489,8 +503,8 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 				addVar(variables, allVars, new Variable(param.getVariable()));
 			}
 		}
-		return variables;
 	}
+	
 
 	private void addForVariables(ParseTreeObject exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars) throws ParseTreeException {
 		ParseTreeObject current = getStatement(exp);

@@ -51,6 +51,7 @@ public class Config {
 	private boolean allowNumericLiteralVariations;
 	private boolean disablePrimitiveToObjectAssignments;
 	private boolean wrapPrimitiveToObjectAssignments;
+	private boolean applyRefinedPRVOInMethodCallStatements;
 	//advanced mutation options
 	
 	//mutation score
@@ -312,6 +313,14 @@ public class Config {
 	
 	public void wrapPrimitiveToObjectAssignments(boolean b) {
 		this.wrapPrimitiveToObjectAssignments = b;
+	}
+	
+	public boolean applyRefinedPRVOInMethodCallStatements() {
+		return this.applyRefinedPRVOInMethodCallStatements;
+	}
+	
+	public void applyRefinedPRVOInMethodCallStatements(boolean b) {
+		this.applyRefinedPRVOInMethodCallStatements = b;
 	}
 	
 	public List<Method> getClassMethods() {
