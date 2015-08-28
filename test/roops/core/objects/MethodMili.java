@@ -1,5 +1,7 @@
 package roops.core.objects;
 
+import openjava.ptree.ParseTreeException;
+import mujava.OpenJavaException;
 import mujava.api.Configuration;
 import mujava.api.Mutant;
 import mujava.app.Core;
@@ -46,7 +48,7 @@ public class MethodMili {
 		return d; //mutGenLimit 1
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws ClassNotFoundException, OpenJavaException, ParseTreeException {
         String clazz = "roops"  + Core.SEPARATOR + "core" + Core.SEPARATOR + "objects"  + Core.SEPARATOR +  "MethodMili"; //clase a correr, para a.Clase pon�s "a" + Core.SEPARATOR + "Clase"
         String[] methods = {"m"}; //m�todos a mutar
         Mutant[] ops = {                        //operadores a utilizar
@@ -79,7 +81,7 @@ public class MethodMili {
         GoalTester goalTester = new GenerationsGoalTester(1); //cuantas generaciones quer�s generar (actualmente 1)
         RequestGenerator requestGenerator = new SameRequestGenerator(originalRequest);
         Generator generator = new Generator(requestGenerator, goalTester, Generator.VERBOSE_LEVEL.FULL_VERBOSE);
-        GenerationsInformation generationsInfo = generator.generate(false);
+        GenerationsInformation generationsInfo = generator.generate(false, false);
         System.out.println(generationsInfo.showBasicInformation());
 }
 }

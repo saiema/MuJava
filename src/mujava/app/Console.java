@@ -31,6 +31,7 @@ public class Console {
 	static String[] methodsToMutate = null;
 	static boolean mutationScore = false;
 	static String[] testClasses = new String[]{"mutationScore.BooleanOpsAndTests", "mutationScore.BooleanOpsXorTests", "mutationScore.BooleanOpsXnorTests", "mutationScore.BooleanOpsOrTests"};
+	static int generations = 1;
 	
 	public static void main(String[] args) {
 		
@@ -67,6 +68,8 @@ public class Console {
 		flags.setNoValueFlag('p'); //disable mutations of the form a = b where a is of type Object and b is a primitive type expression
 		flags.setNoValueFlag('w'); //wrap mutations of the form a = b to a = new T(b), where a is of type Object and b is a primitive type expression
 		flags.setNoValueFlag('r'); //apply refined versions of PRVO to mutate arguments in statements containing only a method call
+		flags.setOptionalFlag('g'); //define how many mutants generations to generate
+		flags.setNoValueFlag('W'); //show surviving mutants
 		flags.setDependence('T', 'S');
 		flags.setDependence('S', 'T');
 		flags.setDependence('t', 'T');
@@ -82,12 +85,14 @@ public class Console {
 		flags.setDependence('p', 'm');
 		flags.setDependence('w', 'm');
 		flags.setDependence('r', 'm');
+		flags.setDependence('W', 'S');
 		
 		
 		System.out.println("Validating parameters...");
 		//================================validate input================================================//
 		if (!flags.validateInput(args)) {
-			System.out.println("To get help on how to run mujava++ please run with only flag -H");
+			System.err.println("Invalid Params");
+			System.err.println("To get help on how to run mujava++ please run with only flag -H");
 			return;
 		}
 		
@@ -99,14 +104,14 @@ public class Console {
 		if (flags.flagExist('x')) {
 			for (String op : flags.getFlagValues('x')) {
 				if (!mi.isSupported(Mutant.valueOf(op))) {
-					System.out.println("Mutation operator ("+op+") is unsupported");
-					System.out.println("To see a list with all mutation operators currently supported run mujava++ with only flag -h");
+					System.err.println("Mutation operator ("+op+") is unsupported");
+					System.err.println("To see a list with all mutation operators currently supported run mujava++ with only flag -h");
 					return;
 				}
 				ops.add(Mutant.valueOf(op));
 			}
 		} else {
-			ops.addAll(mi.listBasicOperators());
+			ops.addAll(mi.allOps());
 		}
 		System.out.println("Operators: " + ops.toString());
 		
@@ -126,7 +131,7 @@ public class Console {
 		//mutant source dir
 		List<String> mutDir = flags.getFlagValues('M');
 		if (mutDir.size() != 1) {
-			System.out.println("-M flag must have only one value");
+			System.err.println("-M flag must have only one value");
 			return;
 		}
 		if (verifyDirectory(mutDir.get(0))) {
@@ -140,11 +145,11 @@ public class Console {
 		//original source dir
 		List<String> sourceDir = flags.getFlagValues('O');
 		if (sourceDir.size() != 1) {
-			System.out.println("-O flag must have only one value");
+			System.err.println("-O flag must have only one value");
 			return;
 		}
 		if (!verifyDirectory(sourceDir.get(0))) {
-			System.out.println("Original source directory ("+sourceDir.get(0)+") doesn't exist");
+			System.err.println("Original source directory ("+sourceDir.get(0)+") doesn't exist");
 			return;
 		}
 		originalSourceDir = sourceDir.get(0);
@@ -154,11 +159,11 @@ public class Console {
 		//original bin dir
 		List<String> binDir = flags.getFlagValues('B');
 		if (binDir.size() != 1) {
-			System.out.println("-B flag must have only one value");
+			System.err.println("-B flag must have only one value");
 			return;
 		}
 		if (!verifyDirectory(binDir.get(0))) {
-			System.out.println("Original bin directory ("+binDir.get(0)+") doesn't exist");
+			System.err.println("Original bin directory ("+binDir.get(0)+") doesn't exist");
 			return;
 		}
 		originalBinDir = binDir.get(0);
@@ -169,11 +174,11 @@ public class Console {
 		if (mutationScore) {
 			List<String> testDir = flags.getFlagValues('T');
 			if (testDir.size() != 1) {
-				System.out.println("-T flag must have only one value");
+				System.err.println("-T flag must have only one value");
 				return;
 			}
 			if (!verifyDirectory(testDir.get(0))) {
-				System.out.println("Tests directory ("+testDir.get(0)+") doesn't exist");
+				System.err.println("Tests directory ("+testDir.get(0)+") doesn't exist");
 				return;
 			}
 			testBinDir = testDir.get(0);
@@ -183,7 +188,7 @@ public class Console {
 		//=============================verify class to mutate============================================//
 		List<String> ctm = flags.getFlagValues('m');
 		if (ctm.size() != 1) {
-			System.out.println("-m flag must have only one value");
+			System.err.println("-m flag must have only one value");
 			return;
 		}
 		System.out.println("\n\nVerifying class to mutate...");
@@ -193,7 +198,7 @@ public class Console {
 		System.out.println("Class to mutate as path: "+ctm.get(0).replaceAll("\\.", Core.SEPARATOR));
 		System.out.println("Class to mutate full path: "+originalSourceDir+ctm.get(0).replaceAll("\\.", Core.SEPARATOR)+".java\n");
 		if (!verifyFile(originalSourceDir+ctm.get(0).replaceAll("\\.", Core.SEPARATOR)+".java")) {
-			System.out.println("Class to mutate ("+(originalSourceDir+ctm.get(0).replaceAll("\\.", Core.SEPARATOR)+".java")+") doesn't exist");
+			System.err.println("Class to mutate ("+(originalSourceDir+ctm.get(0).replaceAll("\\.", Core.SEPARATOR)+".java")+") doesn't exist");
 			return;
 		}
 		classToMutate = ctm.get(0);
@@ -205,7 +210,7 @@ public class Console {
 			List<String> tclasses = flags.getFlagValues('t');
 			for (String tc : tclasses) {
 				if (!verifyFile(testBinDir+tc.replaceAll("\\.", Core.SEPARATOR)+".class")) {
-					System.out.println("Test class ("+(testBinDir+tc.replaceAll("\\.", Core.SEPARATOR)+".class")+") doesn't exist");
+					System.err.println("Test class ("+(testBinDir+tc.replaceAll("\\.", Core.SEPARATOR)+".class")+") doesn't exist");
 					return;
 				}
 			}
@@ -224,7 +229,7 @@ public class Console {
 			mtm.addAll(flags.getFlagValues('s'));
 			for (String m : mtm) {
 				if (!verifyMethod(m)) {
-					System.out.println("No such method ("+m+") on class to mutate ("+classToMutate+")");
+					System.err.println("No such method ("+m+") on class to mutate ("+classToMutate+")");
 					return;
 				}
 			}
@@ -350,6 +355,28 @@ public class Console {
 			Configuration.add(Configuration.ENABLE_REFINEMENT_IN_METHOD_CALL_STATEMENTS, Boolean.FALSE);
 		}
 		
+		if (flags.flagExist('g')) {
+			List<String> valuesForGeneration = flags.getFlagValues('g');
+			if (valuesForGeneration.size() != 1) {
+				System.err.println("Only one value is accepted for flag -g (values given : " + valuesForGeneration.size() + ")");
+				return;
+			}
+			generations = Integer.valueOf(valuesForGeneration.get(0));
+			if (generations <= 0) {
+				System.err.println("Can't use a value <= 0 for generations (value used : " + generations + ")");
+				return;
+			}
+		} else {
+			generations = 1;
+		}
+		System.out.println("Generations to generate: " + generations);
+		
+		if (flags.flagExist('W')) {
+			System.out.println("Showing surviving mutants at the end of mutation score");
+			Core.showSurvivingMutants = true;
+		} else {
+			Core.showSurvivingMutants = false;
+		}
 		
 		
 		System.out.println("Parameters validated\n\n");
@@ -357,17 +384,17 @@ public class Console {
 		//================================Mutants generation==============================================//
 		System.out.println("Generating mutants...\n");
 		//List<Mutant> basicMutants = mi.listBasicOperators();
-		boolean result = core.generateMutants(classToMutate, methodsToMutate, ops.toArray(new Mutant[ops.size()]));
+		boolean result = core.generateMutants(classToMutate, methodsToMutate, ops.toArray(new Mutant[ops.size()]), generations);
 		if (!result) {
-			core.lastError().printStackTrace();
+			core.lastError().printStackTrace(System.err);
 		} else {
 			System.out.println(core.lastMutantsFolder().toString());
 		}
 		System.out.println("\nMutants generated\n\n");
 		
 		//==============================Mutation score====================================================//;
-		if (mutationScore && !core.lastMutantsFolder().isEmpty()) {
-			System.out.println("Calculating mutation score\n");
+		if (mutationScore && core.lastMutantsFolder() != null && !core.lastMutantsFolder().isEmpty()) {
+			System.out.println("Calculating mutation score for generation (" + generations + ")\n");
 			MutationScore ms = MutationScore.newInstance(mutantsSourceDir, originalBinDir, testBinDir);
 			core.setMutationScore(ms);
 			float mutationScoreResult = core.calculateMutationScore(testClasses, classToMutate);
@@ -405,6 +432,8 @@ public class Console {
 		System.out.println("-p								| optional parameter | effect : disable mutations of the form a = b where a is of type Object and b is a primitive type expression");
 		System.out.println("-w								| optional parameter | effect : wrap mutations of the form a = b to a = new T(b), where a is of type Object and b is a primitive type expression");
 		System.out.println("-r								| optional parameter | effect : apply refined versions of PRVO to mutate arguments in statements containing only a method call");
+		System.out.println("-g <generations>				| optional parameter | effect : generate <generations> of mutants | e.g.: -g 2 will generate the first and second generations of mutants");
+		System.out.println("-W								| optional parameter | required : -S | effect : shows which mutants that compile and were not killed by any test");
 	}
 	
 	private static void mutopsHelp() {

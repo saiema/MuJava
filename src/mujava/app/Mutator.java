@@ -702,6 +702,7 @@ public class Mutator implements Runnable{
 			} catch (ParseTreeException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
+				System.err.println("mutated file: " + mutatedFile);
 				e.printStackTrace();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block

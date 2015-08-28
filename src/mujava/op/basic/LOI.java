@@ -65,7 +65,7 @@ public class LOI extends Arithmetic_OP {
 	
 	public void visit(UnaryExpression p) throws ParseTreeException {
 		if (!(getMutationsLeft(p)>0)) return;
-		if (isArithmeticType(p)) {
+		if (isArithmeticType(p) && !(p.getParent() instanceof Statement)) {
 			UnaryExpression originalCopy = (UnaryExpression) p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutant = new UnaryExpression(UnaryExpression.BIT_NOT, originalCopy);
 			outputToFile(p, mutant);

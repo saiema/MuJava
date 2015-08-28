@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 //import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -37,6 +38,9 @@ public class Reloader extends ClassLoader {
 	protected Set<String> reloadableCache;
 	protected List<Class<?>> reloadableClassCache;
 	protected Reloader child;
+	private int reloadersCreated = 0;
+	private static final int MAX_RELOADERS_BEFORE_CLEANING = 150;
+	
 	/**
 	 * This map allows to define a specific path for each class
 	 */
@@ -44,6 +48,9 @@ public class Reloader extends ClassLoader {
 
 	public Reloader(List<String> classpath, ClassLoader parent) {
 		super(parent);
+		if (parent instanceof Reloader) {
+			this.reloadersCreated = ((Reloader)parent).reloadersCreated + 1;
+		}
 		this.classpath = new TreeSet<String>();
 		this.classpath.addAll(classpath);
 		this.reloadableCache = new TreeSet<String>();
@@ -59,6 +66,9 @@ public class Reloader extends ClassLoader {
 	
 	private Reloader(Set<String> classpath, ClassLoader parent) {
 		super(parent);
+		if (parent instanceof Reloader) {
+			this.reloadersCreated = ((Reloader)parent).reloadersCreated + 1;
+		}
 		this.classpath = classpath;
 		this.reloadableClassCache = new LinkedList<Class<?>>();
 	}
@@ -67,6 +77,54 @@ public class Reloader extends ClassLoader {
 		this.specificClassPaths.put(className, path);
 	}
 	
+	private Reloader cleanReloader() {
+		Set<String> childReloadableCache = new TreeSet<String>();
+		childReloadableCache.addAll(this.reloadableCache);
+		ClassLoader firstClassloader = getFirstClassLoader();
+		Reloader cleanSlate = new Reloader(this.classpath, firstClassloader, childReloadableCache, this.specificClassPaths);
+		cleanSlate.reloadersCreated = 1;
+		unlinkPreviousReloadersAndLinkWithFirstReloader(firstClassloader, cleanSlate);
+		return cleanSlate;
+	}
+	
+	private void unlinkPreviousReloadersAndLinkWithFirstReloader(ClassLoader until, Reloader newReloader) {
+		ClassLoader current = this; //this reloader is the only one to be left unchanged
+		while (current instanceof Reloader && current != until) {
+			if (current != this) {
+				((Reloader)current).child = null;
+			}
+			ClassLoader parent = current.getParent();
+			Field[] fields = ClassLoader.class.getDeclaredFields();
+			Field parentField = null;
+			for (Field f : fields) {
+				if (f.getName().compareTo("parent") == 0) {
+					parentField = f;
+					break;
+				}
+			}
+			if (parentField != null) {
+				parentField.setAccessible(true);
+				try {
+					parentField.set(current, (ClassLoader)null);
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					e.printStackTrace();
+				}
+				parentField.setAccessible(false);
+			}
+			current = parent;			
+		}
+		if (until != null && until instanceof Reloader) {
+			((Reloader)until).child = newReloader;
+		}
+	}
+	
+	private ClassLoader getFirstClassLoader() {
+		ClassLoader fcl = this;
+		while (fcl.getParent() instanceof Reloader) {
+			fcl = fcl.getParent();
+		}
+		return fcl;
+	}
 
 	@Override
 	public Class<?> loadClass(String s) throws ClassNotFoundException {
@@ -175,9 +233,7 @@ public class Reloader extends ClassLoader {
 
 	protected Class<?> reload(String s) throws ClassNotFoundException {
 		Class<?> clazz = null;
-		Set<String> childReloadableCache = new TreeSet<String>();
-		childReloadableCache.addAll(this.reloadableCache);
-		Reloader r = new Reloader(this.classpath, this, childReloadableCache, this.specificClassPaths);
+		Reloader r = newReloader();
 		for (String c : this.reloadableCache) {
 			if (c.compareTo(s) != 0) {
 				Class<?> newClass = r.loadAgain(c);
@@ -188,6 +244,16 @@ public class Reloader extends ClassLoader {
 		this.child = r;
 		r.addToCache(clazz);
 		return clazz;
+	}
+	
+	private Reloader newReloader() {
+		if (this.reloadersCreated == Reloader.MAX_RELOADERS_BEFORE_CLEANING) {
+			return this.cleanReloader();
+		} else {
+			Set<String> childReloadableCache = new TreeSet<String>();
+			childReloadableCache.addAll(this.reloadableCache);
+			return new Reloader(this.classpath, this, childReloadableCache, this.specificClassPaths);
+		}
 	}
 
 	protected Class<?> retrieveFromCache(String s) {

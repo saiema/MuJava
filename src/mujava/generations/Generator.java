@@ -7,13 +7,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import openjava.ptree.ParseTreeException;
 import mujava.OpenJavaException;
@@ -43,6 +43,7 @@ public class Generator {
 	private VERBOSE_LEVEL verboseLevel = VERBOSE_LEVEL.NO_VERBOSE;
 	private Integer currentGeneration = -1;
 	private static boolean useLowMemoryMode = false;
+	private Map<Integer, Map<String, List<String>>> mutantsFoldersPerGeneration;
 	
 	
 	public static void useLowMemoryMode(boolean ulmm) {
@@ -77,6 +78,7 @@ public class Generator {
 		this.goalTester = tester;
 		this.mutator = new Mutator();
 		this.mutantHashes = new HashSet<byte[]>();
+		this.mutantsFoldersPerGeneration = new TreeMap<Integer, Map<String, List<String>>>();
 	}
 	
 	/**
@@ -85,8 +87,11 @@ public class Generator {
 	 * 
 	 * @param checkOnEveryMutant	:	if {@code true} then the {@code GoalTester} will be used on every new mutant, if {@code false} it will be used on every new generation : {@code boolean}
 	 * @return the information of the generated mutant generations : {@code GenerationsInformation}
+	 * @throws ClassNotFoundException 
+	 * @throws OpenJavaException 
+	 * @throws ParseTreeException 
 	 */
-	public GenerationsInformation generate(boolean checkOnEveryMutant) {
+	public GenerationsInformation generate(boolean checkOnEveryMutant, boolean throwExceptions) throws ClassNotFoundException, OpenJavaException, ParseTreeException {
 		boolean goalAchieved = false;
 		GenerationsInformation ginfo = new GenerationsInformation(Generator.useLowMemoryMode);
 		this.currentGeneration = 0;
@@ -113,10 +118,12 @@ public class Generator {
 				int currentMutant = 0;
 				String currentGenerationDir = request.outputDir;
 				for (MutantInfo mut : lastGeneration) {
-					request.outputDir = appendDir(currentGenerationDir, "mutant-"+Integer.toString(currentMutant));
+					String mutantDir = "mutant-"+Integer.toString(currentMutant);
+					request.outputDir = appendDir(currentGenerationDir, mutantDir);
 					mutFile = new File(mut.getPath());
 					copyMutant(mutFile.getAbsolutePath(), originalFile.getAbsolutePath());
 					List<MutantInfo> mutants = generateNextGeneration(request, checkOnEveryMutant, ginfo);
+					updateFolders(this.currentGeneration, mutantDir);
 					if (!checkOnEveryMutant) ginfo.add(this.currentGeneration, mutants);
 					if (!checkOnEveryMutant) this.goalTester.update(ginfo);
 					goalAchieved = this.goalTester.goalAchieved();
@@ -132,34 +139,64 @@ public class Generator {
 			restoreOriginal(originalFile);
 			
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			System.err.println("ClassNotFoundException while generating generation " + this.currentGeneration);
-			System.err.println("Current file: " + (mutFile!=null?(mutFile.getAbsolutePath()):("null")));
-			e.printStackTrace();
-			//return null;
+			if (this.verboseLevel.equals(Generator.VERBOSE_LEVEL.DEBUG) || this.verboseLevel.equals(Generator.VERBOSE_LEVEL.FULL_VERBOSE)) {
+				System.err.println("ClassNotFoundException while generating generation " + this.currentGeneration);
+				System.err.println("Current file: " + (mutFile!=null?(mutFile.getAbsolutePath()):("null")));
+			}
+			if (throwExceptions) {
+				throw e;
+			} else {
+				e.printStackTrace();
+			}
 		} catch (OpenJavaException e) {
-			// TODO Auto-generated catch block
-			System.err.println("OpenJavaException while generating generation " + this.currentGeneration);
-			System.err.println("Current file: " + (mutFile!=null?(mutFile.getAbsolutePath()):("null")));
-			e.printStackTrace();
-			//return null;
+			if (this.verboseLevel.equals(Generator.VERBOSE_LEVEL.DEBUG) || this.verboseLevel.equals(Generator.VERBOSE_LEVEL.FULL_VERBOSE)) {
+				System.err.println("OpenJavaException while generating generation " + this.currentGeneration);
+				System.err.println("Current file: " + (mutFile!=null?(mutFile.getAbsolutePath()):("null")));
+			}
+			if (throwExceptions) {
+				throw e;
+			} else {
+				e.printStackTrace();
+			}
 		} catch (ParseTreeException e) {
-			// TODO Auto-generated catch block
-			System.err.println("ParseTreeException while generating generation " + this.currentGeneration);
-			System.err.println("Current file: " + (mutFile!=null?(mutFile.getAbsolutePath()):("null")));
-			e.printStackTrace();
-			//return null;
+			if (this.verboseLevel.equals(Generator.VERBOSE_LEVEL.DEBUG) || this.verboseLevel.equals(Generator.VERBOSE_LEVEL.FULL_VERBOSE)) {
+				System.err.println("ParseTreeException while generating generation " + this.currentGeneration);
+				System.err.println("Current file: " + (mutFile!=null?(mutFile.getAbsolutePath()):("null")));
+			}
+			if (throwExceptions) {
+				throw e;
+			} else {
+				e.printStackTrace();
+			}
 		}
 		
 		return ginfo;
 	}
 	
+	private void updateFolders(Integer generation, String mutantDir) {
+		Map<String, List<String>> mutantsFolders = this.getMutantsFolderForGeneration(generation);
+		Map<String, List<String>> updatedMutantsFolders = new TreeMap<String, List<String>>();
+		for (Entry<String, List<String>> entry : mutantsFolders.entrySet()) {
+			if (entry.getKey().startsWith("mutant-")) {
+				updatedMutantsFolders.put(entry.getKey(), entry.getValue());
+			} else {
+				updatedMutantsFolders.put(mutantDir + Core.SEPARATOR + entry.getKey(), entry.getValue());
+			}
+		}
+		this.mutantsFoldersPerGeneration.put(generation, updatedMutantsFolders);
+	}
+
+
 	public String info(GenerationsInformation generationsInfo) {
 		String status = "Generated generations : " + generationsInfo.getGenerations() + "\n";
 		for (int g = 1; g <= generationsInfo.getGenerations(); g++) {
 			status += "generation " + g + " have " + generationsInfo.getGeneration(g).size() + " mutants";
 		}
 		return status;
+	}
+	
+	public Map<String, List<String>> getMutantsFolderForGeneration(int generation) {
+		return this.mutantsFoldersPerGeneration.get(generation);
 	}
 	
 	/**
@@ -217,6 +254,10 @@ public class Generator {
 			List<MutantInfo> filteredMutants = filterRepeatedMutants(newMutants);
 			mutantsInfo.addAll(filteredMutants);
 		}
+		if (Generator.useLowMemoryMode) {
+			clearPreviousGenerationsMutantsFolders();
+		}
+		addMutantsFoldersForCurrentGeneration(mutator.mutantsFolders);
 		mutator.resetMutantFolders();
 		return mutantsInfo;
 	}
@@ -243,15 +284,15 @@ public class Generator {
 		return filteredMutants;
 	}
 	
-	private boolean hashExists(byte[] hash) {
-		for (byte[] other : this.mutantHashes) {
-			if (Arrays.equals(hash, other)) {
-				return true;
-			}
-		}
-		this.mutantHashes.add(hash);
-		return false;
-	}
+//	private boolean hashExists(byte[] hash) {
+//		for (byte[] other : this.mutantHashes) {
+//			if (Arrays.equals(hash, other)) {
+//				return true;
+//			}
+//		}
+//		this.mutantHashes.add(hash);
+//		return false;
+//	}
 
 	/**
 	 * This method generates mutants of the next generation checking the {@code GoalTester} on each new mutant
@@ -275,12 +316,54 @@ public class Generator {
 			goalAchieved = this.goalTester.goalAchieved();
 			if (!goalAchieved) mi = mut.getNext();
 		}
+		if (Generator.useLowMemoryMode) {
+			clearPreviousGenerationsMutantsFolders();
+		}
+		addMutantsFoldersForCurrentGeneration(mutator.mutantsFolders);
 		mut.resetMutantFolders();
 		return filterRepeatedMutants(mutantsInfo);
 	}
 	
 	//======================AUXILIARY METHODS======================
 	
+	private void clearPreviousGenerationsMutantsFolders() {
+		for (int g = 1; g < this.currentGeneration; g++) {
+			this.mutantsFoldersPerGeneration.remove(g);
+		}
+	}
+
+
+	private void addMutantsFoldersForCurrentGeneration(Map<String, List<String>> mutantsFolders) {
+		if (this.mutantsFoldersPerGeneration.containsKey(this.currentGeneration)) {
+			Map<String, List<String>> mutantsFolderForCurrGen = this.mutantsFoldersPerGeneration.get(this.currentGeneration);
+			for (Entry<String, List<String>> newEntry : mutantsFolders.entrySet()) {
+				if (mutantsFolderForCurrGen.containsKey(newEntry.getKey())) {
+					List<String> existingValues = mutantsFolderForCurrGen.get(newEntry.getKey());
+					for (String newValue : newEntry.getValue()) {
+						if (!exist(existingValues, newValue)) {
+							existingValues.add(newValue);
+						}
+					}
+				} else {
+					mutantsFolderForCurrGen.put(newEntry.getKey(), newEntry.getValue());
+				}
+			}
+		} else {
+			this.mutantsFoldersPerGeneration.put(this.currentGeneration, mutantsFolders);
+		}
+	}
+
+
+	private boolean exist(List<String> values, String val) {
+		for (String v : values) {
+			if (v.compareTo(val) == 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
 	private void verbose(GenerationsInformation ginfo) {
 		switch (this.verboseLevel) {
 			case BASIC_VERBOSE: {

@@ -52,12 +52,14 @@ public class Config {
 	private boolean disablePrimitiveToObjectAssignments;
 	private boolean wrapPrimitiveToObjectAssignments;
 	private boolean applyRefinedPRVOInMethodCallStatements;
+	private int generation;
 	//advanced mutation options
 	
 	//mutation score
 	private boolean runMutationScore;
 	private String testsBinDir;
 	private Set<String> testClasses;
+	private boolean showSurvivingMutants;
 	//mutation score
 	
 	//mutation score advanced options
@@ -76,6 +78,8 @@ public class Config {
 		this.originalSrcDir = addTrailingSeparator(originalSourceDir);
 		this.originalBinDir = addTrailingSeparator(originalBinDir);
 		this.mutantsOutputFolder = addTrailingSeparator(mutantsOutputFolder);
+		this.generation = 1;
+		this.showSurvivingMutants = false;
 		clearMethodsToMutate();
 		clearOperators();
 		fullVerboseMode(false);
@@ -323,6 +327,22 @@ public class Config {
 		this.applyRefinedPRVOInMethodCallStatements = b;
 	}
 	
+	public int generation() {
+		return this.generation;
+	}
+	
+	public void generation(int i) {
+		this.generation = i;
+	}
+	
+	public boolean showSurvivingMutants() {
+		return this.showSurvivingMutants;
+	}
+	
+	public void showSurvivingMutants(boolean b) {
+		this.showSurvivingMutants = b;
+	}
+	
 	public List<Method> getClassMethods() {
 		if (this.methodsInClassToMutate != null && !this.methodsInClassToMutate.isEmpty()) return this.methodsInClassToMutate;
 		List<Method> classMethods = new LinkedList<Method>();
@@ -391,6 +411,7 @@ public class Config {
 		//verify folders
 		if (!verifyDirectory(addTrailingSeparator(this.originalSrcDir))) return "Invalid directory (Original source folder) : " + this.originalSrcDir;
 		if (!verifyDirectory(addTrailingSeparator(this.originalBinDir))) return "Invalid directory (Original binary folder) : " + this.originalBinDir;
+		if (this.generation <= 0) return "Invalid generation (" + this.generation + ") , valid values are > 0"; 
 		if (this.testsBinDir != null && !verifyDirectory(addTrailingSeparator(this.testsBinDir))) return "Invalid directory (Tests binary folder) : " + this.testsBinDir;
 		if (this.testsBinDir == null && this.runMutationScore) return "Mutation score is enabled but no tests binary folder has been selected";
 		if (!getClassesInOriginalBinDir().contains(this.classToMutate)) return "Class " + this.classToMutate + " can't be found inside " + this.originalBinDir;
@@ -421,6 +442,7 @@ public class Config {
 			if (!this.packagesInOriginalBinDir.contains(apr)) return "Package " + apr + " is not present in " + this.originalBinDir;
 		}
 		if (!this.quickDeath && this.runMutationScore) return "Quick death option is enabled but mutation score is not";
+		if (!this.runMutationScore && this.showSurvivingMutants) return "Show surviving mutants is enabled but mutation score is not";
 		return null;
 	}
 	

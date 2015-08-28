@@ -2395,25 +2395,34 @@ public class PRVO extends mujava.op.util.Mutator {
 	
 	private void addNumberLiteralsVariations(Literal literal) {
 		if (literal.getLiteralType()==Literal.INTEGER) {
-			Integer intLiteral = Integer.valueOf(literal.toFlattenString().trim());
+			Integer intLiteral = Integer.valueOf(removeEndingChar(literal.toFlattenString().trim()));
 			this.literals.add(Literal.makeLiteral(intLiteral.doubleValue()));
 			this.literals.add(Literal.makeLiteral(intLiteral.floatValue()));
 			this.literals.add(Literal.makeLiteral(intLiteral.longValue()));
 		} else if (literal.getLiteralType()==Literal.DOUBLE) {
-			Double doubleLiteral = Double.valueOf(literal.toFlattenString().trim());
+			Double doubleLiteral = Double.valueOf(removeEndingChar(literal.toFlattenString().trim()));
 			this.literals.add(Literal.makeLiteral(doubleLiteral.intValue()));
 			this.literals.add(Literal.makeLiteral(doubleLiteral.floatValue()));
 			this.literals.add(Literal.makeLiteral(doubleLiteral.longValue()));
 		} else if (literal.getLiteralType()==Literal.FLOAT) {
-			Float floatLiteral = Float.valueOf(literal.toFlattenString().trim());
+			Float floatLiteral = Float.valueOf(removeEndingChar(literal.toFlattenString().trim()));
 			this.literals.add(Literal.makeLiteral(floatLiteral.intValue()));
 			this.literals.add(Literal.makeLiteral(floatLiteral.doubleValue()));
 			this.literals.add(Literal.makeLiteral(floatLiteral.longValue()));
 		} else if (literal.getLiteralType()==Literal.LONG) {
-			Long longLiteral = Long.valueOf(literal.toFlattenString().trim());
+			Long longLiteral = Long.valueOf(removeEndingChar(literal.toFlattenString().trim()));
 			this.literals.add(Literal.makeLiteral(longLiteral.intValue()));
 			this.literals.add(Literal.makeLiteral(longLiteral.doubleValue()));
 			this.literals.add(Literal.makeLiteral(longLiteral.floatValue()));
+		}
+	}
+	
+	private String removeEndingChar(String original) {
+		char lastChar = original.charAt(original.length() - 1);
+		if (!Character.isDigit(lastChar)) {
+			return original.substring(0, original.length() - 1);
+		} else {
+			return original;
 		}
 	}
 	

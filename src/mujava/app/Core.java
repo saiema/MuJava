@@ -8,17 +8,21 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.FileSystems;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
 import org.junit.runner.notification.Failure;
 
-import mujava.OpenJavaException;
 import mujava.api.Mutant;
-import mujava.api.MutantsInformationHolder;
+import mujava.generations.GenerationsGoalTester;
+import mujava.generations.GenerationsInformation;
+import mujava.generations.Generator;
+import mujava.generations.GoalTester;
+import mujava.generations.RequestGenerator;
+import mujava.generations.SameRequestGenerator;
 
 /**
  * This class execute all commands either from console or from a GUI
@@ -28,15 +32,16 @@ import mujava.api.MutantsInformationHolder;
 public class Core {
 	public static String SEPARATOR = fixBackslash(FileSystems.getDefault().getSeparator());
 	private static Core instance = null;
-	private Mutator mutator = null;
+//	private Mutator mutator = null;
 	private static String inputDir;
 	private static String outputDir;
 	private String inputBinDir;
-	private List<MutantsInformationHolder> mutantsInformationHolder;
-	private HashMap<String, List<String>> mutantsFolders;
+	private Map<String, List<String>> mutantsFolders;
 	private Exception error;
 	private MutationScore ms;
+	private int generation = -1 ;
 	public static boolean fullVerbose = false;
+	public static boolean showSurvivingMutants = false;
 	public static final int mujavappVersion = 20151008;
 	
 	public static Core newInstance(String inputDirP, String outputDirP) {
@@ -74,33 +79,28 @@ public class Core {
 	}
 	
 	public boolean generateMutants(String className, String[] methods, Mutant[] mutOps) {
+		return generateMutants(className, methods, mutOps, 1);
+	}
+	
+	public boolean generateMutants(String className, String[] methods, Mutant[] mutOps, int generation) {
 		this.error = null;
 		this.mutantsFolders = null;
-		this.mutantsInformationHolder = null;
 		if (methods == null) {
-			Class<?> clazz = loadClass(className);
-			if (clazz == null) {
-				return false;
-			} else {
-				Method[] classMethods = clazz.getDeclaredMethods();
-				methods = new String[classMethods.length];
-				int i = 0;
-				for (Method m : classMethods) {
-					methods[i] = m.getName();
-					i++;
-				}
-			}
+			this.error = new IllegalArgumentException("mujava.app.Core#generateMutantsForGeneration: methods param is null");
+			return false;
 		}
-		MutationRequest mutationRequest = new MutationRequest(className.replaceAll("\\.", SEPARATOR), methods, mutOps, Core.inputDir, Core.outputDir);
-		this.mutator = new Mutator(mutationRequest);
+		String classNameAsPath = className.replaceAll("\\.", SEPARATOR);
+		MutationRequest originalRequest = new MutationRequest(classNameAsPath, methods, mutOps, Core.inputDir, Core.outputDir);
+		GoalTester goalTester = new GenerationsGoalTester(generation);
+		RequestGenerator requestGenerator = new SameRequestGenerator(originalRequest);
+		Generator.useLowMemoryMode(true);
+		Generator generator = new Generator(requestGenerator, goalTester, (Core.fullVerbose?Generator.VERBOSE_LEVEL.FULL_VERBOSE:Generator.VERBOSE_LEVEL.NO_VERBOSE));
 		try {
-			this.mutator.generateMutants();
-			this.mutantsInformationHolder = this.mutator.getMIH();
-			this.mutantsFolders = this.mutator.mutantsFolders;
-			this.mutator.resetMutantFolders();
-		} catch (ClassNotFoundException e) {
-			this.error = e;
-		} catch (OpenJavaException e) {
+			GenerationsInformation generationsInfo= generator.generate(false, true);
+			if (Core.fullVerbose) System.out.println(generationsInfo.showBasicInformation());
+			this.mutantsFolders = generator.getMutantsFolderForGeneration(generation);
+			this.generation = generation;
+		} catch (Exception e) {
 			this.error = e;
 		}
 		return this.error == null;
@@ -143,11 +143,7 @@ public class Core {
 		return this.error;
 	}
 	
-	public List<MutantsInformationHolder> lastMutantInformationHolder() {
-		return this.mutantsInformationHolder;
-	}
-	
-	public HashMap<String, List<String>> lastMutantsFolder() {
+	public Map<String, List<String>> lastMutantsFolder() {
 		return this.mutantsFolders;
 	}
 	
@@ -160,6 +156,7 @@ public class Core {
 	}
 	
 	public float calculateMutationScore(String[] testClasses, String className) {
+		List<String> survivingMutantsPaths = new LinkedList<>();
 		int failedToCompile = 0;
 		int mutantsKilled = 0;
 		int mutants = 0;
@@ -167,8 +164,10 @@ public class Core {
 		for (Entry<String, List<String>> entry : lastMutantsFolder().entrySet()) {
 			for (String path : entry.getValue()) {
 				mutants++;
-				String pathToFile = entry.getKey() + SEPARATOR + path;
-				if (!ms.compile(pathToFile + className.replaceAll("\\.", SEPARATOR)+".java")){
+				String currGen = "generation-" + this.generation;
+				String pathToFile = currGen + SEPARATOR + entry.getKey() + SEPARATOR + path;
+				String fullPathToJavaFile = pathToFile + className.replaceAll("\\.", SEPARATOR)+".java"; 
+				if (!ms.compile(fullPathToJavaFile)){
 					System.out.println("File : " + Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java" + " didn't compile\n");
 					failedToCompile++;
 					continue;
@@ -196,9 +195,18 @@ public class Core {
 					if (!killed && !r.wasSuccessful()) killed = true;
 				}
 				if (killed) mutantsKilled++;
+				if (!killed && Core.showSurvivingMutants) {
+					survivingMutantsPaths.add(fullPathToJavaFile);
+				}
 			}
 		}
 		System.out.println("Mutants : "+ mutants + " | didn't compile : " + failedToCompile + " | mutants killed by tests : "+ mutantsKilled + " | surviving mutants : " + (mutants-failedToCompile-mutantsKilled) + " | total tests that timedout : " + timedOut + " | mutation score : "+((mutantsKilled+failedToCompile)*100.0)/mutants+ " | mutation score (only compiling mutants) : " + (mutantsKilled*100.0)/(mutants-failedToCompile) + '\n');
+		if (Core.showSurvivingMutants) {
+			System.out.println("Surviving mutants paths:\n");
+			for (String sm : survivingMutantsPaths) {
+				System.out.println(sm);
+			}
+		}
 		return ((mutantsKilled+failedToCompile)*(float)100.0)/mutants;
 	}
 	

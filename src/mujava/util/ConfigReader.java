@@ -99,6 +99,14 @@ public class ConfigReader {
 				return "-t";
 			}
 		},
+		SHOW_SURVIVING_MUTANTS {
+			public String getKey() {
+				return "mutation.basic.showSurvivingMutants";
+			}
+			public String getFlag() {
+				return "-W";
+			}
+		},
 		//MUTATION BASIC
 		//MUTATION ADVANCED
 		BANNED_METHODS {
@@ -196,7 +204,15 @@ public class ConfigReader {
 			public String getFlag() {
 				return "-r";
 			}
-		}
+		},
+		GENERATIONS {
+			public String getKey() {
+				return "mutation.advanced.generations";
+			}
+			public String getFlag() {
+				return "-g";
+			}
+		},
 		;
 		//MUTATION ADVANCED
 
@@ -303,6 +319,9 @@ public class ConfigReader {
 			if (argumentExist(ck)) {
 				if (isBooleanKey(ck)) {
 					if (getBooleanArgument(ck)) args.add(ck.getFlag());
+				} else if (isIntKey(ck)) {
+					args.add(ck.getFlag());
+					args.add(String.valueOf(getIntArgument(ck)));
 				} else {
 					args.add(ck.getFlag());
 					for (String arg : this.stringArgumentsAsArray(getStringArgument(ck))) {
@@ -329,6 +348,7 @@ public class ConfigReader {
 		conf.allowPrimitiveToObjectAssignments(getBooleanArgument(Config_key.DISABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS));
 		conf.wrapPrimitiveToObjectAssignments(getBooleanArgument(Config_key.WRAP_PRIMITIVE_TO_OBJECT_ASSIGNMENTS));
 		conf.applyRefinedPRVOInMethodCallStatements(getBooleanArgument(Config_key.APPLY_REF_PRVO_TO_METHODCALLS_STATEMENTS));
+		conf.generation(getIntArgument(Config_key.GENERATIONS));
 		for (String bannedField : stringArgumentsAsArray(getStringArgument(Config_key.BANNED_FIELDS))) {
 			conf.addBannedField(bannedField);
 		}
@@ -342,12 +362,14 @@ public class ConfigReader {
 		conf.allowNumericLiteralVariations(getBooleanArgument(Config_key.ALLOW_NUMERIC_LITERAL_VARIATIONS));
 		conf.runMutationScore(getBooleanArgument(Config_key.MUTATION_SCORE));
 		if (conf.runMutationScore()) conf.testsBinDir(getStringArgument(Config_key.TESTS_BIN_DIR));
+		if (conf.runMutationScore()) conf.showSurvivingMutants(getBooleanArgument(Config_key.SHOW_SURVIVING_MUTANTS));
 		if (conf.runMutationScore()) {
 			for (String testClass : stringArgumentsAsArray(getStringArgument(Config_key.TESTS))) {
 				conf.addTestClass(testClass);
 			}
 		}
 		if (conf.runMutationScore()) conf.quickDeath(getBooleanArgument(Config_key.QUICK_DEATH));
+		if (conf.runMutationScore()) conf.showSurvivingMutants(getBooleanArgument(Config_key.SHOW_SURVIVING_MUTANTS));
 		String validationError = conf.validate();
 		if (validationError != null) throw new IllegalStateException("Bad configuration : " + validationError);
 		return conf;
@@ -360,6 +382,8 @@ public class ConfigReader {
 			if (argumentExist(ck)) {
 				if (isBooleanKey(ck)) {
 					confBuilder.addProperty(ck.getKey(), getBooleanArgument(ck));
+				} else if (isIntKey(ck)) {
+					confBuilder.addProperty(ck.getKey(), getIntArgument(ck));
 				} else {
 					confBuilder.addProperty(ck.getKey(), getStringArgument(ck));
 				}
@@ -370,7 +394,7 @@ public class ConfigReader {
 	
 	//TODO: comment
 	public String getStringArgument(Config_key key) {
-		if (!argumentExist(key) || isBooleanKey(key)) {
+		if (!argumentExist(key) || isBooleanKey(key) || isIntKey(key)) {
 			return "";
 		}
 		return this.config.getString(key.getKey());
@@ -378,8 +402,14 @@ public class ConfigReader {
 	
 	//TODO: comment
 	public boolean getBooleanArgument(Config_key key) {
-		if (!argumentExist(key) || !isBooleanKey(key)) return false;
+		if (!argumentExist(key) || !isBooleanKey(key) || isIntKey(key)) return false;
 		return this.config.getBoolean(key.getKey());
+	}
+	
+	//TODO: comment
+	public int getIntArgument(Config_key key) {
+		if (!argumentExist(key) || isBooleanKey(key) || !isIntKey(key)) return 0;
+		return this.config.getInt(key.getKey());
 	}
 	
 	//TODO: comment
@@ -402,6 +432,7 @@ public class ConfigReader {
 	
 	public boolean isBooleanKey(Config_key key) {
 		switch (key) {
+			case GENERATIONS: 
 			case ALLOWED_PACKAGES_TO_RELOAD: return false;
 			case ALLOW_CLASS_MUTATIONS:
 			case ALLOW_FIELD_MUTATIONS:
@@ -410,6 +441,7 @@ public class ConfigReader {
 			case DISABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS:
 			case WRAP_PRIMITIVE_TO_OBJECT_ASSIGNMENTS:
 			case APPLY_REF_PRVO_TO_METHODCALLS_STATEMENTS:
+			case SHOW_SURVIVING_MUTANTS:
 			case ALLOW_NUMERIC_LITERAL_VARIATIONS: return true;
 			case BANNED_FIELDS:
 			case BANNED_METHODS:
@@ -423,6 +455,13 @@ public class ConfigReader {
 			case ORIGINAL_SOURCE_DIR:
 			case TESTS: 
 			case TESTS_BIN_DIR: return false;
+			default : return false;
+		}
+	}
+	
+	public boolean isIntKey(Config_key key) {
+		switch (key) {
+			case GENERATIONS : return true;
 			default : return false;
 		}
 	}
