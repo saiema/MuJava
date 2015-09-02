@@ -39,7 +39,7 @@ Inside test folder you should have
   * BooleanOpsOrTests.java
   * BooleanOpsAndTests.java
 
-Go to the test folder and run **_javac utils/*.java** and **_javac -cp <path to junit> mutationScore/*.java_**
+Go to the test folder and run **_javac utils/*.java_** and **_javac -cp <path to junit> mutationScore/*.java_**
 
 Now from the folder mjexample you can run
 
