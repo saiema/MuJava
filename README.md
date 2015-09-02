@@ -8,6 +8,7 @@ An extension of [muJava](https://github.com/tradi/MuJava) : A Mutation Testing T
     java -cp <paths to jar files inside lib folder>:<mujava++.jar path>:<proyect's bin path>:[<tests bin path>] mujava.app.Console [PATH TO CUSTOM .PROPERTIES FILE]
 
 * **_JUnit is not included, you should have installed in your system_**
+* **_To list all mutation operators and their information call mujava with --args -h as parameters_**
 
 **Suggested VM Arguments**
 
