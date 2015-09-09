@@ -48,9 +48,11 @@ _java -cp mujava.jar:\<paths to each jar inside lib/\*\>:\<path to junit.jar\>:t
 
 where **ARGS** can be one of the following:
 
--p[roperties] : to give a specific .properties file to mujava++
--o[perators] : prints all mutation operators information
--h[elp] : prints mujava++ help
+\-p[roperties] : to give a specific .properties file to mujava++
+
+\-o[perators] : prints all mutation operators information
+
+\-h[elp] : prints mujava++ help
 
 \* : except from javadoc jars
 
