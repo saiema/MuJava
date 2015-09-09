@@ -21,30 +21,6 @@ public class BooleanOpsAndTests {
 		this.val2 = val2;
 		this.result = result;
 	}
-
-//	@Test
-//	public void testAndFT() {
-//		boolean ftretf = BooleanOps.and(false, true);
-//		assertFalse(ftretf);
-//	}
-//	
-//	@Test
-//	public void testAndTF() {
-//		boolean tfretf = BooleanOps.and(true, false);
-//		assertFalse(tfretf);
-//	}
-//	
-//	@Test
-//	public void testAndFF() {
-//		boolean ffretf = BooleanOps.and(false, false);
-//		assertFalse(ffretf);
-//	}
-//	
-//	@Test
-//	public void testAndTT() {
-//		boolean ttrett = BooleanOps.and(true, true);
-//		assertTrue(ttrett);
-//	}
 	
 	@Parameters
 	public static Collection<Object[]> testValues() {

@@ -12,11 +12,16 @@ import java.util.TreeSet;
 import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.Mutant;
+import mujava.loader.Reloader;
 import mujava.op.PRVO;
 import mujava.util.ConfigReader;
 
 
-
+/**
+ * 
+ * @author Simon Emmanuel Gutierrez Brida
+ * @deprecated use {@link mujava.app.Main} instead
+ */
 public class Console {
 	
 	static MutatorsInfo mi = MutatorsInfo.getInstance();
@@ -70,6 +75,7 @@ public class Console {
 		flags.setNoValueFlag('r'); //apply refined versions of PRVO to mutate arguments in statements containing only a method call
 		flags.setOptionalFlag('g'); //define how many mutants generations to generate
 		flags.setNoValueFlag('W'); //show surviving mutants
+		flags.setOptionalFlag('c'); //sets how many Reloader instances will be created until the old ones are cleaned
 		flags.setDependence('T', 'S');
 		flags.setDependence('S', 'T');
 		flags.setDependence('t', 'T');
@@ -86,6 +92,7 @@ public class Console {
 		flags.setDependence('w', 'm');
 		flags.setDependence('r', 'm');
 		flags.setDependence('W', 'S');
+		flags.setDependence('c', 'S');
 		
 		
 		System.out.println("Validating parameters...");
@@ -378,6 +385,21 @@ public class Console {
 			Core.showSurvivingMutants = false;
 		}
 		
+		if (flags.flagExist('c')) {
+			List<String> valuesForReloaderLimit = flags.getFlagValues('c');
+			if (valuesForReloaderLimit.size() != 1) {
+				System.err.println("Only one value is accepted for flag -c (values given : " + valuesForReloaderLimit.size() + ")");
+				return;
+			}
+			int rlimit = Integer.valueOf(valuesForReloaderLimit.get(0));
+			if (rlimit <= 0) {
+				System.err.println("Can't use a value <= 0 for Reloader limit (value used : " + rlimit + ")");
+				return;
+			}
+			System.out.println("Cleaning Reloader instances after " + rlimit + " instances");
+			Reloader.MAX_RELOADERS_BEFORE_CLEANING = rlimit;
+		}
+		
 		
 		System.out.println("Parameters validated\n\n");
 		
@@ -434,6 +456,7 @@ public class Console {
 		System.out.println("-r								| optional parameter | effect : apply refined versions of PRVO to mutate arguments in statements containing only a method call");
 		System.out.println("-g <generations>				| optional parameter | effect : generate <generations> of mutants | e.g.: -g 2 will generate the first and second generations of mutants");
 		System.out.println("-W								| optional parameter | required : -S | effect : shows which mutants that compile and were not killed by any test");
+		System.out.println("-c <instances>					| optional parameter | required : -S | effect : sets how many Reloader instances will be created until the old ones are cleaned");
 	}
 	
 	private static void mutopsHelp() {

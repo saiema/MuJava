@@ -141,7 +141,8 @@ public class PNC extends mujava.op.util.Mutator {
 	
 	public void visit(VariableDeclaration vd) throws ParseTreeException {
 		if (!(getMutationsLeft(vd) > 0)) return;
-		vd.getInitializer().accept(this);
+		VariableInitializer vi = vd.getInitializer();
+		if (vi != null) vi.accept(this);
 	}
 
 	

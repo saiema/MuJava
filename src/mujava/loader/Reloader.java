@@ -1,8 +1,6 @@
 package mujava.loader;
 
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 //import java.util.Iterator;
@@ -23,14 +21,16 @@ import java.util.TreeSet;
  * <li>reloading and re-linking a class and all classes marked as reloadable</li>
  * <li>instead of requiring to load a class as reloadable this version allows to just mark a class as reloadable</li>
  * <li>mark all classes in a folder and set this folder as priority path</li>
+ * <li>Allows to define path per class, this avoids the need to move .class files</li>
  * <p>
  * <p>
  * Main changes from previous version:
- * <li>Allows to define path per class, this avoids the need to move .class files</li>
+ * <li>Old Reloaders are freed to improve performance</li>
+ * <li>Classes byte code are stored to avoid reloading classes that don't change</li>
  * <p>
  * 
  * @author Simon Emmanuel Gutierrez Brida
- * @version 2.10
+ * @version 2.5
  */
 public class Reloader extends ClassLoader {
 	protected Set<String> classpath;
@@ -39,7 +39,8 @@ public class Reloader extends ClassLoader {
 	protected List<Class<?>> reloadableClassCache;
 	protected Reloader child;
 	private int reloadersCreated = 0;
-	private static final int MAX_RELOADERS_BEFORE_CLEANING = 150;
+	private ByteCodeContainer byteCodeContainer;
+	public static int MAX_RELOADERS_BEFORE_CLEANING = 150;
 	
 	/**
 	 * This map allows to define a specific path for each class
@@ -50,6 +51,9 @@ public class Reloader extends ClassLoader {
 		super(parent);
 		if (parent instanceof Reloader) {
 			this.reloadersCreated = ((Reloader)parent).reloadersCreated + 1;
+			this.byteCodeContainer = ((Reloader)parent).byteCodeContainer;
+		} else {
+			this.byteCodeContainer = new ByteCodeContainer();
 		}
 		this.classpath = new TreeSet<String>();
 		this.classpath.addAll(classpath);
@@ -68,6 +72,9 @@ public class Reloader extends ClassLoader {
 		super(parent);
 		if (parent instanceof Reloader) {
 			this.reloadersCreated = ((Reloader)parent).reloadersCreated + 1;
+			this.byteCodeContainer = ((Reloader)parent).byteCodeContainer;
+		} else {
+			this.byteCodeContainer = new ByteCodeContainer();
 		}
 		this.classpath = classpath;
 		this.reloadableClassCache = new LinkedList<Class<?>>();
@@ -173,7 +180,6 @@ public class Reloader extends ClassLoader {
 	
 	public void setPathAsPriority(String path) {
 		this.priorityPath = path;
-		//this.classpath.remove(path);
 	}
 	
 	public void markEveryClassInFolderAsReloadable(String folder) {
@@ -306,13 +312,8 @@ public class Reloader extends ClassLoader {
 		if (!found) {
 			throw new IOException("File " + className + " doesn't exist\n");
 		}
-		int size = (int) f.length();
-		byte buff[] = new byte[size];
-		FileInputStream fis = new FileInputStream(f);
-		DataInputStream dis = new DataInputStream(fis);
-		dis.readFully(buff);
-		dis.close();
-		return buff;
+		byte[] classDef = this.byteCodeContainer.loadByteCodeFile(f, className);
+		return classDef;
 	}
 
 	private void addToCache(Class<?> clazz) {
@@ -344,7 +345,7 @@ public class Reloader extends ClassLoader {
 		File f = null;
 		for (String cp : classpath) {
 			f = new File(cp + s.replaceAll("\\.", File.separator) + ".class");
-			found = f.exists();
+			found = this.byteCodeContainer.byteCodeExist(f);
 			if (found) break;
 		}
 		return found;

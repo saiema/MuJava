@@ -32,7 +32,6 @@ import mujava.generations.SameRequestGenerator;
 public class Core {
 	public static String SEPARATOR = fixBackslash(FileSystems.getDefault().getSeparator());
 	private static Core instance = null;
-//	private Mutator mutator = null;
 	private static String inputDir;
 	private static String outputDir;
 	private String inputBinDir;
@@ -42,7 +41,7 @@ public class Core {
 	private int generation = -1 ;
 	public static boolean fullVerbose = false;
 	public static boolean showSurvivingMutants = false;
-	public static final int mujavappVersion = 20151008;
+	public static final int mujavappVersion = 20153108;
 	
 	public static Core newInstance(String inputDirP, String outputDirP) {
 		if (instance == null) {

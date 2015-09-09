@@ -5,10 +5,12 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.reflections.Reflections;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
+
 import openjava.mop.FileEnvironment;
 import openjava.mop.OJClass;
 import openjava.ptree.BinaryExpression;
@@ -25,6 +27,7 @@ import openjava.ptree.StatementList;
 import openjava.ptree.TypeName;
 import openjava.ptree.Variable;
 import openjava.ptree.VariableDeclaration;
+import openjava.ptree.VariableInitializer;
 import mujava.api.Api;
 import mujava.api.Mutant;
 import mujava.api.MutantsInformationHolder;
@@ -162,7 +165,8 @@ public class PCI extends Mutator {
 	
 	public void visit(VariableDeclaration vd) throws ParseTreeException {
 		if (!(getMutationsLeft(vd) > 0)) return;
-		vd.getInitializer().accept(this);
+		VariableInitializer vi = vd.getInitializer();
+		if (vi != null) vi.accept(this);
 	}
 	
 	private List<Class<?>> getChilds(Class<?> clazz) {

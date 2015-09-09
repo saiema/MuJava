@@ -105,7 +105,6 @@ public class MutationScore {
 					break;
 				}
 			} catch (ClassNotFoundException | IllegalArgumentException | MuJavaTestRunnerException | InitializationError e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				this.lastError = e;
 			}

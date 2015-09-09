@@ -15,7 +15,6 @@ import java.util.TreeSet;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.apache.commons.lang.enums.EnumUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -53,6 +52,31 @@ public class Config {
 	private boolean wrapPrimitiveToObjectAssignments;
 	private boolean applyRefinedPRVOInMethodCallStatements;
 	private int generation;
+	private int reloaderInstancesLimit;
+	private boolean rorReplaceWithTrue;
+	private boolean rorReplaceWithFalse;
+	private boolean corUseAndOp;
+	private boolean corUseOrOp;
+	private boolean corUseXorOp;
+	private boolean corUseBitAndOp;
+	private boolean corUseBitOrOp;
+	private boolean prvoSameLenght;
+	private boolean prvoIncreaseLength;
+	private boolean prvoDecreaseLength;
+	private boolean prvoOneByTwo;
+	private boolean prvoTwoByOne;
+	private boolean prvoAllByOneLeft;
+	private boolean prvoAllByOneRight;
+	private boolean prvoUseSuper;
+	private boolean prvoUseThis;
+	private boolean prvoReplacementWithLiterals;
+	private boolean prvoUseNullLiteral;
+	private boolean prvoUseTrueLiteral; 
+	private boolean prvoUseFalseLiteral;
+	private boolean prvoUseEmptyStringLiteral;
+	private boolean prvoUseZeroLiteral;
+	private boolean prvoUseOneLiteral;
+	private boolean prvoUseStringLiterals;
 	//advanced mutation options
 	
 	//mutation score
@@ -71,6 +95,7 @@ public class Config {
 	private List<String> classesInOriginalBinDir;
 	private List<String> packagesInOriginalBinDir;
 	private List<String> testClassesInTestsBinDir;
+	private final Mutant[] validMutOps = Mutant.values(); 
 	//auxiliary values
 	
 
@@ -80,6 +105,10 @@ public class Config {
 		this.mutantsOutputFolder = addTrailingSeparator(mutantsOutputFolder);
 		this.generation = 1;
 		this.showSurvivingMutants = false;
+		this.reloaderInstancesLimit = 150;
+		initializePRVOOptions();
+		intitializeROROptions();
+		initializeCOROptions();
 		clearMethodsToMutate();
 		clearOperators();
 		fullVerboseMode(false);
@@ -95,6 +124,39 @@ public class Config {
 		clearTestClasses();
 	}
 	
+	private void initializeCOROptions() {
+		this.corUseAndOp(true);
+		this.corUseOrOp(true);
+		this.corUseXorOp(true);
+		this.corUseBitAndOp(true);
+		this.corUseBitOrOp(true);
+	}
+
+	private void intitializeROROptions() {
+		this.rorReplaceWithTrue(true);
+		this.rorReplaceWithFalse(true);
+	}
+
+	private void initializePRVOOptions() {
+		this.prvoSameLenght(true);
+		this.prvoIncreaseLength(true);
+		this.prvoDecreaseLength(true);
+		this.prvoOneByTwo(true);
+		this.prvoTwoByOne(true);
+		this.prvoAllByOneLeft(false);
+		this.prvoAllByOneRight(false);
+		this.prvoUseSuper(true);
+		this.prvoUseThis(true);
+		this.prvoReplacementWithLiterals(true);
+		this.prvoUseNullLiteral(true);
+		this.prvoUseTrueLiteral(true); 
+		this.prvoUseFalseLiteral(true);
+		this.prvoUseEmptyStringLiteral(true);
+		this.prvoUseZeroLiteral(true);
+		this.prvoUseOneLiteral(true);
+		this.prvoUseStringLiterals(true);
+	}
+
 	public void classToMutate(String classToMutate) {
 		this.classToMutate = classToMutate;
 		clearMethodsToMutate();
@@ -138,21 +200,31 @@ public class Config {
 	}
 	
 	public boolean addOperator(String op) {
-		if (EnumUtils.getEnum(Mutant.class, op) != null) {
-			this.operators.add(Mutant.valueOf(op));
+		Mutant mop = isValidOp(op);
+		if (mop != null) {
+			this.operators.add(mop);
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean removeOperator(String op) {
+		Mutant mop = isValidOp(op);
+		if (mop != null) {
+			this.operators.remove(mop);
 			return true;
 		} else {
 			return false;
 		}
 	}
 	
-	public boolean removeOperator(String op) {
-		if (EnumUtils.getEnum(Mutant.class, op) != null) {
-			this.operators.remove(Mutant.valueOf(op));
-			return true;
-		} else {
-			return false;
+	private Mutant isValidOp(String op) {
+		for (Mutant mop : this.validMutOps) {
+			if (op.toString().compareTo(op) == 0) {
+				return mop;
+			}
 		}
+		return null;
 	}
 	
 	public void clearOperators() {
@@ -227,6 +299,10 @@ public class Config {
 		}
 	}
 	
+	public Set<String> bannedFields() {
+		return this.bannedFields;
+	}
+	
 	public boolean ignoreMutGenLimit() {
 		return this.ignoreMutGenLimit;
 	}
@@ -295,6 +371,10 @@ public class Config {
 		}
 	}
 	
+	public Set<String> testClasses() {
+		return this.testClasses;
+	}
+	
 	public void quickDeath(boolean enable) {
 		this.quickDeath = enable;
 	}
@@ -327,12 +407,212 @@ public class Config {
 		this.applyRefinedPRVOInMethodCallStatements = b;
 	}
 	
+	public void rorReplaceWithTrue(boolean b) {
+		this.rorReplaceWithTrue = b;
+	}
+	
+	public void rorReplaceWithFalse(boolean b) {
+		this.rorReplaceWithFalse = b;
+	}
+	
+	public void corUseAndOp(boolean b) {
+		this.corUseAndOp = b;
+	}
+	
+	public void corUseOrOp(boolean b) {
+		this.corUseOrOp = b;
+	}
+	
+	public void corUseXorOp(boolean b) {
+		this.corUseXorOp = b;
+	}
+	
+	public void corUseBitAndOp(boolean b) {
+		this.corUseBitAndOp = b;
+	}
+	
+	public void corUseBitOrOp(boolean b) {
+		this.corUseBitOrOp = b;
+	}
+	
+	public void prvoSameLenght(boolean b) {
+		this.prvoSameLenght = b;
+	}
+	
+	public void prvoIncreaseLength(boolean b) {
+		this.prvoIncreaseLength = b;
+	}
+	
+	public void prvoDecreaseLength(boolean b) {
+		this.prvoDecreaseLength = b;
+	}
+	
+	public void prvoOneByTwo(boolean b) {
+		this.prvoOneByTwo = b;
+	}
+	
+	public void prvoTwoByOne(boolean b) {
+		this.prvoTwoByOne = b;
+	}
+	
+	public void prvoAllByOneLeft(boolean b) {
+		this.prvoAllByOneLeft = b;
+	}
+	
+	public void prvoAllByOneRight(boolean b) {
+		this.prvoAllByOneRight = b;
+	}
+	
+	public void prvoUseSuper(boolean b) {
+		this.prvoUseSuper = b;
+	}
+	
+	public void prvoUseThis(boolean b) {
+		this.prvoUseThis = b;
+	}
+	
+	public void prvoReplacementWithLiterals(boolean b) {
+		this.prvoReplacementWithLiterals = b;
+	}
+	
+	public void prvoUseNullLiteral(boolean b) {
+		this.prvoUseNullLiteral = b;
+	}
+	
+	public void prvoUseTrueLiteral(boolean b) {
+		this.prvoUseTrueLiteral = b;
+	}
+	
+	public void prvoUseFalseLiteral(boolean b) {
+		this.prvoUseFalseLiteral = b;
+	}
+	
+	public void prvoUseEmptyStringLiteral(boolean b) {
+		this.prvoUseEmptyStringLiteral = b;
+	}
+	
+	public void prvoUseZeroLiteral(boolean b) {
+		this.prvoUseZeroLiteral = b;
+	}
+	
+	public void prvoUseOneLiteral(boolean b) {
+		this.prvoUseOneLiteral = b;
+	}
+	
+	public void prvoUseStringLiterals(boolean b) {
+		this.prvoUseStringLiterals = b;
+	}
+	
+	public boolean rorReplaceWithTrue() {
+		return rorReplaceWithTrue;
+	}
+	
+	public boolean rorReplaceWithFalse() {
+		return rorReplaceWithFalse;
+	}
+	
+	public boolean corUseAndOp() {
+		return corUseAndOp;
+	}
+	
+	public boolean corUseOrOp() {
+		return corUseOrOp;
+	}
+	
+	public boolean corUseXorOp() {
+		return corUseXorOp;
+	}
+	
+	public boolean corUseBitAndOp() {
+		return corUseBitAndOp;
+	}
+	
+	public boolean corUseBitOrOp() {
+		return corUseBitOrOp;
+	}
+	
+	public boolean prvoSameLenght() {
+		return prvoSameLenght;
+	}
+	
+	public boolean prvoIncreaseLength() {
+		return prvoIncreaseLength;
+	}
+	
+	public boolean prvoDecreaseLength() {
+		return prvoDecreaseLength;
+	}
+	
+	public boolean prvoOneByTwo() {
+		return prvoOneByTwo;
+	}
+	
+	public boolean prvoTwoByOne() {
+		return prvoTwoByOne;
+	}
+	
+	public boolean prvoAllByOneLeft() {
+		return prvoAllByOneLeft;
+	}
+	
+	public boolean prvoAllByOneRight() {
+		return prvoAllByOneRight;
+	}
+	
+	public boolean prvoUseSuper() {
+		return prvoUseSuper;
+	}
+	
+	public boolean prvoUseThis() {
+		return prvoUseThis;
+	}
+	
+	public boolean prvoReplacementWithLiterals() {
+		return prvoReplacementWithLiterals;
+	}
+	
+	public boolean prvoUseNullLiteral() {
+		return prvoUseNullLiteral;
+	}
+	
+	public boolean prvoUseTrueLiteral() {
+		return prvoUseTrueLiteral;
+	}
+	
+	public boolean prvoUseFalseLiteral() {
+		return prvoUseFalseLiteral;
+	}
+	
+	public boolean prvoUseEmptyStringLiteral() {
+		return prvoUseEmptyStringLiteral;
+	}
+	
+	public boolean prvoUseZeroLiteral() {
+		return prvoUseZeroLiteral;
+	}
+	
+	public boolean prvoUseOneLiteral() {
+		return prvoUseOneLiteral;
+	}
+	
+	public boolean prvoUseStringLiterals() {
+		return prvoUseStringLiterals;
+	}
+	
 	public int generation() {
 		return this.generation;
 	}
 	
 	public void generation(int i) {
 		this.generation = i;
+	}
+	
+	public int reloaderInstancesLimit() {
+		return this.reloaderInstancesLimit;
+	}
+	
+	public void reloaderInstancesLimit(int i) {
+		this.reloaderInstancesLimit = i;
 	}
 	
 	public boolean showSurvivingMutants() {
@@ -517,11 +797,8 @@ public class Config {
 	}
 	
 	private void clearPackagesInOriginalBinDir() {
-		if (this.packagesInOriginalBinDir == null) {
-			this.packagesInOriginalBinDir = new LinkedList<String>();
-		} else {
-			this.packagesInOriginalBinDir.clear();
-		}
+		this.packagesInOriginalBinDir = null;
+		this.packagesInOriginalBinDir = getpackagesInOriginalBinDir();
 	}
 	
 	private void clearTestClassesInTestsBinDir() {

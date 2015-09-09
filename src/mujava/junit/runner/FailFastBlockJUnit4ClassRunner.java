@@ -15,7 +15,6 @@ public class FailFastBlockJUnit4ClassRunner extends BlockJUnit4ClassRunner {
 
 	public FailFastBlockJUnit4ClassRunner(Class<?> klass) throws InitializationError {
 		super(klass);
-		//System.out.println(this.getClass().getCanonicalName() + ".<init>");
 	}
 	
 	@Override
@@ -29,7 +28,6 @@ public class FailFastBlockJUnit4ClassRunner extends BlockJUnit4ClassRunner {
 		eachNotifier.fireTestStarted();
 		try {
 			if (!FailFastBlockJUnit4ClassRunner.ignore) methodBlock(method).evaluate();
-			//else System.out.println("Ignoring " + method.toString());
 		} catch (AssumptionViolatedException e) {
 			eachNotifier.addFailedAssumption(e);
 			FailFastBlockJUnit4ClassRunner.ignore = true;
