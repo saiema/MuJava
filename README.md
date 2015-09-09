@@ -44,9 +44,14 @@ Go to the test folder and run **_javac utils/*.java_** and **_javac -cp <path to
 
 Now from the folder mjexample you can run
 
-_java -cp mujava.jar:\<paths to each jar inside lib/\*\>:\<path to junit.jar\>:test/ mujava.app.Console \<properties file\*\*\>_
+_java -cp mujava.jar:\<paths to each jar inside lib/\*\>:\<path to junit.jar\>:test/ mujava.app.Main \[ARGS]>_
+
+where **ARGS** can be one of the following:
+
+-p[roperties] : to give a specific .properties file to mujava++
+-o[perators] : prints all mutation operators information
+-h[elp] : prints mujava++ help
 
 \* : except from javadoc jars
-\*\* : one of the .properties file inside folder properties/
 
 For further information visit the [wiki](https://github.com/saiema/MuJava/wiki/muJavapp).
