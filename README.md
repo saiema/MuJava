@@ -17,9 +17,9 @@ An extension of [muJava](https://github.com/tradi/MuJava) : A Mutation Testing T
 **Usage example**
 
 * Create a folder (in this case we will use mjexample)
-* Download [mujava.jar](https://github.com/saiema/MuJava/releases/download/1.3/mujava.jar) inside mjexample
-* Download and extract [lib.zip](https://github.com/saiema/MuJava/releases/download/1.3/lib.zip) inside mjexample
-* Download and extract [properties.rar](https://github.com/saiema/MuJava/releases/download/1.3/properties.rar) inside mjexample
+* Download [mujava.jar](https://github.com/saiema/MuJava/releases/download/1.5/mujava.jar) inside mjexample
+* Download and extract [lib.zip](https://github.com/saiema/MuJava/releases/download/1.5/lib.zip) inside mjexample
+* Download and extract [properties.rar](https://github.com/saiema/MuJava/releases/download/1.5/properties.rar) inside mjexample
 * Download and extract [test.rar](https://github.com/saiema/MuJava/releases/download/1.3/test.rar)
 
 You should end with the following folder structure
