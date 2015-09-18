@@ -56,4 +56,4 @@ where **ARGS** can be one of the following:
 
 \* : except from javadoc jars
 
-For further information visit the [wiki](https://github.com/saiema/MuJava/wiki/muJavapp).
+For further information visit the [wiki](https://github.com/saiema/MuJava/wiki/muJavapp-home).
