@@ -5,10 +5,17 @@ An extension of [muJava](https://github.com/tradi/MuJava) : A Mutation Testing T
 
 **How to use it**
 
-    java -cp <paths to jar files inside lib folder>:<mujava++.jar path>:<proyect's bin path>:[<tests bin path>] mujava.app.Console [PATH TO CUSTOM .PROPERTIES FILE]
+    java -cp <paths to jar files inside lib folder>:<mujava++.jar path>:<proyect's bin path>:[<tests bin path>] mujava.app.Main [ARGS]
+
+where **ARGS** can be one of the following:
+
+\-p[roperties] : to give a specific .properties file to mujava++
+
+\-o[perators] : prints all mutation operators information
+
+\-h[elp] : prints mujava++ help
 
 * **_JUnit is not included, you should have installed in your system_**
-* **_To list all mutation operators and their information call mujava with --args -h as parameters_**
 
 **Suggested VM Arguments**
 
