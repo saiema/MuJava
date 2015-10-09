@@ -38,6 +38,11 @@ public class ByteCodeContainer {
 		this(new TreeMap<String, byte[]>(), new TreeSet<String>(), verifyFileChanges);
 	}
 	
+	public void eliminateClass(String className) {
+		this.classByteCodeMap.remove(className);
+		this.filePerClass.remove(className);
+	}
+	
 	public byte[] loadByteCodeFile(File file) throws IOException {
 		return loadByteCodeFile(file, null);
 	}

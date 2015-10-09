@@ -166,6 +166,7 @@ public class Reloader extends ClassLoader {
 	public Class<?> rloadClass(String s, boolean reload) throws ClassNotFoundException {
 		Class<?> clazz = null;
 		if (reload) {
+			this.byteCodeContainer.eliminateClass(s);
 			clazz = reload(s);
 		}
 		if (clazz == null) {
