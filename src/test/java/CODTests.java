@@ -36,7 +36,7 @@ public class CODTests {
 		
 		/*
 		  	boolean allTrue = !(!auxA || !auxB); //mutGenLimit 1
-			boolean allFalse = (!auxA && !auxB); //mutGenLimit 0
+			boolean allFalse = (!auxA && !auxB); //mutGenLimit 2
 			return !(allTrue || allFalse); //mutGenLimit 1
 		 */
 		
@@ -47,13 +47,14 @@ public class CODTests {
 		
 		List<Pattern> mceXor = new LinkedList<Pattern>();
 		List<Pattern> mcneXor = new LinkedList<Pattern>();
-		mceXor.add(Pattern.compile("boolean allFalse = \\!auxA \\&\\& \\!auxB; //mutGenLimit 0"));
+		mceXor.add(Pattern.compile("boolean allFalse = \\!auxA \\&\\& auxB; //mutGenLimit 1"));
+		mceXor.add(Pattern.compile("boolean allFalse = auxA \\&\\& \\!auxB; //mutGenLimit 1"));
 		mceXor.add(Pattern.compile("boolean allTrue = \\!auxA \\|\\| \\!auxB; //mutGenLimit 0"));
 		mceXor.add(Pattern.compile("boolean allTrue = \\!\\(auxA \\|\\| \\!auxB\\); //mutGenLimit 0"));
 		mceXor.add(Pattern.compile("boolean allTrue = \\!\\(\\!auxA \\|\\| auxB\\); //mutGenLimit 0"));
 		mceXor.add(Pattern.compile("return allTrue \\|\\| allFalse; //mutGenLimit 0"));
 		mcneXor.add(Pattern.compile(".+//mutGenLimit -[0..9]+"));
-		Property propXor = new Property(Mutant.COD, "utils/BooleanOps", "xor", 4, 4, mceXor, mcneXor);
+		Property propXor = new Property(Mutant.COD, "utils/BooleanOps", "xor", 6, 6, mceXor, mcneXor);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

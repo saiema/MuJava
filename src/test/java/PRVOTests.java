@@ -7,10 +7,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
+
 import mujava.api.Mutant;
 import mujava.app.MutantInfo;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -25,11 +25,6 @@ public class PRVOTests {
 	
 	private Property prop;
 	private List<MutantInfo> mutantsInfo;
-	
-	@BeforeClass
-	public static void setTestingToolsVerbose() {
-		TestingTools.setVerbose(false);
-	}
 	
 	public PRVOTests(Property p, List<MutantInfo> mutantsInfo) {
 		this.prop = p;
@@ -102,7 +97,7 @@ public class PRVOTests {
 		mceSLLVD_0.add(Pattern.compile("Object test = super\\.clone\\(\\)\\.getClass\\(\\); //mutGenLimit 0"));
 		mcneSLLVD_0.add(Pattern.compile("Object !test = [a-zA-Z_0-9]+; //mutGenLimit 0"));
 		mcneSLLVD_0.add(Pattern.compile(".+//mutGenLimit [^0]+"));
-		Property propSLLVariableDeclaration_0 = new Property(Mutant.PRVOU, "list/SinglyLinkedListVariableDeclaration", "contains", 85, 73, mceSLLVD_0, mcneSLLVD_0);
+		Property propSLLVariableDeclaration_0 = new Property(Mutant.PRVOU, "list/SinglyLinkedListVariableDeclaration", "contains", 91, 79, mceSLLVD_0, mcneSLLVD_0);
 		
 		List<Pattern> mceSLLVD_1 = new LinkedList<Pattern>();
 		List<Pattern> mcneSLLVD_1 = new LinkedList<Pattern>();
@@ -246,7 +241,7 @@ public class PRVOTests {
 		mcneSLLR_0.add(Pattern.compile("return header; //mutGenLimit 0"));
 		mcneSLLR_0.add(Pattern.compile(".+//mutGenLimit [^0]+"));
 		mcneSLLR_0.add(Pattern.compile("return this\\.(current|value)(\\..+)?; //mutGenLimit"));
-		Property propSLLReturn_0 = new Property(Mutant.PRVOU, "list/SinglyLinkedListReturn", "getHeader", 81, 74, mceSLLR_0, mcneSLLR_0);
+		Property propSLLReturn_0 = new Property(Mutant.PRVOU, "list/SinglyLinkedListReturn", "getHeader", 87, 80, mceSLLR_0, mcneSLLR_0);
 		
 		List<Pattern> mceSLLR_1 = new LinkedList<Pattern>();
 		List<Pattern> mcneSLLR_1 = new LinkedList<Pattern>();

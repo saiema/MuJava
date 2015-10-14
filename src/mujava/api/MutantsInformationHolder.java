@@ -150,6 +150,9 @@ public class MutantsInformationHolder {
 	public void addMutation(Mutant mutOp, ParseTreeObject original, ParseTreeObject mutant) {
 		if (isEqualToOriginal(original, (ParseTreeObject)mutant)) return;
 		if (alreadyGenerated(original, (ParseTreeObject)mutant)) return;
+		if (verbose) {
+			System.out.println("(" + mutOp.toString() + " | " + original.toFlattenString() + " ==> " + mutant.toFlattenString());
+		}
 		mutantsIdentifiers.add(new Mutation(mutOp, original, mutant));
 	}
 	

@@ -214,6 +214,36 @@ public class CustomTest {
 											filter10,
 											true);
 		
+		List<Mutant> operators11 = new LinkedList<>();
+		operators11.add(Mutant.AODS);
+		operators11.add(Mutant.AODU);
+		operators11.add(Mutant.AOIS);
+		operators11.add(Mutant.AOIU);
+		operators11.add(Mutant.AORB);
+		operators11.add(Mutant.AORS);
+		operators11.add(Mutant.AORU);
+		operators11.add(Mutant.ASRS);
+		operators11.add(Mutant.COD);
+		operators11.add(Mutant.COI);
+		operators11.add(Mutant.COR);
+		operators11.add(Mutant.LOD);
+		operators11.add(Mutant.LOI);
+		operators11.add(Mutant.LOR);
+		operators11.add(Mutant.ROR);
+		operators11.add(Mutant.SOR);
+		operators11.add(Mutant.PRVOL_SMART);
+		operators11.add(Mutant.PRVOR_REFINED);
+		operators11.add(Mutant.PRVOU_REFINED);
+		Property propCustom11 = new Property(operators11,
+											"bugHunting/Digits",
+											"digits",
+											TestingTools.NO_MUTANTS_EXPECTED,
+											TestingTools.NO_MUTANTS_EXPECTED,
+											TestingTools.NO_PATTERN_EXPECTED,
+											TestingTools.NO_PATTERN_EXPECTED,
+											null,
+											false);
+		
 		
 		
 		//MUTANTS FOLDERS
@@ -222,7 +252,7 @@ public class CustomTest {
 		
 		//PARAMETERS
 		return Arrays.asList(new Object[][] {
-				{propCustom10},
+				{propCustom11},
 		});
 	}
 	

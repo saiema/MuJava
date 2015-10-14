@@ -40,15 +40,15 @@ public class CORTests {
 		Property propOMUC = new Property(Mutant.COR, "utils/BooleanOps", "or", 0, 0, mceOMUC, mcneOMUC);
 		
 		/*
-			 	boolean auxA = a; //mutGenLimit 0
+			 	boolean auxA = a; //mutGenLimit 3
 				boolean auxB = b; //mutGenLimit 1
-				if (!auxA || !auxB) {
+				if (!auxA || !auxB) { //mutGenLimit 1
 					return false; //mutGenLimit 1
-				} //mutGenLimit 1
+				}
 		 */
 		List<Pattern> mceAnd = new LinkedList<Pattern>();
 		List<Pattern> mcneAnd = new LinkedList<Pattern>();
-		mceAnd.add(Pattern.compile("boolean auxA = a; //mutGenLimit 0"));
+		mceAnd.add(Pattern.compile("boolean auxA = a; //mutGenLimit 3"));
 		mceAnd.add(Pattern.compile("boolean auxB = b; //mutGenLimit 1"));
 		mceAnd.add(Pattern.compile("return false; //mutGenLimit 1"));
 		mceAnd.add(Pattern.compile("if \\(\\!auxA \\&\\& \\!auxB\\) \\{ //mutGenLimit 0"));
@@ -58,39 +58,39 @@ public class CORTests {
 		Property propAnd = new Property(Mutant.COR, "utils/BooleanOps", "and", 4, 4, mceAnd, mcneAnd);
 		
 		/*
-		 		boolean isXnor = !(!auxA || !auxB) || (!auxA && !auxB); //mutGenLimit 1
+		 		boolean isXnor = !(!auxA || !auxB) || (!auxA && !auxB); //mutGenLimit 2
 		 */
 		
 		/*
-		 	boolean isXnor = !(!auxA & !auxB) || !auxA && !auxB; //mutGenLimit 0
-	        boolean isXnor = !(!auxA && !auxB) || !auxA && !auxB; //mutGenLimit 0
-	        boolean isXnor = !(!auxA ^ !auxB) || !auxA && !auxB; //mutGenLimit 0
-	        boolean isXnor = !(!auxA | !auxB) || !auxA && !auxB; //mutGenLimit 0
-	        boolean isXnor = !(!auxA || !auxB) & (!auxA && !auxB); //mutGenLimit 0
-	        boolean isXnor = !(!auxA || !auxB) && (!auxA && !auxB); //mutGenLimit 0
-	        boolean isXnor = !(!auxA || !auxB) ^ (!auxA && !auxB); //mutGenLimit 0
-	        boolean isXnor = !(!auxA || !auxB) | (!auxA && !auxB); //mutGenLimit 0
-	        boolean isXnor = !(!auxA || !auxB) || !auxA & !auxB; //mutGenLimit 0
-	        boolean isXnor = !(!auxA || !auxB) || !auxA ^ !auxB; //mutGenLimit 0
-	        boolean isXnor = !(!auxA || !auxB) || !auxA | !auxB; //mutGenLimit 0
-	        boolean isXnor = !(!auxA || !auxB) || !auxA || !auxB; //mutGenLimit 0
+		 	boolean isXnor = !(!auxA & !auxB) || !auxA && !auxB; //mutGenLimit 1
+	        boolean isXnor = !(!auxA && !auxB) || !auxA && !auxB; //mutGenLimit 1
+	        boolean isXnor = !(!auxA ^ !auxB) || !auxA && !auxB; //mutGenLimit 1
+	        boolean isXnor = !(!auxA | !auxB) || !auxA && !auxB; //mutGenLimit 1
+	        boolean isXnor = !(!auxA || !auxB) & (!auxA && !auxB); //mutGenLimit 1
+	        boolean isXnor = !(!auxA || !auxB) && (!auxA && !auxB); //mutGenLimit 1
+	        boolean isXnor = !(!auxA || !auxB) ^ (!auxA && !auxB); //mutGenLimit 1
+	        boolean isXnor = !(!auxA || !auxB) | (!auxA && !auxB); //mutGenLimit 1
+	        boolean isXnor = !(!auxA || !auxB) || !auxA & !auxB; //mutGenLimit 1
+	        boolean isXnor = !(!auxA || !auxB) || !auxA ^ !auxB; //mutGenLimit 1
+	        boolean isXnor = !(!auxA || !auxB) || !auxA | !auxB; //mutGenLimit 1
+	        boolean isXnor = !(!auxA || !auxB) || !auxA || !auxB; //mutGenLimit 1
 		 */
 		List<Pattern> mceXnor = new LinkedList<Pattern>();
 		List<Pattern> mcneXnor = new LinkedList<Pattern>();
-		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\&\\& \\!auxB\\) \\|\\| \\!auxA \\&\\& \\!auxB; //mutGenLimit 0"));
-		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\& \\!auxB\\) \\|\\| \\!auxA \\&\\& \\!auxB; //mutGenLimit 0"));
-		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\| \\!auxB\\) \\|\\| \\!auxA \\&\\& \\!auxB; //mutGenLimit 0"));
-		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\^ \\!auxB\\) \\|\\| \\!auxA \\&\\& \\!auxB; //mutGenLimit 0"));
+		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\&\\& \\!auxB\\) \\|\\| \\!auxA \\&\\& \\!auxB; //mutGenLimit 1"));
+		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\& \\!auxB\\) \\|\\| \\!auxA \\&\\& \\!auxB; //mutGenLimit 1"));
+		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\| \\!auxB\\) \\|\\| \\!auxA \\&\\& \\!auxB; //mutGenLimit 1"));
+		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\^ \\!auxB\\) \\|\\| \\!auxA \\&\\& \\!auxB; //mutGenLimit 1"));
 		
-		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\&\\& \\(\\!auxA \\&\\& \\!auxB\\); //mutGenLimit 0"));
-		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\& \\(\\!auxA \\&\\& \\!auxB\\); //mutGenLimit 0"));
-		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\| \\(\\!auxA \\&\\& \\!auxB\\); //mutGenLimit 0"));
-		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\^ \\(\\!auxA \\&\\& \\!auxB\\); //mutGenLimit 0"));
+		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\&\\& \\(\\!auxA \\&\\& \\!auxB\\); //mutGenLimit 1"));
+		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\& \\(\\!auxA \\&\\& \\!auxB\\); //mutGenLimit 1"));
+		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\| \\(\\!auxA \\&\\& \\!auxB\\); //mutGenLimit 1"));
+		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\^ \\(\\!auxA \\&\\& \\!auxB\\); //mutGenLimit 1"));
 		
-		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\|\\| \\!auxA \\|\\| \\!auxB; //mutGenLimit 0"));
-		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\|\\| \\!auxA \\| \\!auxB; //mutGenLimit 0"));
-		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\|\\| \\!auxA \\& \\!auxB; //mutGenLimit 0"));
-		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\|\\| \\!auxA \\^ \\!auxB; //mutGenLimit 0"));
+		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\|\\| \\!auxA \\|\\| \\!auxB; //mutGenLimit 1"));
+		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\|\\| \\!auxA \\| \\!auxB; //mutGenLimit 1"));
+		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\|\\| \\!auxA \\& \\!auxB; //mutGenLimit 1"));
+		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\|\\| \\!auxA \\^ \\!auxB; //mutGenLimit 1"));
 		Property propXnor = new Property(Mutant.COR, "utils/BooleanOps", "xnor", 12, 12, mceXnor, mcneXnor);
 		
 		//MUTANTS FOLDERS
