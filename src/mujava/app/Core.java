@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 
 import org.junit.runner.notification.Failure;
 
+import mujava.api.Configuration;
 import mujava.api.Mutant;
 import mujava.generations.GenerationsGoalTester;
 import mujava.generations.GenerationsInformation;
@@ -30,6 +31,15 @@ import mujava.generations.SameRequestGenerator;
  * @author Simon Emmanuel Gutierrez Brida
  */
 public class Core {
+	
+	/**
+	 * Option to enable/disable toughness analysis, which is a relation of failed tests and total tests
+	 * for each mutant.
+	 * <p>
+	 * this option is disabled by default
+	 */
+	public static String ENABLE_TOUGHNESS = "Core_toughness";
+	
 	public static String SEPARATOR = fixBackslash(FileSystems.getDefault().getSeparator());
 	private static Core instance = null;
 	private static String inputDir;
@@ -41,7 +51,10 @@ public class Core {
 	private int generation = -1 ;
 	public static boolean fullVerbose = false;
 	public static boolean showSurvivingMutants = false;
-	public static final int mujavappVersion = 20153108;
+	public static final int mujavappVersion = 20151011;
+	
+	private float totalToughness;
+	private float totalMutants;
 	
 	public static Core newInstance(String inputDirP, String outputDirP) {
 		if (instance == null) {
@@ -184,7 +197,12 @@ public class Core {
 					if (!r.wasSuccessful()) {
 						if (r.getTimedoutTests() > 0) timedOut++;
 						for (Failure f : r.getFailures()) {
-							if (Core.fullVerbose) System.out.println("mutant : " + Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java");
+							if (Core.fullVerbose || toughnessAnalysis()) System.out.println("mutant : " + Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java");
+							if (toughnessAnalysis()) {
+								float toughness = 1.0f - ((r.getTotalFailures() * 1.0f) / (r.getRunnedTestsCount() * 1.0f));
+								this.addToughnessValue(toughness);
+								System.out.println("Toughness: " + toughness + " [failed : " + r.getTotalFailures() + " | total : " + r.getRunnedTestsCount() + "]");
+							}
 							if (Core.fullVerbose) System.out.println("test : " + f.getTestHeader());
 							if (Core.fullVerbose) System.out.println("failure description: " + f.getDescription());
 							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
@@ -206,7 +224,27 @@ public class Core {
 				System.out.println(sm);
 			}
 		}
+		if (toughnessAnalysis()) {
+			System.out.println("Average toughness : " + this.averageToughness());
+		}
 		return ((mutantsKilled+failedToCompile)*(float)100.0)/mutants;
+	}
+	
+	public boolean toughnessAnalysis() {
+		if (Configuration.argumentExist(ENABLE_TOUGHNESS)) {
+			return (Boolean) Configuration.getValue(ENABLE_TOUGHNESS);
+		} else {
+			return false;
+		}
+	}
+	
+	private void addToughnessValue(float t) {
+		this.totalToughness += t;
+		this.totalMutants++;
+	}
+	
+	private float averageToughness() {
+		return this.totalToughness / this.totalMutants;
 	}
 	
 	@SuppressWarnings("deprecation")

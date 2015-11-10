@@ -3,6 +3,7 @@ package mujava.util;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -84,6 +85,7 @@ public class Config {
 	private String testsBinDir;
 	private Set<String> testClasses;
 	private boolean showSurvivingMutants;
+	private boolean toughnessAnalysis;
 	//mutation score
 	
 	//mutation score advanced options
@@ -105,6 +107,7 @@ public class Config {
 		this.mutantsOutputFolder = addTrailingSeparator(mutantsOutputFolder);
 		this.generation = 1;
 		this.showSurvivingMutants = false;
+		this.toughnessAnalysis = false;
 		this.reloaderInstancesLimit = 150;
 		initializePRVOOptions();
 		intitializeROROptions();
@@ -623,6 +626,15 @@ public class Config {
 		this.showSurvivingMutants = b;
 	}
 	
+	public boolean toughnessAnalysis() {
+		return this.toughnessAnalysis;
+	}
+	
+	public void toughnessAnalysis(boolean b) {
+		if (b) quickDeath(false);
+		this.toughnessAnalysis = b;
+	}
+	
 	public List<Method> getClassMethods() {
 		if (this.methodsInClassToMutate != null && !this.methodsInClassToMutate.isEmpty()) return this.methodsInClassToMutate;
 		List<Method> classMethods = new LinkedList<Method>();
@@ -721,8 +733,9 @@ public class Config {
 		for (String apr : this.allowedPackagesToReload) {
 			if (!this.packagesInOriginalBinDir.contains(apr)) return "Package " + apr + " is not present in " + this.originalBinDir;
 		}
-		if (!this.quickDeath && this.runMutationScore) return "Quick death option is enabled but mutation score is not";
+		if (this.quickDeath && !this.runMutationScore) return "Quick death option is enabled but mutation score is not";
 		if (!this.runMutationScore && this.showSurvivingMutants) return "Show surviving mutants is enabled but mutation score is not";
+		if (!this.runMutationScore && this.toughnessAnalysis) return "Toughness analysis is enabled but mutation score is not";
 		return null;
 	}
 	
@@ -821,8 +834,20 @@ public class Config {
 		} else if (c.getAnnotation(Test.class) != null) {
 			return true;
 		} else {
-			return false;
+			return hasTestMethod(c);
 		}
+	}
+	
+	private boolean hasTestMethod(Class<?> testToRun) {
+		Method[] methods = testToRun.getDeclaredMethods();
+		for (Method m : methods) {
+			if (Modifier.isPublic(m.getModifiers())) {
+				if (m.getAnnotation(Test.class) != null) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	

@@ -276,6 +276,13 @@ public class Main {
 			Core.fullVerbose = false;
 		}
 		
+		if (config.toughnessAnalysis()) {
+			System.out.println("Toughness analysis enabled");
+			Configuration.add(Core.ENABLE_TOUGHNESS, Boolean.TRUE);
+		} else {
+			Configuration.add(Core.ENABLE_TOUGHNESS, Boolean.FALSE);
+		}
+		
 		if (config.allowPrimitiveToObjectAssignments()) {
 			System.out.println("Primitive to Object assignments are disabled");
 			Configuration.add(PRVO.ENABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS, Boolean.FALSE);

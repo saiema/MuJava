@@ -3,6 +3,7 @@ package mujava.api;
 import java.util.HashMap;
 import java.util.Map;
 
+import mujava.app.Core;
 import mujava.op.PRVO;
 import mujava.op.basic.COR;
 import mujava.op.basic.ROR;
@@ -177,6 +178,8 @@ public final class Configuration {
 	 * {@link mujava.op.util.OLMO#DEBUG}
 	 */
 	public static final String ENABLE_OLMO_DEBUG_MODE = OLMO.DEBUG;
+	
+	public static final String ENABLE_TOUGHNESS = Core.ENABLE_TOUGHNESS;
 	
 	
 	/**

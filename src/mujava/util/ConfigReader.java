@@ -189,6 +189,14 @@ public class ConfigReader {
 				return "-c";
 			}
 		},
+		MUTATION_SCORE_TOUGHNESS_ANALYSIS {
+			public String getKey() {
+				return "mutation.advanced.toughness";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
 		//MUTATION ADVANCED
 		//MUTATION ADVANCED PRVO
 		ALLOW_NUMERIC_LITERAL_VARIATIONS {
@@ -600,6 +608,7 @@ public class ConfigReader {
 		}
 		if (conf.runMutationScore()) conf.quickDeath(getBooleanArgument(Config_key.QUICK_DEATH));
 		if (conf.runMutationScore()) conf.showSurvivingMutants(getBooleanArgument(Config_key.SHOW_SURVIVING_MUTANTS));
+		if (conf.runMutationScore()) conf.toughnessAnalysis(getBooleanArgument(Config_key.MUTATION_SCORE_TOUGHNESS_ANALYSIS));
 		String validationError = conf.validate();
 		if (validationError != null) throw new IllegalStateException("Bad configuration : " + validationError);
 		return conf;
@@ -700,6 +709,7 @@ public class ConfigReader {
 			case COR_USE_XOR_OP:
 			case COR_USE_BIT_AND_OP:
 			case COR_USE_BIT_OR__OP:
+			case MUTATION_SCORE_TOUGHNESS_ANALYSIS:
 			case MUTGENLIMIT: return true;
 			default : return false;
 		}
