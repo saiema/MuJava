@@ -24,8 +24,8 @@ where **ARGS** can be one of the following:
 **Usage example**
 
 * Create a folder (in this case we will use mjexample)
-* Download [mujava.jar](https://github.com/saiema/MuJava/releases/download/1.5/mujava.jar) inside mjexample
-* Download and extract [lib.zip](https://github.com/saiema/MuJava/releases/download/1.5/lib.zip) inside mjexample
+* Download [mujava.jar](https://github.com/saiema/MuJava/releases/download/1.5.4/mujava.jar) inside mjexample
+* Download and extract [lib.tar.gz](https://github.com/saiema/MuJava/releases/download/1.5.4/lib.tar.gz) inside mjexample
 * Download and extract [properties.rar](https://github.com/saiema/MuJava/releases/download/1.5/properties.rar) inside mjexample
 * Download and extract [test.rar](https://github.com/saiema/MuJava/releases/download/1.3/test.rar)
 
