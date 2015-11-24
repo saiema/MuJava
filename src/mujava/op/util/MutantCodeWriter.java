@@ -1390,7 +1390,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			useLineSeparator = false;
 		}
 		outputCommentIfApplicable(p.getComment(), useTabs, useLineSeparator); //added (12/09/14)
-		String typename = p.getName().replace('$', '.');
+		String typename = p.getSimpleName().replace('$', '.');
 		out.print(typename);
 
 		int dims = p.getDimension();
