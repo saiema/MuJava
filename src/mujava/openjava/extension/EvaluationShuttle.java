@@ -4,6 +4,7 @@ package mujava.openjava.extension;
 import java.util.Stack;
 
 import mujava.api.Api;
+import mujava.app.MutationRequest;
 import mujava.op.util.Mutator;
 import openjava.mop.Environment;
 import openjava.ptree.AllocationExpression;
@@ -975,6 +976,9 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	}
 
 	public void visit(FieldDeclaration p) throws ParseTreeException {
+		if (Api.usingApi() && (!Api.insideClassToMutate() || (Api.getMethodUnderConsideration().compareTo(MutationRequest.MUTATE_FIELDS)!=0))) {
+			return;
+		}
 		MemberDeclaration newp = this.evaluateDown(p);
 		if (newp != p) {
 			p.replace(newp);
