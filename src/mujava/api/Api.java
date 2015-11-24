@@ -37,6 +37,8 @@ public class Api {
 	
 	private static String methodToConsider;
 	
+	private static String[] arguments;
+	
 	private static boolean cleanOJSystemBeforeGenerating = true;
 	
 	private static String currentFilePath;
@@ -73,7 +75,24 @@ public class Api {
 		usingApi = true;
 		parseClassName(className);
 		if (cleanOJSystemBeforeGenerating) OJSystem.clean();
-		Api.methodToConsider = methodToConsider;
+		
+		int firstParenthesis = methodToConsider.indexOf('(');
+		String methodName = methodToConsider;
+		if (firstParenthesis > 0) {
+			methodName = methodToConsider.substring(0, firstParenthesis);
+			int lastParenthesis = methodToConsider.lastIndexOf(')');
+			if (lastParenthesis > 0) {
+				String argsRaw = methodToConsider.substring(firstParenthesis+1, lastParenthesis);
+				String[] args = argsRaw.split(",");
+				Api.arguments = new String[args.length];
+				int a = 0;
+				for (String argRaw : args) {
+					Api.arguments[a] = argRaw.trim().split(" ")[0].trim();
+					a++;
+				}
+			}
+		}
+		Api.methodToConsider = methodName;
 		Debug.setDebugLevel(0);
 		Api.currentFilePath = javaFile.getAbsolutePath();
 		NotDirBasedMutantsGenerator mutGen = new NotDirBasedMutantsGenerator(javaFile, mutOps);
@@ -115,6 +134,10 @@ public class Api {
 	 */
 	public static String getMethodUnderConsideration() {
 		return methodToConsider;
+	}
+	
+	public static String[] getExpectedArguments() {
+		return Api.arguments;
 	}
 	
 	/*

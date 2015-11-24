@@ -111,6 +111,8 @@ public class OLMO extends ParseTreeVisitor {
 	
 	private String methodUnderConsideration;
 
+	private String[] expectedArgs;
+
 	
 	public OLMO() {
 		super();
@@ -181,6 +183,12 @@ public class OLMO extends ParseTreeVisitor {
 	
 	public void modifyAST(CompilationUnit cu, Mutation mi, String methodUnderConsideration) throws ParseTreeException {
 		this.methodUnderConsideration = methodUnderConsideration;
+		modifyAST(cu, mi);
+	}
+	
+	public void modifyAST(CompilationUnit cu, Mutation mi, String methodUnderConsideration, String[] expectedArgs) throws ParseTreeException {
+		this.methodUnderConsideration = methodUnderConsideration;
+		this.expectedArgs = expectedArgs;
 		modifyAST(cu, mi);
 	}
 	
@@ -412,8 +420,11 @@ public class OLMO extends ParseTreeVisitor {
 
 	public void visit(ConstructorDeclaration p) throws ParseTreeException {
 		String methodUnderConsideration = this.methodUnderConsideration == null?Api.getMethodUnderConsideration():this.methodUnderConsideration;
+		String[] expectedArgs = this.methodUnderConsideration == null?Api.getExpectedArguments():this.expectedArgs;
+//		if (	methodUnderConsideration != null &&
+//				methodUnderConsideration.compareTo(p.getName()) == 0 ) {
 		if (	methodUnderConsideration != null &&
-				methodUnderConsideration.compareTo(p.getName()) == 0 ) {
+				Mutator.checkConstructorNodeAgainstMethodToMutate(methodUnderConsideration, expectedArgs, p) ) {
 			this.insideMethodToConsider = true;
 			this.affected_line = -1;
 			this.guardMutation_mutGenLimitLine = -1;
@@ -736,8 +747,11 @@ public class OLMO extends ParseTreeVisitor {
 
 	public void visit(MethodDeclaration p) throws ParseTreeException {
 		String methodUnderConsideration = this.methodUnderConsideration == null?Api.getMethodUnderConsideration():this.methodUnderConsideration;
+		String[] expectedArgs = this.methodUnderConsideration == null?Api.getExpectedArguments():this.expectedArgs;
+//		if (	methodUnderConsideration != null &&
+//				methodUnderConsideration.compareTo(p.getName()) == 0 ) {
 		if (	methodUnderConsideration != null &&
-				methodUnderConsideration.compareTo(p.getName()) == 0 ) {
+				Mutator.checkMethodNodeAgainstMethodToMutate(methodUnderConsideration, expectedArgs, p) ) {
 			this.insideMethodToConsider = true;
 			this.affected_line = -1;
 			this.guardMutation_mutGenLimitLine = -1;

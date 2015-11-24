@@ -4,6 +4,7 @@ package mujava.openjava.extension;
 import java.util.Stack;
 
 import mujava.api.Api;
+import mujava.op.util.Mutator;
 import openjava.mop.Environment;
 import openjava.ptree.AllocationExpression;
 import openjava.ptree.ArrayAccess;
@@ -825,7 +826,7 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	}
 
 	public void visit(ConstructorDeclaration p) throws ParseTreeException {
-		if (Api.usingApi() && (!Api.insideClassToMutate() || !p.getName().equals(Api.getMethodUnderConsideration()))) {			//added (15/09/14) [simon]
+		if (Api.usingApi() && (!Api.insideClassToMutate() || !Mutator.checkApiConstructorNodeAgainstMethodToMutate(p))) {			//added (15/09/14) [simon]
 			return;																				//added (15/09/14) [simon]
 		}																						//added (15/09/14) [simon]
 		MemberDeclaration newp = this.evaluateDown(p);
@@ -1083,7 +1084,7 @@ public abstract class EvaluationShuttle extends ParseTreeVisitor {
 	}
 
 	public void visit(MethodDeclaration p) throws ParseTreeException {
-		if (Api.usingApi() && (!Api.insideClassToMutate() || !p.getName().equals(Api.getMethodUnderConsideration()))) {		//added (15/09/14) [simon]
+		if (Api.usingApi() && (!Api.insideClassToMutate() || !Mutator.checkApiMethodNodeAgainstMethodToMutate(p))) {		//added (15/09/14) [simon]
 			return;																			//added (15/09/14) [simon]
 		}																					//added (15/09/14) [simon]
 		MemberDeclaration newp = this.evaluateDown(p);

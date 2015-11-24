@@ -53,7 +53,7 @@ public class PNC extends mujava.op.util.Mutator {
 		TypeName originalType = p.getClassType();
 		Class<?> originalClass;
 		try {
-			originalClass = Class.forName(originalType.getName());
+			originalClass = Class.forName(originalType.getNameWithoutGenerics());
 			for (Class<?> child : getChilds(originalClass)) {
 				if (child.getName().compareTo(originalClass.getName())==0) continue; 
 				generateMutant(p, child);

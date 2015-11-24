@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
@@ -20,6 +21,7 @@ import org.apache.commons.cli.ParseException;
 import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.Mutant;
+import mujava.api.MutantsInformationHolder;
 import mujava.loader.Reloader;
 import mujava.op.PRVO;
 import mujava.util.Config;
@@ -107,7 +109,7 @@ public class Main {
 		//===========================validate mutation operators========================================//
 		List<Mutant> ops = new LinkedList<Mutant>();
 		Set<Mutant> operators = config.operators();
-		if (operators.isEmpty()) {
+		if (!operators.isEmpty()) {
 			ops.addAll(operators);
 		} else {
 			ops.addAll(mi.allOps());
@@ -157,7 +159,7 @@ public class Main {
 		System.out.println("Separator: "+Core.SEPARATOR);
 		System.out.println("Class to mutate as path: "+classToMutate.replaceAll("\\.", Core.SEPARATOR));
 		System.out.println("Class to mutate full path: "+originalSourceDir+classToMutate.replaceAll("\\.", Core.SEPARATOR)+".java\n");
-		if (!verifyFile(originalSourceDir+classToMutate.replaceAll("\\.", Core.SEPARATOR)+".java")) {
+		if (!verifyClassFile(originalSourceDir+classToMutate.replaceAll("\\.", Core.SEPARATOR)+".java")) {
 			System.err.println("Class to mutate ("+(originalSourceDir+classToMutate.replaceAll("\\.", Core.SEPARATOR)+".java")+") doesn't exist");
 			return;
 		}
@@ -554,6 +556,9 @@ public class Main {
 	private static void deleteDirectory(String dir) {
 		File directory = new File(dir);
 		if (directory.exists() && directory.isDirectory()) {
+			if (!confirmDirectoryCleaning(directory)) {
+				return;
+			}
 			deleteDirRecursively(directory);
 		}
 	}
@@ -568,7 +573,32 @@ public class Main {
 	    file.delete();
 	}
 	
+	private static boolean confirmDirectoryCleaning(File file) {
+		String input;
+		System.out.print("Please confirm that you want to delete everything inside " + file.getAbsolutePath() + " (Yes|Y|S|Si|N|No) : ");
+		Scanner in = new Scanner(System.in);
+		input = in.next();
+		if (input.toLowerCase().matches("(yes|y|si|s)")) {
+			return true;
+		}
+		if (input.toLowerCase().matches("(no|n)")) {
+			return false;
+		}
+		System.out.println();
+		System.out.println("Invalid option ("+ input + ")");
+		return confirmDirectoryCleaning(file);
+	}
+
 	private static boolean verifyFile(String f) {
+		File file = new File(f);
+		return file.exists() && file.isFile();
+	}
+	
+	private static boolean verifyClassFile(String f) {
+		int firstDolar = f.indexOf('$');
+		if (firstDolar > 0) {
+			f = f.substring(0, firstDolar) + ".java";
+		}
 		File file = new File(f);
 		return file.exists() && file.isFile();
 	}

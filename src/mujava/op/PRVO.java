@@ -14,6 +14,7 @@ import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.Mutant;
 import mujava.api.MutantsInformationHolder;
+import mujava.op.util.Mutator;
 import openjava.mop.*;
 import openjava.ptree.AllocationExpression;
 import openjava.ptree.ArrayAccess;
@@ -1639,7 +1640,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	//=========================VISIT METHODS================================
 
 	public void visit(MethodDeclaration md) throws ParseTreeException {
-		if (Api.usingApi() && (!Api.insideClassToMutate() || !md.getName().equals(Api.getMethodUnderConsideration()))) {
+		if (Api.usingApi() && (!Api.insideClassToMutate() || !Mutator.checkApiMethodNodeAgainstMethodToMutate(md))) {
 			return;
 		} else {
 			if (md.getModifiers().contains(ModifierList.STATIC)) {
@@ -2165,8 +2166,23 @@ public class PRVO extends mujava.op.util.Mutator {
 	private OJClass getMethodUnderConsiderationType() throws ParseTreeException {
 		OJClass methodType = null;
 		String muc = Api.getMethodUnderConsideration();
+		String[] args = Api.getExpectedArguments();
 		for (OJMethod m : getSelfType().getAllMethods()) {
 			if (m.getName().equals(muc)) {
+				if (args != null) {
+					OJClass[] paramTypes = m.getParameterTypes();
+					if (paramTypes == null || paramTypes.length != args.length) continue;
+					int p = 0;
+					boolean mismatch = false;
+					for (OJClass pType : paramTypes) {
+						if (pType.getName().compareTo(args[p]) != 0) {
+							mismatch = true;
+							break;
+						}
+						p++;
+					}
+					if (mismatch) continue;
+				}
 				methodType = m.getReturnType();
 				break;
 			}

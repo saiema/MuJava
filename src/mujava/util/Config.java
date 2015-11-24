@@ -223,7 +223,7 @@ public class Config {
 	
 	private Mutant isValidOp(String op) {
 		for (Mutant mop : this.validMutOps) {
-			if (op.toString().compareTo(op) == 0) {
+			if (mop.toString().compareTo(op) == 0) {
 				return mop;
 			}
 		}

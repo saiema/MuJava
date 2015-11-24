@@ -12,7 +12,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import openjava.ptree.*;
-import mujava.MutationSystem;
 import mujava.api.Mutation;
 import openjava.ptree.util.ParseTreeVisitor;
 
@@ -49,9 +48,10 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 	private boolean printMutantPrologue = false; //added (10/09/14) [simon] //modified (23/09/14) [simon] {printMutantPrologue set to false by default}
 
-	/** to write debugging code */
 	private String tab = "    ";
 	private int nest = 0;
+	private boolean modified = false;
+	private boolean debug = false;
 
 	public void setTab(String str) {
 		tab = str;
@@ -150,11 +150,15 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	}
 
 	protected final boolean isSameObject(ParseTree p, ParseTree q) {
+		boolean same = false;
 		if (p == null && q == null)
-			return true;
-		if (p == null || q == null)
-			return false;
-		return (p.getObjectID() == q.getObjectID());
+			same = true;
+		else if (p == null || q == null)
+			same = false;
+		else
+			same = (p.getObjectID() == q.getObjectID());
+		this.modified |= same;
+		return same;
 	}
 
 	public void visit(ClassDeclaration p) throws ParseTreeException {
@@ -601,7 +605,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	}
 
 	public void visit(CompilationUnit p) throws ParseTreeException {
-		
+		this.modified = false;
 		if (this.printMutantPrologue) {						//modified (10/09/14)
 			out.println("// This is a mutant program.");	//modified (10/09/14)
 			line_num++;										//modified (10/09/14)
@@ -640,6 +644,9 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		/* type declaration list */
 		ClassDeclarationList tdlst = p.getClassDeclarations();
 		tdlst.accept(this);
+		if (this.debug) {
+			System.out.println((this.modified?"Modified ":"Didn't mofify ") + this.mi.toString());
+		}
 	}
 
 	public void visit(ConditionalExpression p) throws ParseTreeException {

@@ -44,6 +44,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	protected static final int ALLOW_VOID = 64;
 	protected static final int ALLOW_PARAMS = 128;
 	protected static final int VARIABLES = 256;
+	private static boolean verbose = false;
 	
 	protected Map<String, List<String>> prohibitedMethodsPerClass = null;
 	
@@ -1357,5 +1358,56 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			return original;
 		}
 	}
+	
+	
+	private static boolean checkMethodToMutateAgainstNameAndParamList(String mtm, String[] expectedArgs, String name, ParameterList pl) {
+		if (Mutator.verbose) {
+			System.out.println("checkMethodToMutateAgainstNameAndParamList(" + mtm + ", " + Arrays.toString(expectedArgs) + ", " + name + ", " + pl.toFlattenString() + ")");
+		}
+		if (name.compareTo(mtm) != 0) {
+			if (Mutator.verbose) {
+				System.out.println("didn't match!");
+			}
+			return false;
+		}
+		if (expectedArgs != null) {
+			ParameterList args = pl;
+			if (args == null || args.size() != expectedArgs.length) {
+				if (Mutator.verbose) {
+					System.out.println("didn't match!");
+				}
+				return false;
+			}
+			for (int p = 0; p < args.size(); p++) {
+				Parameter param = args.get(p);
+				if (param.getTypeSpecifier().getNameWithoutGenerics().compareTo(expectedArgs[p]) != 0) {
+					if (Mutator.verbose) {
+						System.out.println("didn't match!");
+					}
+					return false;
+				}
+			}
+		}
+		if (Mutator.verbose) {
+			System.out.println("matched!");
+		}
+		return true;
+	}
+	
+	public static boolean checkApiConstructorNodeAgainstMethodToMutate(ConstructorDeclaration c) {
+		return checkMethodToMutateAgainstNameAndParamList(Api.getMethodUnderConsideration(), Api.getExpectedArguments(), c.getName(), c.getParameters());
+	}
+	
+	public static boolean checkApiMethodNodeAgainstMethodToMutate(MethodDeclaration m) {
+		return checkMethodToMutateAgainstNameAndParamList(Api.getMethodUnderConsideration(), Api.getExpectedArguments(), m.getName(), m.getParameters());
+	}
+	
+	public static boolean checkMethodNodeAgainstMethodToMutate(String methodToMutate, String[] expectedArgs, MethodDeclaration m) {
+		return checkMethodToMutateAgainstNameAndParamList(methodToMutate, expectedArgs, m.getName(), m.getParameters());
+	}
 
+	public static boolean checkConstructorNodeAgainstMethodToMutate(String methodToMutate, String[] expectedArgs, ConstructorDeclaration c) {
+		return checkMethodToMutateAgainstNameAndParamList(methodToMutate, expectedArgs, c.getName(), c.getParameters());
+	}
+	
 }
