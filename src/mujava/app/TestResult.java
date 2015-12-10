@@ -8,6 +8,7 @@ import org.junit.runner.notification.Failure;
 public class TestResult {
 
 	private Result result;
+	private Class<?> testClassRunned;
 	private int totalTests = 0;
 	private int assertFailingTests = 0;
 	private int totalFailures = 0;
@@ -16,8 +17,9 @@ public class TestResult {
 	private int exceptionFailures = 0;
 	//private int ignoredTests = 0;
 	
-	public TestResult(Result result) {
+	public TestResult(Result result, Class<?> testClassRunned) {
 		this.result = result;
+		this.testClassRunned = testClassRunned;
 		this.totalFailures = this.result.getFailureCount();
 		//this.ignoredTests = this.result.getIgnoreCount();
 		this.totalTests = this.result.getRunCount();// + this.ignoredTests;
@@ -77,14 +79,15 @@ public class TestResult {
 	@Override
 	public String toString() {
 		String rep = "";
-		rep += "Total tests : " + this.totalTests + "\n";
-		rep += "Passing tests : " + this.passingTests + "\n";
-		rep += "Runned tests : " + this.getRunnedTestsCount() + "\n";
+		rep += "Test class runned       : " + this.testClassRunned.getName() + "\n";
+		rep += "Total tests             : " + this.totalTests + "\n";
+		rep += "Passing tests           : " + this.passingTests + "\n";
+		rep += "Runned tests            : " + this.getRunnedTestsCount() + "\n";
 		//rep += "Ignored tests : " + this.ignoredTests + "\n";
-		rep += "Failing tests : " + this.totalFailures + "\n";
-		rep += "Timed out tests : " + this.timeoutFailures + "\n";
+		rep += "Failing tests           : " + this.totalFailures + "\n";
+		rep += "Timed out tests         : " + this.timeoutFailures + "\n";
 		rep += "Exception failing tests : " + this.exceptionFailures + "\n";
-		rep += "Assert failing tests : " + this.assertFailingTests;
+		rep += "Assert failing tests    : " + this.assertFailingTests;
 		return rep;
 	}
 	

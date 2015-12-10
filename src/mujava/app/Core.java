@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
+//import java.util.Map.Entry;
 
 import org.junit.runner.notification.Failure;
 
@@ -48,7 +48,8 @@ public class Core {
 	private Map<String, List<String>> mutantsFolders;
 	private Exception error;
 	private MutationScore ms;
-	private int generation = -1 ;
+	//private int generation = -1 ;
+	private List<MutantInfo> lastGeneration = null;
 	public static boolean fullVerbose = false;
 	public static boolean showSurvivingMutants = false;
 	public static final int mujavappVersion = 20151011;
@@ -111,7 +112,8 @@ public class Core {
 			GenerationsInformation generationsInfo= generator.generate(false, true);
 			if (Core.fullVerbose) System.out.println(generationsInfo.showBasicInformation());
 			this.mutantsFolders = generator.getMutantsFolderForGeneration(generation);
-			this.generation = generation;
+			//this.generation = generation;
+			this.lastGeneration = generationsInfo.getLastGeneration();
 		} catch (Exception e) {
 			this.error = e;
 		}
@@ -168,55 +170,110 @@ public class Core {
 	}
 	
 	public float calculateMutationScore(String[] testClasses, String className) {
+		if (this.lastGeneration == null) {
+			this.error = new IllegalStateException("There are no recorder mutants in the last generation");
+			return -1;
+		}
 		List<String> survivingMutantsPaths = new LinkedList<>();
 		int failedToCompile = 0;
 		int mutantsKilled = 0;
 		int mutants = 0;
 		int timedOut = 0;
-		for (Entry<String, List<String>> entry : lastMutantsFolder().entrySet()) {
-			for (String path : entry.getValue()) {
-				mutants++;
-				String currGen = "generation-" + this.generation;
-				String pathToFile = currGen + SEPARATOR + entry.getKey() + SEPARATOR + path;
-				String fullPathToJavaFile = pathToFile + className.replaceAll("\\.", SEPARATOR)+".java"; 
-				if (!ms.compile(fullPathToJavaFile)){
-					System.out.println("File : " + Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java" + " didn't compile\n");
-					failedToCompile++;
-					continue;
-				}
-				boolean killed = false;
-				List<TestResult> results = ms.runTestsWithMutants(Arrays.asList(testClasses), pathToFile, className);
-				if (results == null) {
-					System.out.println("An error ocurred while running tests for mutants");
-					System.out.println(ms.getLastError()!=null?ms.getLastError().toString():"no exception to display, contact your favorite mujava++ developer");
-					return -1;
-				}
-				for (TestResult r : results) {
-					//System.out.println("Runned : " + r.getRunCount() + " tests (pass : " + (r.getRunCount()-r.getFailureCount()) + " | failed : " + r.getFailureCount() + ")\n");
-					System.out.println(r.toString()+"\n");
-					if (!r.wasSuccessful()) {
-						if (r.getTimedoutTests() > 0) timedOut++;
-						for (Failure f : r.getFailures()) {
-							if (Core.fullVerbose || toughnessAnalysis()) System.out.println("mutant : " + Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java");
-							if (toughnessAnalysis()) {
-								float toughness = 1.0f - ((r.getTotalFailures() * 1.0f) / (r.getRunnedTestsCount() * 1.0f));
-								this.addToughnessValue(toughness);
-								System.out.println("Toughness: " + toughness + " [failed : " + r.getTotalFailures() + " | total : " + r.getRunnedTestsCount() + "]");
-							}
-							if (Core.fullVerbose) System.out.println("test : " + f.getTestHeader());
-							if (Core.fullVerbose) System.out.println("failure description: " + f.getDescription());
-							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
-							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
-						}
-					}
-					if (!killed && !r.wasSuccessful()) killed = true;
-				}
-				if (killed) mutantsKilled++;
-				if (!killed && Core.showSurvivingMutants) {
-					survivingMutantsPaths.add(fullPathToJavaFile);
-				}
+		for (MutantInfo mut : this.lastGeneration) {
+			mutants++;
+			String pathToFile = mut.getPath();
+			if (!ms.compile(pathToFile)){
+				System.out.println("File : " + pathToFile + " didn't compile\n"); //Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java" + " didn't compile\n");
+				failedToCompile++;
+				continue;
 			}
+			boolean killed = false;
+			List<TestResult> results = ms.runTestsWithMutants(Arrays.asList(testClasses), mut);
+			if (results == null) {
+				System.out.println("An error ocurred while running tests for mutants");
+				System.out.println(ms.getLastError()!=null?ms.getLastError().toString():"no exception to display, contact your favorite mujava++ developer");
+				return -1;
+			}
+			int runnedTestsCount = 0;
+			int totalFailures = 0;
+			for (TestResult r : results) {
+				//System.out.println("Runned : " + r.getRunCount() + " tests (pass : " + (r.getRunCount()-r.getFailureCount()) + " | failed : " + r.getFailureCount() + ")\n");
+				System.out.println(r.toString()+"\n");
+				runnedTestsCount += r.getRunnedTestsCount();
+				totalFailures += r.getTotalFailures();
+				if (!r.wasSuccessful()) {
+					if (r.getTimedoutTests() > 0) timedOut++;
+					for (Failure f : r.getFailures()) {
+//						if (Core.fullVerbose || toughnessAnalysis()) System.out.println("mutant : " + mut.getPath());//Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java");
+//						if (toughnessAnalysis()) {
+//							float toughness = 1.0f - ((r.getTotalFailures() * 1.0f) / (r.getRunnedTestsCount() * 1.0f));
+//							this.addToughnessValue(toughness);
+//							System.out.println("Toughness: " + toughness + " [failed : " + r.getTotalFailures() + " | total : " + r.getRunnedTestsCount() + "]");
+//						}
+						if (Core.fullVerbose) System.out.println("test : " + f.getTestHeader());
+						if (Core.fullVerbose) System.out.println("failure description: " + f.getDescription());
+						if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
+						if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
+					}
+				}
+				if (!killed && !r.wasSuccessful()) killed = true;
+			}
+			if (toughnessAnalysis()) {
+				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
+				this.addToughnessValue(toughness);
+				System.out.println("Toughness: " + toughness + " [failed : " + totalFailures + " | total : " + runnedTestsCount + "]");
+				System.out.println();
+			}
+			if (killed) mutantsKilled++;
+			if (!killed && Core.showSurvivingMutants) {
+				survivingMutantsPaths.add(pathToFile);
+			}
+			
 		}
+//		for (Entry<String, List<String>> entry : lastMutantsFolder().entrySet()) {
+//			for (String path : entry.getValue()) {
+//				mutants++;
+//				String currGen = "generation-" + this.generation;
+//				String pathToFile = currGen + SEPARATOR + entry.getKey() + SEPARATOR + path;
+//				String fullPathToJavaFile = pathToFile + className.replaceAll("\\.", SEPARATOR)+".java"; 
+//				if (!ms.compile(fullPathToJavaFile)){
+//					System.out.println("File : " + Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java" + " didn't compile\n");
+//					failedToCompile++;
+//					continue;
+//				}
+//				boolean killed = false;
+//				List<TestResult> results = ms.runTestsWithMutants(Arrays.asList(testClasses), pathToFile, className);
+//				if (results == null) {
+//					System.out.println("An error ocurred while running tests for mutants");
+//					System.out.println(ms.getLastError()!=null?ms.getLastError().toString():"no exception to display, contact your favorite mujava++ developer");
+//					return -1;
+//				}
+//				for (TestResult r : results) {
+//					//System.out.println("Runned : " + r.getRunCount() + " tests (pass : " + (r.getRunCount()-r.getFailureCount()) + " | failed : " + r.getFailureCount() + ")\n");
+//					System.out.println(r.toString()+"\n");
+//					if (!r.wasSuccessful()) {
+//						if (r.getTimedoutTests() > 0) timedOut++;
+//						for (Failure f : r.getFailures()) {
+//							if (Core.fullVerbose || toughnessAnalysis()) System.out.println("mutant : " + Core.outputDir + pathToFile + className.replaceAll("\\.", SEPARATOR)+".java");
+//							if (toughnessAnalysis()) {
+//								float toughness = 1.0f - ((r.getTotalFailures() * 1.0f) / (r.getRunnedTestsCount() * 1.0f));
+//								this.addToughnessValue(toughness);
+//								System.out.println("Toughness: " + toughness + " [failed : " + r.getTotalFailures() + " | total : " + r.getRunnedTestsCount() + "]");
+//							}
+//							if (Core.fullVerbose) System.out.println("test : " + f.getTestHeader());
+//							if (Core.fullVerbose) System.out.println("failure description: " + f.getDescription());
+//							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
+//							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
+//						}
+//					}
+//					if (!killed && !r.wasSuccessful()) killed = true;
+//				}
+//				if (killed) mutantsKilled++;
+//				if (!killed && Core.showSurvivingMutants) {
+//					survivingMutantsPaths.add(fullPathToJavaFile);
+//				}
+//			}
+//		}
 		System.out.println("Mutants : "+ mutants + " | didn't compile : " + failedToCompile + " | mutants killed by tests : "+ mutantsKilled + " | surviving mutants : " + (mutants-failedToCompile-mutantsKilled) + " | total tests that timedout : " + timedOut + " | mutation score : "+((mutantsKilled+failedToCompile)*100.0)/mutants+ " | mutation score (only compiling mutants) : " + (mutantsKilled*100.0)/(mutants-failedToCompile) + '\n');
 		if (Core.showSurvivingMutants) {
 			System.out.println("Surviving mutants paths:\n");

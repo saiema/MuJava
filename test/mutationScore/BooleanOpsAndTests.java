@@ -17,7 +17,7 @@ public class BooleanOpsAndTests {
 	private boolean val1, val2, result;
 	
 	public BooleanOpsAndTests(boolean val1, boolean val2, boolean result) {
-		this.val1 = val2;
+		this.val1 = val1;
 		this.val2 = val2;
 		this.result = result;
 	}

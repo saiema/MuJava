@@ -100,7 +100,7 @@ public class Generator {
 		try {
 			File originalFile = getFileToMutate(request);
 			byte[] digest = JustCodeDigest.digest(originalFile);
-			MutantInfo original = new MutantInfo(request.clazz.replaceAll(Core.SEPARATOR, "."), null, originalFile.getPath(), -1, null, digest/*dis.getMessageDigest().digest()*/, null);
+			MutantInfo original = new MutantInfo(request.clazz.replaceAll(Core.SEPARATOR, "."), null, originalFile.getPath(), /*-1, null, */digest/*dis.getMessageDigest().digest()*/, null);
 			ginfo.add(this.currentGeneration, original);
 			this.goalTester.update(ginfo);
 			goalAchieved = this.goalTester.goalAchieved();
@@ -123,6 +123,7 @@ public class Generator {
 					mutFile = new File(mut.getPath());
 					copyMutant(mutFile.getAbsolutePath(), originalFile.getAbsolutePath());
 					List<MutantInfo> mutants = generateNextGeneration(request, checkOnEveryMutant, ginfo);
+					addParentInformation(mutants, mut);
 					updateFolders(this.currentGeneration, mutantDir);
 					if (!checkOnEveryMutant) ginfo.add(this.currentGeneration, mutants);
 					if (!checkOnEveryMutant) this.goalTester.update(ginfo);
@@ -173,6 +174,13 @@ public class Generator {
 		return ginfo;
 	}
 	
+	private void addParentInformation(List<MutantInfo> mutants, MutantInfo parent) {
+		for (MutantInfo m : mutants) {
+			m.addMutations(parent.getMutationsInformation(), true);
+		}
+	}
+
+
 	private void updateFolders(Integer generation, String mutantDir) {
 		Map<String, List<String>> mutantsFolders = this.getMutantsFolderForGeneration(generation);
 		Map<String, List<String>> updatedMutantsFolders = new TreeMap<String, List<String>>();

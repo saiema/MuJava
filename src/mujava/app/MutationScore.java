@@ -32,6 +32,7 @@ public class MutationScore {
 	private static Reloader reloader;
 	public static Set<String> allowedPackages = null;
 	public static boolean quickDeath;
+	public static boolean outputMutationsInfo = true;
 	
 	public static MutationScore newInstance(String mutantsSourceFolder, String originalBinFolder, String testsBinFolder) {
 		if (instance == null) {
@@ -58,7 +59,7 @@ public class MutationScore {
 	
 	public boolean compile(String path) {
 		this.lastError = null;
-		File fileToCompile = new File(mutantsSourceFolder+path);
+		File fileToCompile = new File(/*mutantsSourceFolder+*/path);
 		if (!fileToCompile.exists() || !fileToCompile.isFile() || !fileToCompile.getName().endsWith(".java")) {
 			return false;
 		}
@@ -81,7 +82,7 @@ public class MutationScore {
 		return testResults;
 	}
 	
-	public List<TestResult> runTestsWithMutants(List<String> testClasses, String pathToMutant, String className) {
+	public List<TestResult> runTestsWithMutants(List<String> testClasses, MutantInfo mut) {//String pathToMutant, String className) {
 		this.lastError = null;
 		if (MutationScore.reloader == null) {
 			List<String> classpath = Arrays.asList(new String[]{MutationScore.originalBinFolder, MutationScore.testsBinFolder});
@@ -90,17 +91,21 @@ public class MutationScore {
 			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.testsBinFolder, MutationScore.allowedPackages);
 		}
 		List<TestResult> testResults = new LinkedList<TestResult>();
-		System.out.println("Testing mutant : "+pathToMutant+className+'\n');
+		//System.out.println("Testing mutant : "+pathToMutant+className+'\n');
+		System.out.println("Testing mutant : "+mut.getPath()+'\n');
+		if (MutationScore.outputMutationsInfo) {
+			System.out.println(mut.toString());
+		}
 		for (String test : testClasses) {
 			Class<?> testToRun;
 			try {
 				MutationScore.reloader = MutationScore.reloader.getLastChild();
-				MutationScore.reloader.setSpecificClassPath(className, MutationScore.mutantsSourceFolder+pathToMutant);
+				MutationScore.reloader.setSpecificClassPath(mut.getName(), mut.getClassRootFolder());//(className, MutationScore.mutantsSourceFolder+pathToMutant);
 				testToRun = MutationScore.reloader.rloadClass(test, true);
 				MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, MutationScore.quickDeath);
 				Result testResult = mjTestRunner.run();
 				Core.killStillRunningJUnitTestcaseThreads();
-				testResults.add(new TestResult(testResult));
+				testResults.add(new TestResult(testResult, testToRun));
 				if (!testResult.wasSuccessful() && MutationScore.quickDeath) {
 					break;
 				}

@@ -10,6 +10,9 @@ import mujava.api.Configuration;
 import mujava.api.Mutant;
 import mujava.api.Mutation;
 import openjava.ptree.AllocationExpression;
+import openjava.ptree.Annotation;
+import openjava.ptree.AnnotationDeclaration;
+import openjava.ptree.AnnotationsList;
 import openjava.ptree.ArrayAccess;
 import openjava.ptree.ArrayAllocationExpression;
 import openjava.ptree.ArrayInitializer;
@@ -923,6 +926,21 @@ public class OLMO extends ParseTreeVisitor {
 
 	@Override
 	public void visit(TypeParameterList p) throws ParseTreeException {
+		//ignore all
+	}
+	
+	@Override
+	public void visit(Annotation a) throws ParseTreeException {
+		//ignore all	
+	}
+
+	@Override
+	public void visit(AnnotationsList al) throws ParseTreeException {
+		//ignore all
+	}
+
+	@Override
+	public void visit(AnnotationDeclaration ad) throws ParseTreeException {
 		//ignore all
 	}
 	

@@ -52,6 +52,12 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	private int nest = 0;
 	private boolean modified = false;
 	private boolean debug = false;
+	private static boolean useSimpleClassNames = false;
+	
+	public static void useSimpleClassNames(boolean b) {
+		MutantCodeWriter.useSimpleClassNames = b;
+	}
+	
 
 	public void setTab(String str) {
 		tab = str;
@@ -177,7 +183,8 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			}
 			out.print("enum ");
 
-			String name = p.getName();
+			String name = p.getName(); 
+			
 			out.print(name);
 
 			/* "implements" ClassTypeList */
@@ -1390,7 +1397,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			useLineSeparator = false;
 		}
 		outputCommentIfApplicable(p.getComment(), useTabs, useLineSeparator); //added (12/09/14)
-		String typename = p.getSimpleName().replace('$', '.');
+		String typename = (MutantCodeWriter.useSimpleClassNames?p.getSimpleName():p.getName()).replace('$', '.');
 		out.print(typename);
 
 		int dims = p.getDimension();
@@ -1807,6 +1814,30 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		}
 	}
 	// ----------------------------------------------------
+
+
+	@Override
+	public void visit(Annotation a) throws ParseTreeException {
+		outputCommentIfApplicable(a.toString());
+		out.println();
+		this.line_num++;
+	}
+
+
+	@Override
+	public void visit(AnnotationsList al) throws ParseTreeException {
+		for (int i = 0; i < al.size(); i++) {
+			visit(al.get(i));
+		}
+	}
+
+
+	@Override
+	public void visit(AnnotationDeclaration ad) throws ParseTreeException {
+		outputCommentIfApplicable(ad.getDeclaration());
+		out.println();
+		this.line_num++;
+	}
 	
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++
 	// +++++++++++++++++++++++++++added (12/09/14) [simon]

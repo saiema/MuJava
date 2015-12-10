@@ -21,9 +21,9 @@ import org.apache.commons.cli.ParseException;
 import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.Mutant;
-import mujava.api.MutantsInformationHolder;
 import mujava.loader.Reloader;
 import mujava.op.PRVO;
+import mujava.op.util.MutantCodeWriter;
 import mujava.util.Config;
 import mujava.util.ConfigReader;
 
@@ -278,11 +278,25 @@ public class Main {
 			Core.fullVerbose = false;
 		}
 		
+		if (config.outputMutationsInfo()) {
+			System.out.println("Mutations information enabled on mutation score analysis");
+			MutationScore.outputMutationsInfo = true;
+		} else {
+			MutationScore.outputMutationsInfo = false;
+		}
+		
 		if (config.toughnessAnalysis()) {
 			System.out.println("Toughness analysis enabled");
 			Configuration.add(Core.ENABLE_TOUGHNESS, Boolean.TRUE);
 		} else {
 			Configuration.add(Core.ENABLE_TOUGHNESS, Boolean.FALSE);
+		}
+		
+		if (config.useSimpleClassNames()) {
+			System.out.println("Using simple class names when writing mutants");
+			MutantCodeWriter.useSimpleClassNames(true);
+		} else {
+			MutantCodeWriter.useSimpleClassNames(false);
 		}
 		
 		if (config.allowPrimitiveToObjectAssignments()) {
@@ -538,6 +552,7 @@ public class Main {
 			MutationScore ms = MutationScore.newInstance(mutantsSourceDir, originalBinDir, testBinDir);
 			core.setMutationScore(ms);
 			float mutationScoreResult = core.calculateMutationScore(testClasses, classToMutate);
+			System.out.println();
 			System.out.println(classToMutate + " scored : " + mutationScoreResult + " with tests : " + Arrays.asList(testClasses).toString());
 			Core.killStillRunningJUnitTestcaseThreads();
 		}
@@ -576,6 +591,7 @@ public class Main {
 	private static boolean confirmDirectoryCleaning(File file) {
 		String input;
 		System.out.print("Please confirm that you want to delete everything inside " + file.getAbsolutePath() + " (Yes|Y|S|Si|N|No) : ");
+		@SuppressWarnings("resource")
 		Scanner in = new Scanner(System.in);
 		input = in.next();
 		if (input.toLowerCase().matches("(yes|y|si|s)")) {

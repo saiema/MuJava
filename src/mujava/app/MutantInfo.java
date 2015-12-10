@@ -1,5 +1,7 @@
 package mujava.app;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -13,18 +15,16 @@ import mujava.api.Mutation;
  * The information represented in this class is the following:
  * <p>
  * <li>name 				: the name of the mutated class</li>
- * <li>method 				: the method mutated*</li>
+ * <li>method 				: the last method mutated*</li>
  * <li>path 				: the path to the mutated file</li>
- * <li>mutatedLines			: the lines mutated</li>
- * <li>opsUsed				: the mutation operators used</li>
  * <li>md5digest			: an md5 digest of the mutant</li>
- * <li>Mutations	: the mutant identifiers that generated this mutant</li>
+ * <li>Mutations information: a collection of {method, line, mutation} applied to the original file</li>
  * <p>
  * <b>*if this value is {@code null} then the mutation was made to the class fields</b>
  * <hr>
  * <b> note: mutatedLines, opsUsed and Mutations will hold only one value except when writing several mutations at once </b>
  * @author Simón Emmanuel Gutiérrez Brida
- * @version 1.3.1
+ * @version 2.0
  */
 public class MutantInfo {
 	private String name;
@@ -32,9 +32,12 @@ public class MutantInfo {
 	private String path;
 	private byte[] md5digest;
 	private boolean severalMutations;
-	private List<Integer> mutatedLines;
-	private List<Mutation> Mutations;
-	private List<Mutant> opsUsed;
+	private List<MutationInformation> mutations;
+	private Mutation lastMutation;
+	
+//	private List<Integer> mutatedLines;
+//	private List<Mutation> mutations;
+//	private List<Mutant> opsUsed;
 	
 	
 	/**
@@ -43,18 +46,14 @@ public class MutantInfo {
 	 * @param name			: 	the mutated class name : {@code String}
 	 * @param method		:	the method mutated ({@code null} if the mutation was on the class fields) : {@code String}
 	 * @param path			:	the path to the mutated file : {@code String}
-	 * @param mutatedLine	:	the mutated line : {@code int}
-	 * @param opUsed		:	the mutation operator used : {@code Mutant}
 	 * @param mi			:	the mutant identifier that generated this mutant : {@code Mutation}
 	 */
-	public MutantInfo(String name, String method, String path, int mutatedLine, Mutant opUsed, byte[] md5digest, Mutation mi) {
+	public MutantInfo(String name, String method, String path, byte[] md5digest, Mutation mi) {
 		this.name = name;
-		this.method = method;
+		if (method != null) this.method = method;
 		this.path = path;
 		initializeLists();
-		this.mutatedLines.add(mutatedLine);
-		this.opsUsed.add(opUsed);
-		this.Mutations.add(mi);
+		addMutation(mi, method);
 		this.md5digest = md5digest;
 		this.severalMutations = false;
 	}
@@ -71,42 +70,46 @@ public class MutantInfo {
 	public MutantInfo(String name, String method, String path, byte[] digest) {
 		initializeLists();
 		this.name = name;
-		this.method = method;
+		if (method != null) this.method = method;
 		this.path = path;
 		this.severalMutations = true;
 		this.md5digest = digest;
 	}
 	
 	private void initializeLists() {
-		this.mutatedLines = new LinkedList<Integer>();
-		this.Mutations = new LinkedList<Mutation>();
-		this.opsUsed = new LinkedList<Mutant>();
-	}
-	
-	/**
-	 * Add a mutation operator
-	 * @param op : the operator to add : {@code Mutant}
-	 */
-	public void addMutantOperator(Mutant op) {
-		this.opsUsed.add(op);
-	}
-	
-	/**
-	 * Add a mutated line
-	 * @param ml : the mutated line to add : {@code Integer}
-	 */
-	public void addMutatedLine(Integer ml) {
-		this.mutatedLines.add(ml);
+//		this.mutatedLines = new LinkedList<Integer>();
+//		this.mutations = new LinkedList<Mutation>();
+//		this.opsUsed = new LinkedList<Mutant>();
+		this.mutations = new LinkedList<MutationInformation>();
 	}
 	
 	/**
 	 * Add a mutation
 	 * @param mi : the mutation to add : {@code Mutation}
 	 */
-	public void addMutation(Mutation mi) {
-		this.Mutations.add(mi);
+	public void addMutation(Mutation mi, String method) {
+		addMutation(mi, method, false);
 	}
-
+	
+	private void addMutation(Mutation mi, String method, boolean prepend) {
+		if (mi != null) {
+			MutationInformation minfo = new MutationInformation(method, mi);
+			if (prepend) this.mutations.add(0, minfo); else this.mutations.add(minfo);
+			if (!prepend) this.lastMutation = mi;
+		}
+	}
+	
+	/**
+	 * Adds a list of mutations
+	 * @param mutations	:	the list of mutations to add
+	 * @param prepend	:	if {@code true} new mutations will be prepended to current ones, else they will be appended
+	 */
+	public void addMutations(List<MutationInformation> mutationsInfo, boolean prepend) {
+		for (int i = mutationsInfo.size()-1; i >= 0; i--) {
+			MutationInformation m = mutationsInfo.get(i);
+			addMutation(m.getMutation(), m.getMethod(), prepend);
+		}
+	}
 
 	/**
 	 * @return the name of the mutated class : {@code String}
@@ -121,14 +124,24 @@ public class MutantInfo {
 	public String getPath() {
 		return path;
 	}
+	
+	public String getClassRootFolder() {
+		String res = "";
+		String classAsPath = this.name.replaceAll("\\.", File.separator);
+		int classIdx = this.path.lastIndexOf(classAsPath);
+		if (classIdx > 0) {
+			res += this.path.substring(0, classIdx);
+		}
+		return res;
+	}
 
 	/**
-	 * @return the mutated line : {@code int}
+	 * @return the last mutated line : {@code int}
 	 */
 	public int getMutatedLine() {
 		int mutatedLine = -1;
-		if (!this.severalMutations && this.mutatedLines.size() == 1) {
-			mutatedLine = this.mutatedLines.get(0);
+		if (!this.severalMutations && this.lastMutation != null) {
+			mutatedLine = this.lastMutation.getAffectedLine();
 		}
 		return mutatedLine;
 	}
@@ -138,19 +151,19 @@ public class MutantInfo {
 	 */
 	public boolean isGuardMutation() {
 		boolean isGuardMutation = true;
-		for (int i = 0; isGuardMutation && (i < this.Mutations.size()); i++) {
-			isGuardMutation &= this.Mutations.get(i).isGuardMutation();
+		for (int i = 0; isGuardMutation && (i < this.mutations.size()); i++) {
+			isGuardMutation &= this.mutations.get(i).getMutation().isGuardMutation();
 		}
 		return isGuardMutation;
 	}
 
 	/**
-	 * @return the mutation operator used : {@code Mutant}
+	 * @return the last mutation operator used : {@code Mutant}
 	 */
 	public Mutant getOpUsed() {
 		Mutant opUsed = null;
-		if (!this.severalMutations && this.opsUsed.size() == 1) {
-			opUsed = this.opsUsed.get(0);
+		if (!this.severalMutations && this.lastMutation != null) {
+			opUsed = this.lastMutation.getMutOp();
 		}
 		return opUsed;
 	}
@@ -170,12 +183,12 @@ public class MutantInfo {
 	}
 	
 	/**
-	 * @return the mutant identifier that generated this mutant : {@code Mutation}
+	 * @return the last mutant identifier that generated this mutant : {@code Mutation}
 	 */
 	public Mutation getMutation() {
 		Mutation mi = null;
-		if (!this.severalMutations && this.Mutations.size() == 1) {
-			mi = this.Mutations.get(0);
+		if (!this.severalMutations && this.mutations.size() == 1) {
+			mi = this.lastMutation;
 		}
 		return mi;
 	}
@@ -191,66 +204,57 @@ public class MutantInfo {
 	 * @return the mutated lines
 	 */
 	public List<Integer> getMutatedLines() {
-		return this.mutatedLines;
+		List<Integer> lines = new LinkedList<>();
+		for (MutationInformation minfo : this.mutations) {
+			lines.add(minfo.getMutatedLine());
+		}
+		return lines;
 	}
 	
 	/**
 	 * @return the mutant operators used
 	 */
 	public List<Mutant> getMutantOperators() {
-		return this.opsUsed;
+		List<Mutant> ops = new LinkedList<>();
+		for (MutationInformation minfo : this.mutations) {
+			ops.add(minfo.getMutation().getMutOp());
+		}
+		return ops;
 	}
 	
 	/**
 	 * @return the list of Mutation used
 	 */
 	public List<Mutation> getMutations() {
-		return this.Mutations;
+		List<Mutation> mutations = new LinkedList<>();
+		for (MutationInformation minfo : this.mutations) {
+			mutations.add(minfo.getMutation());
+		}
+		return mutations;
+	}
+	
+	public List<MutationInformation> getMutationsInformation() {
+		return this.mutations;
 	}
 	
 	@Override
 	public String toString() {
-		return "name: " + this.name
-						+ "\nmethod: "				+ this.method
-						+ "\npath: "				+ this.path
-						+ "\nmutated lines: "		+ mutatedLinesToString()
-						+ "\noperators used: "		+ operatorsUsedToString()
-						+ "\nMD5 hash: " 			+ this.md5digest
-						+ "\nSeveral mutations "	+ this.severalMutationsApplied() + '\n';
-	}
-	
-	private String mutatedLinesToString() {
-		String res = "";
-		if (!this.severalMutations) {
-			res += getMutatedLine();
-		} else {
-			res = "[";
-			int i = 0;
-			for (Integer line : this.mutatedLines) {
-				res += line;
-				if ((i + 1) < this.mutatedLines.size()) {
-					res += ", ";
-				}
-			}
-			res += "]";
+		String res =  "name: " + this.name
+						+ "\nPath                   : " + this.path
+						+ "\nMD5 hash               : " + Arrays.toString(this.md5digest)
+						+ "\nSeveral mutations      : "	+ this.severalMutationsApplied() 
+						+ "\nMutations              : " + "\n";
+		for (MutationInformation minfo : this.mutations) {
+			res += indentedMutations(minfo);
 		}
 		return res;
 	}
 	
-	private String operatorsUsedToString() {
+	private String indentedMutations(MutationInformation minfo) {
 		String res = "";
-		if (this.severalMutations) {
-			res += (getOpUsed()==null?"null":getOpUsed());
-		} else {
-			res = "[";
-			int i = 0;
-			for (Mutant line : this.opsUsed) {
-				res += line;
-				if ((i + 1) < this.opsUsed.size()) {
-					res += ", ";
-				}
-			}
-			res += "]";
+		String[] lines = minfo.toString().split("\n");
+		for (String line : lines) {
+			res += "    " + line + "\n";
 		}
 		return res;
 	}

@@ -197,6 +197,22 @@ public class ConfigReader {
 				return NO_FLAG;
 			}
 		},
+		USE_SIMPLE_CLASS_NAMES {
+			public String getKey() {
+				return "mutation.advanced.useSimpleClassNames";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		OUPUT_MUTANT_MUTATIONS {
+			public String getKey() {
+				return "mutation.advanced.outputMutationsInfoInMutationScore";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
 		//MUTATION ADVANCED
 		//MUTATION ADVANCED PRVO
 		ALLOW_NUMERIC_LITERAL_VARIATIONS {
@@ -587,6 +603,7 @@ public class ConfigReader {
 		if (isDefined(Config_key.PRVO_ENABLE_ZERO_LITERAL)) conf.prvoUseZeroLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_ZERO_LITERAL));
 		if (isDefined(Config_key.PRVO_ENABLE_ONE_LITERAL)) conf.prvoUseOneLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_ONE_LITERAL));
 		if (isDefined(Config_key.PRVO_ENABLE_STRING_LITERALS)) conf.prvoUseStringLiterals(getBooleanArgument(Config_key.PRVO_ENABLE_STRING_LITERALS));
+		if (isDefined(Config_key.USE_SIMPLE_CLASS_NAMES)) conf.useSimpleClassNames(getBooleanArgument(Config_key.USE_SIMPLE_CLASS_NAMES));
 		for (String bannedField : stringArgumentsAsArray(getStringArgument(Config_key.BANNED_FIELDS))) {
 			conf.addBannedField(bannedField);
 		}
@@ -609,6 +626,7 @@ public class ConfigReader {
 		if (conf.runMutationScore()) conf.quickDeath(getBooleanArgument(Config_key.QUICK_DEATH));
 		if (conf.runMutationScore()) conf.showSurvivingMutants(getBooleanArgument(Config_key.SHOW_SURVIVING_MUTANTS));
 		if (conf.runMutationScore()) conf.toughnessAnalysis(getBooleanArgument(Config_key.MUTATION_SCORE_TOUGHNESS_ANALYSIS));
+		if (conf.runMutationScore()) conf.outputMutationsInfo(getBooleanArgument(Config_key.OUPUT_MUTANT_MUTATIONS));	
 		String validationError = conf.validate();
 		if (validationError != null) throw new IllegalStateException("Bad configuration : " + validationError);
 		return conf;
@@ -710,6 +728,8 @@ public class ConfigReader {
 			case COR_USE_BIT_AND_OP:
 			case COR_USE_BIT_OR__OP:
 			case MUTATION_SCORE_TOUGHNESS_ANALYSIS:
+			case USE_SIMPLE_CLASS_NAMES:
+			case OUPUT_MUTANT_MUTATIONS:
 			case MUTGENLIMIT: return true;
 			default : return false;
 		}
@@ -724,7 +744,15 @@ public class ConfigReader {
 	}
 	
 	public String[] stringArgumentsAsArray(String arguments) {
-		return arguments.split(" ");
+		String[] args = arguments.split(" ");
+		List<String> filteredArgs = new LinkedList<>();
+		for (int a = 0; a < args.length; a++) {
+			String arg = args[a];
+			if (!arg.trim().isEmpty()) {
+				filteredArgs.add(arg);
+			}
+		}
+		return filteredArgs.toArray(new String[filteredArgs.size()]);
 	}
 	
 }

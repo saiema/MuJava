@@ -286,8 +286,8 @@ public class Mutator implements Runnable{
 					} catch (NoSuchAlgorithmException e) {
 						e.printStackTrace();
 					}
-					int mutatedLine = Api.writeMutant(mihs.get(i).getCompUnit(), mi, pw);
-					MutantInfo minfo = new MutantInfo(request.clazz.replaceAll(Core.SEPARATOR, "."), (request.methods[i]==null?"fieldMutations":request.methods[i]), mutatedFile.getPath(), mutatedLine, mi.getMutOp(), dos.getMessageDigest().digest(), null);
+					/*int mutatedLine = */Api.writeMutant(mihs.get(i).getCompUnit(), mi, pw);
+					MutantInfo minfo = new MutantInfo(request.clazz.replaceAll(Core.SEPARATOR, "."), (request.methods[i]==null?"fieldMutations":request.methods[i]), mutatedFile.getPath(), /*mutatedLine, mi.getMutOp(), */dos.getMessageDigest().digest(), mi);
 					if (this.queue != null) this.queue.put(minfo);
 					res.add(minfo);
 				} catch (FileNotFoundException e) {
@@ -668,29 +668,29 @@ public class Mutator implements Runnable{
 					mutantFileCreated = true;
 				}
 				
-				int mutatedLine = -1;
+				//int mutatedLine = -1;
 				
 				if (applyAllMutantsToSameFile && !mutationsWritten) {
 					Mutation dummy = new Mutation(Mutant.MULTI, null, null);
 					Api.writeMutant(mih.getCompUnit(), dummy, pw);
 					mutationsWritten = true;
 				} else if (!applyAllMutantsToSameFile) {
-					mutatedLine = Api.writeMutant(mih.getCompUnit(), mi, pw);
+					/*mutatedLine = */Api.writeMutant(mih.getCompUnit(), mi, pw);
 				}
-				
+				String methodMutated = (method==null?"fieldMutations":method);
 				if ((applyAllMutantsToSameFile && minfo == null) || !applyAllMutantsToSameFile) {
 					byte[] digest = JustCodeDigest.digest(mutatedFile);
 					minfo = applyAllMutantsToSameFile?
-							new MutantInfo(this.request.clazz.replaceAll(Core.SEPARATOR, "."), (method==null?"fieldMutations":method), mutatedFile.getPath(), digest/*dos.getMessageDigest().digest()*/)
+							new MutantInfo(this.request.clazz.replaceAll(Core.SEPARATOR, "."), methodMutated, mutatedFile.getPath(), digest/*dos.getMessageDigest().digest()*/)
 							:
-							new MutantInfo(this.request.clazz.replaceAll(Core.SEPARATOR, "."), (method==null?"fieldMutations":method), mutatedFile.getPath(), mutatedLine, mi.getMutOp(), digest/*dos.getMessageDigest().digest()*/, mi)
+							new MutantInfo(this.request.clazz.replaceAll(Core.SEPARATOR, "."), methodMutated, mutatedFile.getPath(), /*mutatedLine, mi.getMutOp(), */digest/*dos.getMessageDigest().digest()*/, mi)
 							;
 				}
 				
 				if ((applyAllMutantsToSameFile && minfo != null)) {
-					minfo.addMutatedLine(mi.getAffectedLine());//minfo.addMutatedLine(mutatedLine);
-					minfo.addMutantOperator(mi.getMutOp());
-					minfo.addMutation(mi);
+//					minfo.addMutatedLine(mi.getAffectedLine());//minfo.addMutatedLine(mutatedLine);
+//					minfo.addMutantOperator(mi.getMutOp());
+					minfo.addMutation(mi, methodMutated);
 				}
 				
 				if (!applyAllMutantsToSameFile) {

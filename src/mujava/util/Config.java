@@ -78,6 +78,7 @@ public class Config {
 	private boolean prvoUseZeroLiteral;
 	private boolean prvoUseOneLiteral;
 	private boolean prvoUseStringLiterals;
+	private boolean useSimpleClassNames;
 	//advanced mutation options
 	
 	//mutation score
@@ -86,6 +87,7 @@ public class Config {
 	private Set<String> testClasses;
 	private boolean showSurvivingMutants;
 	private boolean toughnessAnalysis;
+	private boolean outputMutationsInfo;
 	//mutation score
 	
 	//mutation score advanced options
@@ -97,7 +99,8 @@ public class Config {
 	private List<String> classesInOriginalBinDir;
 	private List<String> packagesInOriginalBinDir;
 	private List<String> testClassesInTestsBinDir;
-	private final Mutant[] validMutOps = Mutant.values(); 
+	private final Mutant[] validMutOps = Mutant.values();
+	private DependencyScanner testsScanner = null;
 	//auxiliary values
 	
 
@@ -109,6 +112,8 @@ public class Config {
 		this.showSurvivingMutants = false;
 		this.toughnessAnalysis = false;
 		this.reloaderInstancesLimit = 150;
+		this.outputMutationsInfo(false);
+		this.useSimpleClassNames(false);
 		initializePRVOOptions();
 		intitializeROROptions();
 		initializeCOROptions();
@@ -635,6 +640,34 @@ public class Config {
 		this.toughnessAnalysis = b;
 	}
 	
+	/**
+	 * @return the useSimpleClassNames
+	 */
+	public boolean useSimpleClassNames() {
+		return useSimpleClassNames;
+	}
+
+	/**
+	 * @param useSimpleClassNames the useSimpleClassNames to set
+	 */
+	public void useSimpleClassNames(boolean useSimpleClassNames) {
+		this.useSimpleClassNames = useSimpleClassNames;
+	}
+
+	/**
+	 * @return the outputMutationsInfo
+	 */
+	public boolean outputMutationsInfo() {
+		return outputMutationsInfo;
+	}
+
+	/**
+	 * @param outputMutationsInfo the outputMutationsInfo to set
+	 */
+	public void outputMutationsInfo(boolean outputMutationsInfo) {
+		this.outputMutationsInfo = outputMutationsInfo;
+	}
+	
 	public List<Method> getClassMethods() {
 		if (this.methodsInClassToMutate != null && !this.methodsInClassToMutate.isEmpty()) return this.methodsInClassToMutate;
 		List<Method> classMethods = new LinkedList<Method>();
@@ -669,8 +702,10 @@ public class Config {
 		if (this.testClassesInTestsBinDir != null && !this.testClassesInTestsBinDir.isEmpty()) return this.testClassesInTestsBinDir;
 		List<String> testClassesInTestsBinDir = new LinkedList<String>();
 		try {
-			DependencyScanner depScanner = new DependencyScanner(toPath(addTrailingSeparator(this.testsBinDir)));
-			for (String c : depScanner.getDependencyMap().getClasses()) {
+			if (this.testsScanner == null || this.testsScanner.getScannedPath().compareTo(this.originalBinDir) != 0) {
+				this.testsScanner = new DependencyScanner(toPath(addTrailingSeparator(this.testsBinDir)));
+			}
+			for (String c : this.testsScanner.getDependencyMap().getClasses()) {
 				if (isTestClass(loadClass(c, this.testsBinDir))) {
 					testClassesInTestsBinDir.add(c);
 				}
@@ -682,6 +717,23 @@ public class Config {
 		
 		this.testClassesInTestsBinDir = testClassesInTestsBinDir;
 		return testClassesInTestsBinDir;
+	}
+	
+	private boolean existsAsTestClass(String c) {
+		try {
+			if (this.testsScanner == null || this.testsScanner.getScannedPath().compareTo(this.originalBinDir) != 0) {
+				this.testsScanner = new DependencyScanner(toPath(addTrailingSeparator(this.testsBinDir)));
+			}
+			for (String tc : this.testsScanner.getDependencyMap().getClasses()) {
+				if (tc.compareTo(c) == 0) {
+					return isTestClass(loadClass(c, this.testsBinDir));
+				}
+			}
+		} catch (IllegalStateException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 	public List<String> getpackagesInOriginalBinDir() {
@@ -710,12 +762,12 @@ public class Config {
 		if (this.runMutationScore && (this.testClasses == null || this.testClasses.isEmpty())) return "Mutation score is enabled but no test classes has been selected";
 		if (this.runMutationScore) {
 			for (String t : this.testClasses) {
-				if (!getTestClassesInTestsBinDir().contains(t)) {
-					return "Class " + t + " can't be found inside " + this.testsBinDir;
+				if (!existsAsTestClass(t)) {
+					return "Class " + t + " can't be found inside " + this.testsBinDir + " or is not a valid test class";
 				}
-				if (!isTestClass(loadClass(t, addTrailingSeparator(this.testsBinDir)))) {
-					return "Class " + t + " is not a valid test class";
-				}
+//				if (!isTestClass(loadClass(t, addTrailingSeparator(this.testsBinDir)))) {
+//					return "Class " + t + " is not a valid test class";
+//				}
 			}
 		}
 		for (Mutant m : this.operators) {
@@ -849,7 +901,6 @@ public class Config {
 		}
 		return false;
 	}
-	
-	
+
 	
 }
