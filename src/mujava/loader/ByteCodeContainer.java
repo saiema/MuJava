@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -105,5 +107,53 @@ public class ByteCodeContainer {
 		return "Container has " + this.classByteCodeMap.size() + " values";
 	}
 	
+	@Override
+	public String toString() {
+		String res = "";
+		res += "Reuse bytecode      : " + ByteCodeContainer.reuseByteCode + "\n";
+		res += "Verify file changes : " + this.verifyFileChanges + "\n";
+		res += "Classes to reload   : \n" + classesToReloadAsString(true) + "\n";
+		res += "File per class      : \n" + filePerClassAsString(true) + "\n";
+		res += "Bytecode per class  : \n" + byteCodePerClass(true, false) + "\n";
+		return res;
+	}
+	
+	public String classesToReloadAsString(boolean indent) {
+		String res = "";
+		Iterator<String> it = this.classesToReload.iterator();
+		while (it.hasNext()) {
+			res += indentation(indent) + it.next();
+			if (it.hasNext()) res += "\n"; 
+		}
+		return res;
+	}
+	
+	public String filePerClassAsString(boolean indent) {
+		String res = "";
+		Iterator<Entry<String, String>> it = this.filePerClass.entrySet().iterator();
+		while (it.hasNext()) {
+			Entry<String, String> entry = it.next();
+			res += indentation(indent) + entry.getKey() + " : " + entry.getValue();
+			if (it.hasNext()) res += "\n";
+		}
+		return res;
+	}
+	
+	public String byteCodePerClass(boolean indent, boolean fullByteCode) {
+		String res = "";
+		Iterator<Entry<String, byte[]>> it = this.classByteCodeMap.entrySet().iterator();
+		while (it.hasNext()) {
+			Entry<String, byte[]> entry = it.next();
+			String byteCodeAsString = fullByteCode?Arrays.toString(entry.getValue()):entry.getValue().toString();
+			res += indentation(indent) + entry.getKey() + " : " + byteCodeAsString;
+			if (it.hasNext()) res += "\n";
+		}
+		return res;
+	}
+	
+	private String indentation(boolean indent) {
+		if (indent) return "    ";
+		else return "";
+	}
 	
 }

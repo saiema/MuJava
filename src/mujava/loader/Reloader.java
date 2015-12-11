@@ -188,6 +188,7 @@ public class Reloader extends ClassLoader {
 	}
 	
 	public void markEveryClassInFolderAsReloadable(String folder, Set<String> allowedPackages) {
+		cleanIfRescaning(folder);
 		File pathFile = new File(folder);
 		if (pathFile.exists() && pathFile.isDirectory()) {
 			setPathAsPriority(folder);
@@ -347,6 +348,43 @@ public class Reloader extends ClassLoader {
 		for (String cp : classpath) {
 			f = new File(cp + s.replaceAll("\\.", File.separator) + ".class");
 			found = this.byteCodeContainer.byteCodeExist(f);
+			if (found) break;
+		}
+		return found;
+	}
+	
+	private void cleanIfRescaning(String folder) {
+		File pathFile = new File(folder);
+		if (pathFile.exists() && pathFile.isDirectory()) {
+			if (this.priorityPath != null && this.priorityPath.compareTo(folder) == 0) {
+				cleanDeletedClasses();
+			} else if (this.classpath.contains(folder)) {
+				cleanDeletedClasses();
+			} else if (this.specificClassPaths.containsKey(folder)) {
+				this.reloadableCache.remove(this.specificClassPaths.get(folder));
+				this.specificClassPaths.remove(folder);
+			}
+		}
+	}
+
+	private void cleanDeletedClasses() {
+		Set<String> cleanedClasses = new TreeSet<>();
+		for (String c : this.reloadableCache) {
+			if (classExists(c)) {
+				cleanedClasses.add(c);
+			} else {
+				this.byteCodeContainer.eliminateClass(c);
+			}
+		}
+		this.reloadableCache = cleanedClasses;
+	}
+	
+	private boolean classExists(String className) {
+		boolean found = false;
+		File f = null;
+		for (String cp : classpath) {
+			f = new File(cp + className.replaceAll("\\.", File.separator) + ".class");
+			found = f.exists() && f.isFile();
 			if (found) break;
 		}
 		return found;
