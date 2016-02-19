@@ -6,7 +6,7 @@
 
 package mujava.op;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -54,6 +54,6 @@ public class JID extends mujava.op.util.Mutator {
 	 * @param original
 	 */
 	private void outputToFile(FieldDeclaration original, FieldDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.JID, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.JID, original, mutant);
 	}
 }

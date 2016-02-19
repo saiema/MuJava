@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 
 import org.junit.Test;
@@ -42,12 +42,12 @@ public class CustomTest {
 		
 		//TESTS DEFINITIONS
 		//MULTIMUTATIONS
-		List<Mutant> operators = new LinkedList<Mutant>();
-		operators.add(Mutant.PRVOR);
-		operators.add(Mutant.AORB);
-		operators.add(Mutant.COR);
-		operators.add(Mutant.ROR);
-		operators.add(Mutant.EOC);
+		List<MutationOperator> operators = new LinkedList<MutationOperator>();
+		operators.add(MutationOperator.PRVOR);
+		operators.add(MutationOperator.AORB);
+		operators.add(MutationOperator.COR);
+		operators.add(MutationOperator.ROR);
+		operators.add(MutationOperator.EOC);
 		Property propCustom0 = new Property(operators,
 											"test/MultiMutations",
 											"contains",
@@ -57,9 +57,9 @@ public class CustomTest {
 											TestingTools.NO_PATTERN_EXPECTED);
 		
 		//AFFECTEDLINES
-		List<Mutant> operators1 = new LinkedList<Mutant>();
-		operators1.add(Mutant.COR);
-		operators1.add(Mutant.COI);
+		List<MutationOperator> operators1 = new LinkedList<MutationOperator>();
+		operators1.add(MutationOperator.COR);
+		operators1.add(MutationOperator.COI);
 		Property propCustom1 = new Property(operators1,
 											"multiMutations/TAL_1",
 											"radiatedMethod",
@@ -68,8 +68,8 @@ public class CustomTest {
 											TestingTools.NO_PATTERN_EXPECTED,
 											TestingTools.NO_PATTERN_EXPECTED);	
 		
-		List<Mutant> operators2 = new LinkedList<Mutant>();
-		operators2.add(Mutant.COI);
+		List<MutationOperator> operators2 = new LinkedList<MutationOperator>();
+		operators2.add(MutationOperator.COI);
 		Property propCustom2 = new Property(operators2,
 											"multiMutations/TAL_2",
 											"radiatedMethod",
@@ -78,12 +78,12 @@ public class CustomTest {
 											TestingTools.NO_PATTERN_EXPECTED,
 											TestingTools.NO_PATTERN_EXPECTED);
 		
-		List<Mutant> operators3 = new LinkedList<Mutant>();
-		operators3.add(Mutant.COI); 	//lines 1, 3, 5, 10
-		operators3.add(Mutant.PRVOU);	//lines 1, 2, 10
-		operators3.add(Mutant.PRVOR);	//lines 4, 5
-		operators3.add(Mutant.AODS);	//lines 7
-		operators3.add(Mutant.ROR);
+		List<MutationOperator> operators3 = new LinkedList<MutationOperator>();
+		operators3.add(MutationOperator.COI); 	//lines 1, 3, 5, 10
+		operators3.add(MutationOperator.PRVOU);	//lines 1, 2, 10
+		operators3.add(MutationOperator.PRVOR);	//lines 4, 5
+		operators3.add(MutationOperator.AODS);	//lines 7
+		operators3.add(MutationOperator.ROR);
 		Property propCustom3 = new Property(operators3,
 											"multiMutations/TAL_3",
 											"radiatedMethod",
@@ -92,10 +92,10 @@ public class CustomTest {
 											TestingTools.NO_PATTERN_EXPECTED,
 											TestingTools.NO_PATTERN_EXPECTED);
 		
-		List<Mutant> operators4 = new LinkedList<Mutant>();
-		operators4.add(Mutant.PRVOR);
+		List<MutationOperator> operators4 = new LinkedList<MutationOperator>();
+		operators4.add(MutationOperator.PRVOR);
 		List<MutationExpected> mutationsExpected = new LinkedList<MutationExpected>();
-		MutationExpected me1 = new MutationExpected("this.header.next", "header.next", 3, Mutant.PRVOR);
+		MutationExpected me1 = new MutationExpected("this.header.next", "header.next", 3, MutationOperator.PRVOR);
 		mutationsExpected.add(me1);
 		SpecificMutationsFilter filter4 = new SpecificMutationsFilter(mutationsExpected);
 		Property propCustom4 = new Property(operators4,
@@ -104,12 +104,12 @@ public class CustomTest {
 									filter4,
 									false);
 		
-		List<Mutant> operators5 = new LinkedList<Mutant>();
-		operators5.add(Mutant.PRVOR);
-		operators5.add(Mutant.COI);
+		List<MutationOperator> operators5 = new LinkedList<MutationOperator>();
+		operators5.add(MutationOperator.PRVOR);
+		operators5.add(MutationOperator.COI);
 		List<MutationExpected> mutationsExpected5 = new LinkedList<MutationExpected>();
-		MutationExpected me5_1 = new MutationExpected("current.next.next", "current.next", 23, Mutant.PRVOR);
-		MutationExpected me5_2 = new MutationExpected("false", "!false", 8, Mutant.COI);
+		MutationExpected me5_1 = new MutationExpected("current.next.next", "current.next", 23, MutationOperator.PRVOR);
+		MutationExpected me5_2 = new MutationExpected("false", "!false", 8, MutationOperator.COI);
 		mutationsExpected5.add(me5_1);
 		mutationsExpected5.add(me5_2);
 		SpecificMutationsFilter filter5 = new SpecificMutationsFilter(mutationsExpected5);
@@ -119,10 +119,10 @@ public class CustomTest {
 									filter5,
 									false);
 		
-		List<Mutant> operators6 = new LinkedList<Mutant>();
-		operators6.add(Mutant.PRVOR);
+		List<MutationOperator> operators6 = new LinkedList<MutationOperator>();
+		operators6.add(MutationOperator.PRVOR);
 		List<MutationExpected> mutationsExpected6 = new LinkedList<MutationExpected>();
-		MutationExpected me6_1 = new MutationExpected("false", "this.showInstance()", 8, Mutant.PRVOR);
+		MutationExpected me6_1 = new MutationExpected("false", "this.showInstance()", 8, MutationOperator.PRVOR);
 		mutationsExpected6.add(me6_1);
 		SpecificMutationsFilter filter6 = new SpecificMutationsFilter(mutationsExpected6);
 		Property propCustom6 = new Property(operators6,
@@ -131,20 +131,20 @@ public class CustomTest {
 									filter6,
 									false);
 		
-		List<Mutant> operators7 = new LinkedList<Mutant>();
-		operators7.add(Mutant.PRVOL);
-		operators7.add(Mutant.PRVOR);
-		operators7.add(Mutant.PRVOU);
-		operators7.add(Mutant.AODS);
-		operators7.add(Mutant.AODU);
-		operators7.add(Mutant.AOIS);
-		operators7.add(Mutant.AOIU);
-		operators7.add(Mutant.AORB);
-		operators7.add(Mutant.AORS);
-		operators7.add(Mutant.AORU);
-		operators7.add(Mutant.ASRS);
-		operators7.add(Mutant.COD);
-		operators7.add(Mutant.COI);
+		List<MutationOperator> operators7 = new LinkedList<MutationOperator>();
+		operators7.add(MutationOperator.PRVOL);
+		operators7.add(MutationOperator.PRVOR);
+		operators7.add(MutationOperator.PRVOU);
+		operators7.add(MutationOperator.AODS);
+		operators7.add(MutationOperator.AODU);
+		operators7.add(MutationOperator.AOIS);
+		operators7.add(MutationOperator.AOIU);
+		operators7.add(MutationOperator.AORB);
+		operators7.add(MutationOperator.AORS);
+		operators7.add(MutationOperator.AORU);
+		operators7.add(MutationOperator.ASRS);
+		operators7.add(MutationOperator.COD);
+		operators7.add(MutationOperator.COI);
 		Property propCustom7 = new Property(operators7,
 									"bugHunting/RepeatedLine",
 									"getNode",
@@ -153,23 +153,23 @@ public class CustomTest {
 									TestingTools.NO_PATTERN_EXPECTED,
 									TestingTools.NO_PATTERN_EXPECTED);
 		
-		List<Mutant> operators8 = new LinkedList<Mutant>();
-//		operators8.add(Mutant.PRVOL);
-//		operators8.add(Mutant.PRVOR);
-//		operators8.add(Mutant.PRVOU);
-//		operators8.add(Mutant.PRVOR_REFINED);
-//		operators8.add(Mutant.PRVOU_REFINED);
-//		operators8.add(Mutant.AODS);
-//		operators8.add(Mutant.AODU);
-//		operators8.add(Mutant.AOIS);
-//		operators8.add(Mutant.AOIU);
-//		operators8.add(Mutant.AORB);
-//		operators8.add(Mutant.AORS);
-//		operators8.add(Mutant.AORU);
-//		operators8.add(Mutant.ASRS);
-//		operators8.add(Mutant.COD);
-//		operators8.add(Mutant.COI);
-		operators8.add(Mutant.ROR);
+		List<MutationOperator> operators8 = new LinkedList<MutationOperator>();
+//		operators8.add(MutationOperator.PRVOL);
+//		operators8.add(MutationOperator.PRVOR);
+//		operators8.add(MutationOperator.PRVOU);
+//		operators8.add(MutationOperator.PRVOR_REFINED);
+//		operators8.add(MutationOperator.PRVOU_REFINED);
+//		operators8.add(MutationOperator.AODS);
+//		operators8.add(MutationOperator.AODU);
+//		operators8.add(MutationOperator.AOIS);
+//		operators8.add(MutationOperator.AOIU);
+//		operators8.add(MutationOperator.AORB);
+//		operators8.add(MutationOperator.AORS);
+//		operators8.add(MutationOperator.AORU);
+//		operators8.add(MutationOperator.ASRS);
+//		operators8.add(MutationOperator.COD);
+//		operators8.add(MutationOperator.COI);
+		operators8.add(MutationOperator.ROR);
 		LineMutationsFilter filter8 = new LineMutationsFilter();
 		Set<Integer> selectedLines8 = new TreeSet<Integer>();
 		selectedLines8.add(4);
@@ -182,10 +182,10 @@ public class CustomTest {
 									false);
 		
 		
-		List<Mutant> operators9 = new LinkedList<Mutant>();
-		operators9.add(Mutant.PRVOL_SMART);
-		operators9.add(Mutant.PRVOR_REFINED);
-		operators9.add(Mutant.PRVOU_REFINED);
+		List<MutationOperator> operators9 = new LinkedList<MutationOperator>();
+		operators9.add(MutationOperator.PRVOL_SMART);
+		operators9.add(MutationOperator.PRVOR_REFINED);
+		operators9.add(MutationOperator.PRVOU_REFINED);
 		Property propCustom9 = new Property(operators9,
 									"utils/SimpleClass",
 									"twicePlusOne",
@@ -194,13 +194,13 @@ public class CustomTest {
 									TestingTools.NO_PATTERN_EXPECTED,
 									TestingTools.NO_PATTERN_EXPECTED);
 		
-		List<Mutant> operators10 = Arrays.asList(new Mutant[]{
-				Mutant.ROR,
-				Mutant.PRVOU_REFINED
+		List<MutationOperator> operators10 = Arrays.asList(new MutationOperator[]{
+				MutationOperator.ROR,
+				MutationOperator.PRVOU_REFINED
 		});
 		List<MutationExpected> expectedMutations10 = new LinkedList<>();
-		MutationExpected prvou_refined_line_10 = new MutationExpected("null", "valueParam", 10, Mutant.PRVOU_REFINED);
-		MutationExpected ror_line_7 = new MutationExpected("current.value != null", "current.value == null", 7, Mutant.ROR);
+		MutationExpected prvou_refined_line_10 = new MutationExpected("null", "valueParam", 10, MutationOperator.PRVOU_REFINED);
+		MutationExpected ror_line_7 = new MutationExpected("current.value != null", "current.value == null", 7, MutationOperator.ROR);
 		expectedMutations10.add(prvou_refined_line_10);
 		expectedMutations10.add(ror_line_7);
 		SpecificMutationsFilter filter10 = new SpecificMutationsFilter(expectedMutations10);
@@ -214,26 +214,26 @@ public class CustomTest {
 											filter10,
 											true);
 		
-		List<Mutant> operators11 = new LinkedList<>();
-		operators11.add(Mutant.AODS);
-		operators11.add(Mutant.AODU);
-		operators11.add(Mutant.AOIS);
-		operators11.add(Mutant.AOIU);
-		operators11.add(Mutant.AORB);
-		operators11.add(Mutant.AORS);
-		operators11.add(Mutant.AORU);
-		operators11.add(Mutant.ASRS);
-		operators11.add(Mutant.COD);
-		operators11.add(Mutant.COI);
-		operators11.add(Mutant.COR);
-		operators11.add(Mutant.LOD);
-		operators11.add(Mutant.LOI);
-		operators11.add(Mutant.LOR);
-		operators11.add(Mutant.ROR);
-		operators11.add(Mutant.SOR);
-		operators11.add(Mutant.PRVOL_SMART);
-		operators11.add(Mutant.PRVOR_REFINED);
-		operators11.add(Mutant.PRVOU_REFINED);
+		List<MutationOperator> operators11 = new LinkedList<>();
+		operators11.add(MutationOperator.AODS);
+		operators11.add(MutationOperator.AODU);
+		operators11.add(MutationOperator.AOIS);
+		operators11.add(MutationOperator.AOIU);
+		operators11.add(MutationOperator.AORB);
+		operators11.add(MutationOperator.AORS);
+		operators11.add(MutationOperator.AORU);
+		operators11.add(MutationOperator.ASRS);
+		operators11.add(MutationOperator.COD);
+		operators11.add(MutationOperator.COI);
+		operators11.add(MutationOperator.COR);
+		operators11.add(MutationOperator.LOD);
+		operators11.add(MutationOperator.LOI);
+		operators11.add(MutationOperator.LOR);
+		operators11.add(MutationOperator.ROR);
+		operators11.add(MutationOperator.SOR);
+		operators11.add(MutationOperator.PRVOL_SMART);
+		operators11.add(MutationOperator.PRVOR_REFINED);
+		operators11.add(MutationOperator.PRVOU_REFINED);
 		Property propCustom11 = new Property(operators11,
 											"bugHunting/Digits",
 											"digits",

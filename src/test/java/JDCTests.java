@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class JDCTests {
 	public static Collection<Object[]> firstValues() {
 		
 		//TESTS DEFINITIONS
-		Property propB_1 = new Property(Mutant.JDC,
+		Property propB_1 = new Property(MutationOperator.JDC,
 										"classMutations/B_1",
 										Property.MUTATE_CLASS,
 										0,
@@ -43,7 +43,7 @@ public class JDCTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propB_2 = new Property(Mutant.JDC,
+		Property propB_2 = new Property(MutationOperator.JDC,
 										"classMutations/B_2",
 										Property.MUTATE_CLASS,
 										0,
@@ -53,7 +53,7 @@ public class JDCTests {
 		
 		List<Pattern> cneB_3 = new LinkedList<Pattern>();
 		cneB_3.add(Pattern.compile("public B\\_3\\(\\)"));
-		Property propB_3 = new Property(Mutant.JDC,
+		Property propB_3 = new Property(MutationOperator.JDC,
 										"classMutations/B_3",
 										Property.MUTATE_CLASS,
 										1,

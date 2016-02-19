@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,21 +37,21 @@ public class AMCTests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.AMC, "utils/IntWrapper", "toString", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.AMC, "utils/IntWrapper", "toString", 0, 0, mceOMUC, mcneOMUC);
 		
 		List<Pattern> mceConstructor = new LinkedList<Pattern>();
 		List<Pattern> mcneConstructor = new LinkedList<Pattern>();
 		mceConstructor.add(Pattern.compile("protected (.+\\.)?Integer val; //mutGenLimit 1"));
 		mceConstructor.add(Pattern.compile("private (.+\\.)?Integer val; //mutGenLimit 1"));
 		mceConstructor.add(Pattern.compile("(?!(private|protected|public))[ \t]*([^ \t]+\\.)?Integer val; //mutGenLimit 1"));
-		Property propConstructor = new Property(Mutant.AMC, "utils/IntWrapper", Property.MUTATE_FIELDS, 3, 3, mceConstructor, mcneConstructor);
+		Property propConstructor = new Property(MutationOperator.AMC, "utils/IntWrapper", Property.MUTATE_FIELDS, 3, 3, mceConstructor, mcneConstructor);
 		
 		List<Pattern> mceAdd = new LinkedList<Pattern>();
 		List<Pattern> mcneAdd = new LinkedList<Pattern>();
 		mceAdd.add(Pattern.compile("private (.+\\.)?IntWrapper add\\(([ \t\n\f\r])*(.+\\.)?IntWrapper o([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 0"));
 		mceAdd.add(Pattern.compile("protected (.+\\.)?IntWrapper add\\(([ \t\n\f\r])*(.+\\.)?IntWrapper o([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 0"));
 		mceAdd.add(Pattern.compile("(?!(private|protected|public))[ \t]*([^ \t]+\\.)?IntWrapper add\\(([ \t\n\f\r])*(.+\\.)?IntWrapper o([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 0"));
-		Property propAdd = new Property(Mutant.AMC, "utils/IntWrapper", "add", 3, 3, mceAdd, mcneAdd);
+		Property propAdd = new Property(MutationOperator.AMC, "utils/IntWrapper", "add", 3, 3, mceAdd, mcneAdd);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

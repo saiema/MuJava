@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import mujava.api.Api;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 
 import org.reflections.Reflections;
@@ -147,7 +147,7 @@ public class PNC extends mujava.op.util.Mutator {
 
 	
 	private void outputToFile(AllocationExpression original, AllocationExpression mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.PNC, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.PNC, original, mutant);
 	}
 
 }

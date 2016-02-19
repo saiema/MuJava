@@ -12,7 +12,7 @@ import java.util.Comparator;
 
 import mujava.api.Api;
 import mujava.api.Configuration;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.util.Mutator;
 import openjava.mop.*;
@@ -241,7 +241,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	private Stack<Boolean> refModeAllowNullStack = new Stack<Boolean>();
 	private Stack<Expression> refModeComplyTypeStack = new Stack<Expression>();
 	private boolean smartMode;
-	private Mutant op;
+	private MutationOperator op;
 
 	private HashMap<String, java.util.List<Object>> fieldsAndMethodsPerClass = new HashMap<String, java.util.List<Object>>();
 	
@@ -295,7 +295,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 	}
 
-	public void setOP(Mutant op) {
+	public void setOP(MutationOperator op) {
 		this.op = op;
 	}
 

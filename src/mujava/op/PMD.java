@@ -14,7 +14,7 @@ import openjava.ptree.ParseTreeException;
 import openjava.ptree.TypeName;
 import openjava.ptree.VariableDeclaration;
 import mujava.api.Api;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.app.MutationRequest;
 import mujava.op.util.Mutator;
@@ -121,19 +121,19 @@ public class PMD extends Mutator {
 	}
 	
 	private void outputToFile(ConstructorDeclaration original, ConstructorDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.PPD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.PPD, original, mutant);
 	}
 
 	private void outputToFile(VariableDeclaration original, VariableDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.PMD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.PMD, original, mutant);
 	}
 	
 	private void outputToFile(FieldDeclaration original, FieldDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.PMD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.PMD, original, mutant);
 	}
 
 	private void outputToFile(MethodDeclaration original, MethodDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.PPD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.PPD, original, mutant);
 	}
 	
 }

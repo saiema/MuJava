@@ -41,8 +41,8 @@ public class ByteCodeContainer {
 	}
 	
 	public void eliminateClass(String className) {
-		this.classByteCodeMap.remove(className);
-		this.filePerClass.remove(className);
+		String classFilePath = this.filePerClass.remove(className);
+		if (classFilePath != null) this.classByteCodeMap.remove(classFilePath);
 	}
 	
 	public byte[] loadByteCodeFile(File file) throws IOException {

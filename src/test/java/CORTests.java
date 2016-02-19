@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class CORTests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.COR, "utils/BooleanOps", "or", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.COR, "utils/BooleanOps", "or", 0, 0, mceOMUC, mcneOMUC);
 		
 		/*
 			 	boolean auxA = a; //mutGenLimit 3
@@ -55,7 +55,7 @@ public class CORTests {
 		mceAnd.add(Pattern.compile("if \\(\\!auxA \\& \\!auxB\\) \\{ //mutGenLimit 0"));
 		mceAnd.add(Pattern.compile("if \\(\\!auxA \\| \\!auxB\\) \\{ //mutGenLimit 0"));
 		mceAnd.add(Pattern.compile("if \\(\\!auxA \\^ \\!auxB\\) \\{ //mutGenLimit 0"));
-		Property propAnd = new Property(Mutant.COR, "utils/BooleanOps", "and", 4, 4, mceAnd, mcneAnd);
+		Property propAnd = new Property(MutationOperator.COR, "utils/BooleanOps", "and", 4, 4, mceAnd, mcneAnd);
 		
 		/*
 		 		boolean isXnor = !(!auxA || !auxB) || (!auxA && !auxB); //mutGenLimit 2
@@ -91,7 +91,7 @@ public class CORTests {
 		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\|\\| \\!auxA \\| \\!auxB; //mutGenLimit 1"));
 		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\|\\| \\!auxA \\& \\!auxB; //mutGenLimit 1"));
 		mceXnor.add(Pattern.compile("boolean isXnor = \\!\\(\\!auxA \\|\\| \\!auxB\\) \\|\\| \\!auxA \\^ \\!auxB; //mutGenLimit 1"));
-		Property propXnor = new Property(Mutant.COR, "utils/BooleanOps", "xnor", 12, 12, mceXnor, mcneXnor);
+		Property propXnor = new Property(MutationOperator.COR, "utils/BooleanOps", "xnor", 12, 12, mceXnor, mcneXnor);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

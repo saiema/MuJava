@@ -3,13 +3,13 @@ package test.java.utils;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 
 public class Property {
 	public final static String MUTATE_FIELDS= "0_mutateFields";
 	public final static String MUTATE_CLASS= "0_mutateClass";
 	
-	public Property(Mutant op, String clazz, String method, Integer mutantsExpected, Integer compilingMutantsExpected, List<Pattern> mutantCodeExpected, List<Pattern> mutantCodeNotExpected) {
+	public Property(MutationOperator op, String clazz, String method, Integer mutantsExpected, Integer compilingMutantsExpected, List<Pattern> mutantCodeExpected, List<Pattern> mutantCodeNotExpected) {
 		this.op 						= op;
 		this.clazz 						= clazz;
 		this.method 					= method;
@@ -22,11 +22,11 @@ public class Property {
 		this.testingMutationMerging		= false;
 	}
 	
-	public Property(List<Mutant> ops, String clazz, String method, Integer mutantsExpected, Integer compilingMutantsExpected, List<Pattern> mutantCodeExpected, List<Pattern> mutantCodeNotExpected) {
+	public Property(List<MutationOperator> ops, String clazz, String method, Integer mutantsExpected, Integer compilingMutantsExpected, List<Pattern> mutantCodeExpected, List<Pattern> mutantCodeNotExpected) {
 		this(ops, clazz, method, mutantsExpected, compilingMutantsExpected, mutantCodeExpected, mutantCodeNotExpected, null, false);
 	}
 	
-	public Property(List<Mutant> ops, String clazz, String method, Integer mutantsExpected, Integer compilingMutantsExpected, List<Pattern> mutantCodeExpected, List<Pattern> mutantCodeNotExpected, MutationsFilter filter, boolean writeAllToSameFile) {
+	public Property(List<MutationOperator> ops, String clazz, String method, Integer mutantsExpected, Integer compilingMutantsExpected, List<Pattern> mutantCodeExpected, List<Pattern> mutantCodeNotExpected, MutationsFilter filter, boolean writeAllToSameFile) {
 		this.ops 						= ops;
 		this.clazz 						= clazz;
 		this.method 					= method;
@@ -41,7 +41,7 @@ public class Property {
 		this.testingMutationMerging		= false;
 	}
 	
-	public Property(List<Mutant> ops, String clazz, String method, List<MutationExpected> mutationsExpected, List<Integer> linesAffectedExpected) {
+	public Property(List<MutationOperator> ops, String clazz, String method, List<MutationExpected> mutationsExpected, List<Integer> linesAffectedExpected) {
 		this.ops 						= ops;
 		this.clazz 						= clazz;
 		this.method 					= method;
@@ -52,7 +52,7 @@ public class Property {
 		this.testingMutationMerging		= false;
 	}
 	
-	public Property(List<Mutant> ops, String clazz, String method, List<MutationExpected> mutationsExpected, List<Integer> linesAffectedExpected, MutationsFilter filter) {
+	public Property(List<MutationOperator> ops, String clazz, String method, List<MutationExpected> mutationsExpected, List<Integer> linesAffectedExpected, MutationsFilter filter) {
 		this.ops 						= ops;
 		this.clazz 						= clazz;
 		this.method 					= method;
@@ -64,7 +64,7 @@ public class Property {
 		this.filter						= filter;
 	}
 	
-	public Property(List<Mutant> ops, String clazz, String method, MutationsFilter filter, boolean canBeMerged) {
+	public Property(List<MutationOperator> ops, String clazz, String method, MutationsFilter filter, boolean canBeMerged) {
 		this.ops 						= ops;
 		this.clazz 						= clazz;
 		this.method 					= method;
@@ -75,8 +75,8 @@ public class Property {
 		this.testingMutationMerging		= true;
 	}
 	
-	public List<Mutant> ops;
-	public Mutant op;
+	public List<MutationOperator> ops;
+	public MutationOperator op;
 	public String clazz;
 	public String method;
 	public Integer mutantsExpected;

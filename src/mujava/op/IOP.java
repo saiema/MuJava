@@ -18,7 +18,7 @@ import openjava.ptree.Statement;
 import openjava.ptree.StatementList;
 import openjava.ptree.TypeName;
 import mujava.api.Api;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.util.Mutator;
 
@@ -148,7 +148,7 @@ public class IOP extends Mutator {
 	}
 	
 	private void outputToFile(MethodDeclaration original, MethodDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.IOP, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.IOP, original, mutant);
 	}
 
 	private boolean isSuperCallOfSameMethod(MethodCall mc, MethodDeclaration md) throws ParseTreeException {

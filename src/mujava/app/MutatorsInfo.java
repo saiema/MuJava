@@ -19,7 +19,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantType;
 
 /**
@@ -32,14 +32,14 @@ public class MutatorsInfo {
 	private String infoFilePath = "";
 	private String infoFileName = "mutantsInfo";
 	private static MutatorsInfo instance = null;
-	private List<Mutant> basicOps;
-	private List<Mutant> advOps;
-	private List<Mutant> allOps;
-	private HashMap<Mutant, String> shortDescriptions;
-	private HashMap<Mutant, String> fullDescriptions;
-	private HashMap<Mutant, MutantType> mutantsType;
-	private HashMap<Mutant, Boolean> affectsOneLine;
-	private HashMap<Mutant, String> developerNotes;
+	private List<MutationOperator> basicOps;
+	private List<MutationOperator> advOps;
+	private List<MutationOperator> allOps;
+	private HashMap<MutationOperator, String> shortDescriptions;
+	private HashMap<MutationOperator, String> fullDescriptions;
+	private HashMap<MutationOperator, MutantType> mutantsType;
+	private HashMap<MutationOperator, Boolean> affectsOneLine;
+	private HashMap<MutationOperator, String> developerNotes;
 	private Document doc = null;
 	
 	/**
@@ -65,14 +65,14 @@ public class MutatorsInfo {
 	}
 	
 	private void clean() {
-		this.basicOps = new LinkedList<Mutant>();
-		this.advOps = new LinkedList<Mutant>();
-		this.allOps = new LinkedList<Mutant>();
-		this.shortDescriptions = new HashMap<Mutant, String>();
-		this.fullDescriptions = new HashMap<Mutant, String>();
-		this.mutantsType = new HashMap<Mutant, MutantType>();
-		this.affectsOneLine = new HashMap<Mutant, Boolean>();
-		this.developerNotes = new HashMap<Mutant, String>();
+		this.basicOps = new LinkedList<MutationOperator>();
+		this.advOps = new LinkedList<MutationOperator>();
+		this.allOps = new LinkedList<MutationOperator>();
+		this.shortDescriptions = new HashMap<MutationOperator, String>();
+		this.fullDescriptions = new HashMap<MutationOperator, String>();
+		this.mutantsType = new HashMap<MutationOperator, MutantType>();
+		this.affectsOneLine = new HashMap<MutationOperator, Boolean>();
+		this.developerNotes = new HashMap<MutationOperator, String>();
 	}
 	
 	private void load() {
@@ -123,8 +123,8 @@ public class MutatorsInfo {
 			String fullDescription = childs.item(c).getAttributes().getNamedItem("fullDescription").getNodeValue();
 			boolean affectsOneLine = childs.item(c).getAttributes().getNamedItem("affectsOneLine").getNodeValue().compareTo("true") == 0;
 			Node developerNotes = childs.item(c).getAttributes().getNamedItem("developerNotes");
-			System.out.println("Mutant name : " + name);
-			System.out.println("Mutant type : " + mutType.toString());
+			System.out.println("MutationOperator name : " + name);
+			System.out.println("MutationOperator type : " + mutType.toString());
 			System.out.println((basic.equals("true")?"Basic mutant operator":"Advanced mutant operator"));
 			System.out.println("Short description : " + shortDescription + '\n');
 			System.out.println("Full description : " + fullDescription + '\n');
@@ -142,13 +142,13 @@ public class MutatorsInfo {
 	
 	private void parse(Document d) {
 		NodeList childs = d.getElementsByTagName("mutant");
-		Mutant mutOp = null;
+		MutationOperator mutOp = null;
 		MutantType mutType = null;
 		boolean affectsOneLine;
 		boolean basicOp;
 		for (int c = 0; c < childs.getLength(); c++) {
 			String name = childs.item(c).getAttributes().getNamedItem("name").getNodeValue();
-			mutOp = Mutant.valueOf(name);
+			mutOp = MutationOperator.valueOf(name);
 			mutType = MutantType.valueOf(childs.item(c).getAttributes().getNamedItem("type").getNodeValue());
 			
 			String basic = childs.item(c).getAttributes().getNamedItem("isBasic").getNodeValue();
@@ -180,77 +180,77 @@ public class MutatorsInfo {
 	}
 	
 	/**
-	 * @return a list will all the basic mutation operators : {@code List<Mutant>}
+	 * @return a list will all the basic mutation operators : {@code List<MutationOperator>}
 	 */
-	public List<Mutant> listBasicOperators() {
+	public List<MutationOperator> listBasicOperators() {
 		return basicOps;
 	}
 	
 	/**
-	 * @return a list will all the advanced mutation operators : {@code List<Mutant>}
+	 * @return a list will all the advanced mutation operators : {@code List<MutationOperator>}
 	 */
-	public List<Mutant> listAdvOperators() {
+	public List<MutationOperator> listAdvOperators() {
 		return advOps;
 	}
 	
 	/**
-	 * @return a list will all the mutation operators : {@code List<Mutant>}
+	 * @return a list will all the mutation operators : {@code List<MutationOperator>}
 	 */
-	public List<Mutant> allOps() {
+	public List<MutationOperator> allOps() {
 		return this.allOps;
 	}
 	
 	/**
 	 * Checks if a mutation operator is supported
-	 * @param op : the mutation operator to check : {@code Mutant}
+	 * @param op : the mutation operator to check : {@code MutationOperator}
 	 * @return true only if {@code op} is supported : {@code boolean}
 	 */
-	public boolean isSupported(Mutant op) {
+	public boolean isSupported(MutationOperator op) {
 		return listBasicOperators().contains(op) || listAdvOperators().contains(op);
 	}
 	
 	/**
 	 * Gets a short description for a mutation operator
-	 * @param op : the mutation operator : {@code Mutant}
+	 * @param op : the mutation operator : {@code MutationOperator}
 	 * @return a short description for {@code op} : {@code String}
 	 */
-	public String getShortDescription(Mutant op) {
+	public String getShortDescription(MutationOperator op) {
 		return this.shortDescriptions.get(op);
 	}
 	
 	/**
 	 * Gets a detailed description for a mutation operator
-	 * @param op : the mutation operator : {@code Mutant}
+	 * @param op : the mutation operator : {@code MutationOperator}
 	 * @return a detailed description for {@code op} : {@code String}
 	 */
-	public String getFullDescription(Mutant op) {
+	public String getFullDescription(MutationOperator op) {
 		return this.fullDescriptions.get(op);
 	}
 	
 	/**
 	 * Gets the mutation operator type
-	 * @param op : the mutation operator : {@code Mutant}
+	 * @param op : the mutation operator : {@code MutationOperator}
 	 * @return the mutation operator type : {@code MutantType}
 	 * @see MutantType
 	 */
-	public MutantType getMutantType(Mutant op) {
+	public MutantType getMutantType(MutationOperator op) {
 		return this.mutantsType.get(op);
 	}
 	
 	/**
-	 * @param op : the mutation operator : {@code Mutant}
+	 * @param op : the mutation operator : {@code MutationOperator}
 	 * @return {@code true} iff the mutation operator only affects one line : {@code boolean}
 	 */
-	public boolean affectsOneLine(Mutant op) {
+	public boolean affectsOneLine(MutationOperator op) {
 		return this.affectsOneLine.get(op);
 	}
 	
 	/**
 	 * Gets the developer notes on a mutation operator
-	 * @param op : the mutation operator : {@code Mutant}
+	 * @param op : the mutation operator : {@code MutationOperator}
 	 * @return the developer notes for {@code op} : {@code String}
 	 */
-	public String getDeveloperNotes(Mutant op) {
+	public String getDeveloperNotes(MutationOperator op) {
 		if (this.developerNotes.containsKey(op)) {
 			return this.developerNotes.get(op);
 		} else {

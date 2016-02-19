@@ -6,7 +6,7 @@
 
 package mujava.op.basic;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -83,7 +83,7 @@ public class AORU extends MethodLevelMutator
 
 		//********** MUJAVA++ MODIFICATION **********//
 		//********** date: 6 Dic 2011     **********//
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.AORU,
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AORU,
 				original, mutant);
 		return;
 		//*******************************************//

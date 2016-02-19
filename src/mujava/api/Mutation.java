@@ -46,7 +46,7 @@ import openjava.ptree.WhileStatement;
  * <li> <b> MutGenLimit line </b>, only if this is a guard mutation and affects only one line inside a method declaration, shows the line where the corresponding {@code //mutGenLimit} is
  * <li> <b> Is mutant a chained expression </b>, only if the mutant node has the form {@code x.y}
  * <li> <b> Is original a chained expression </b>, only if the original node has the form {@code x.y}
- * <li> <b> Is Mutant a tail change of original </b>, only if {@code isChainExpression(TARGET.ORIGINAL)} and {@code isChainExpression(TARGET.ORIGINAL)} both return {@code true}
+ * <li> <b> Is MutationOperator a tail change of original </b>, only if {@code isChainExpression(TARGET.ORIGINAL)} and {@code isChainExpression(TARGET.ORIGINAL)} both return {@code true}
  * and mutant is {@code y.z} while original is {@code x.z}.
  * <hr>
  * <p><b>note:</b> <i>the affected line refers to a line inside the method declaration of the mutated method, the first line of the method declaration is the line 1</i></p>
@@ -57,7 +57,7 @@ public class Mutation {
 	public static enum TARGET {ORIGINAL, MUTANT};
 
 	// The mutant operator
-	private Mutant mutOp;
+	private MutationOperator mutOp;
 	
 	public static final int SINGLE_LINE_OUTSIDE_METHOD_DECLARATION = Integer.MIN_VALUE;
 	
@@ -88,11 +88,11 @@ public class Mutation {
 	/**
 	 * Constructor
 	 * 
-	 * @param mutOp		: the operator used in this mutation : {@code Mutant}
+	 * @param mutOp		: the operator used in this mutation : {@code MutationOperator}
 	 * @param original	: the original AST node this mutation affected : {@code ParseTreeObject}
 	 * @param mutant	: the mutated AST node : {@code ParseTreeObject}
 	 */
-	public Mutation(Mutant mutOp, ParseTreeObject original, ParseTreeObject mutant) {
+	public Mutation(MutationOperator mutOp, ParseTreeObject original, ParseTreeObject mutant) {
 		this.mutOp = mutOp;
 		this.original = original;
 		this.mutant = mutant;
@@ -283,11 +283,11 @@ public class Mutation {
 	}
 	
 	private boolean isPRVOLFamily() {
-		return this.mutOp == Mutant.PRVOL || this.mutOp == Mutant.PRVOL_SMART;
+		return this.mutOp == MutationOperator.PRVOL || this.mutOp == MutationOperator.PRVOL_SMART;
 	}
 	
 	private boolean isPRVORFamily() {
-		return this.mutOp == Mutant.PRVOR || this.mutOp == Mutant.PRVOR_SMART || this.mutOp == Mutant.PRVOR_REFINED;
+		return this.mutOp == MutationOperator.PRVOR || this.mutOp == MutationOperator.PRVOR_SMART || this.mutOp == MutationOperator.PRVOR_REFINED;
 	}
 	
 	/**
@@ -313,7 +313,7 @@ public class Mutation {
 		return this.affectedLine;
 	}
 
-	private boolean checkOp(Mutant mutOp) {
+	private boolean checkOp(MutationOperator mutOp) {
 		boolean res = false;
 		switch(mutOp) {
 			//--------BASIC OPS-----------------
@@ -417,8 +417,8 @@ public class Mutation {
 	private boolean mutationAffectsAssignmentStatement(ParseTreeObject original) {
 		ParseTreeObject current = original;
 		boolean isAssignmentMutation = false;
-		//boolean isPRVOL = this.mutOp == Mutant.PRVOL || this.mutOp == Mutant.PRVOL_SMART;
-		//boolean isPRVOR = this.mutOp == Mutant.PRVOR || this.mutOp == Mutant.PRVOR_SMART || this.mutOp == Mutant.PRVOR_REFINED;
+		//boolean isPRVOL = this.mutOp == MutationOperator.PRVOL || this.mutOp == MutationOperator.PRVOL_SMART;
+		//boolean isPRVOR = this.mutOp == MutationOperator.PRVOR || this.mutOp == MutationOperator.PRVOR_SMART || this.mutOp == MutationOperator.PRVOR_REFINED;
 		boolean search = true;//isPRVOL || isPRVOR;
 		while (search) {
 			if (current instanceof AssignmentExpression && !(original instanceof AssignmentExpression)) {
@@ -436,7 +436,7 @@ public class Mutation {
 	private boolean mutationAffectsVariableDeclarationStatement(ParseTreeObject original) {
 		ParseTreeObject current = original;
 		boolean isVariableDeclarationMutation = false;
-		//boolean isPRVOU = this.mutOp == Mutant.PRVOU || this.mutOp == Mutant.PRVOU_SMART || this.mutOp == Mutant.PRVOU_REFINED;
+		//boolean isPRVOU = this.mutOp == MutationOperator.PRVOU || this.mutOp == MutationOperator.PRVOU_SMART || this.mutOp == MutationOperator.PRVOU_REFINED;
 		boolean search = true;//isPRVOU;
 		while (search) {
 			if (current instanceof VariableDeclaration && !(original instanceof VariableDeclaration)) {
@@ -517,9 +517,9 @@ public class Mutation {
 	}
 
 	/**
-	 * @return the mutation operator used to generate this mutation : {@code Mutant}
+	 * @return the mutation operator used to generate this mutation : {@code MutationOperator}
 	 */
-	public Mutant getMutOp() {
+	public MutationOperator getMutOp() {
 		return mutOp;
 	}
 

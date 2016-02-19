@@ -29,7 +29,7 @@ import openjava.ptree.Variable;
 import openjava.ptree.VariableDeclaration;
 import openjava.ptree.VariableInitializer;
 import mujava.api.Api;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.util.Mutator;
 
@@ -198,11 +198,11 @@ public class PCI extends Mutator {
 	}
 	
 	private void outputToFile(Variable original, CastExpression mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.PCI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.PCI, original, mutant);
 	}
 	
 	private void outputToFile(FieldAccess original, CastExpression mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.PCI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.PCI, original, mutant);
 	}
 
 }

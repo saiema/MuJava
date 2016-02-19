@@ -9,7 +9,7 @@ package mujava.op;
 import java.util.Arrays;
 import java.util.LinkedList;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -169,7 +169,7 @@ public class EMM extends mujava.op.util.Mutator {
 	 * @param mutant
 	 */
 	public void outputToFile(MethodCall original, MethodCall mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.EMM, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.EMM, original, mutant);
 	}
 
 }

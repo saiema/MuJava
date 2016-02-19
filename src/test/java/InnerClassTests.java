@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -32,7 +32,7 @@ public class InnerClassTests {
 	public static Collection<Object[]> firstValues() {
 		
 		//TESTS DEFINITIONS
-		Property prop_1 = new Property(	Mutant.AODS,
+		Property prop_1 = new Property(	MutationOperator.AODS,
 										"innerClasses/IC_1",
 										"radiatedMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -40,7 +40,7 @@ public class InnerClassTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property prop_2 = new Property(	Mutant.AODS,
+		Property prop_2 = new Property(	MutationOperator.AODS,
 										"innerClasses/IC_1&IC_2",
 										"radiatedMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -48,7 +48,7 @@ public class InnerClassTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property prop_3 = new Property(	Mutant.AODS,
+		Property prop_3 = new Property(	MutationOperator.AODS,
 										"innerClasses/IC_1&IC_2&IC_2_1",
 										"radiatedMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -56,7 +56,7 @@ public class InnerClassTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property prop_4 = new Property(	Mutant.AODS,
+		Property prop_4 = new Property(	MutationOperator.AODS,
 										"innerClasses/IC_1&IC_3",
 										"radiatedMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -64,7 +64,7 @@ public class InnerClassTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property prop_5 = new Property(	Mutant.AODS,
+		Property prop_5 = new Property(	MutationOperator.AODS,
 										"innerClasses/IC_1&IC_3&IC_3_1",
 										"radiatedMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -72,7 +72,7 @@ public class InnerClassTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property prop_6 = new Property(	Mutant.AODS,
+		Property prop_6 = new Property(	MutationOperator.AODS,
 										"innerClasses/IC_1&IC_3&IC_3_1&IC_3_1_1",
 										"radiatedMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -80,7 +80,7 @@ public class InnerClassTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property prop_7 = new Property(	Mutant.AODS,
+		Property prop_7 = new Property(	MutationOperator.AODS,
 										"innerClasses/IC_1&IC_3&IC_3_1&IC_3_1_2",
 										"radiatedMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -88,7 +88,7 @@ public class InnerClassTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property prop_8 = new Property(	Mutant.AODS,
+		Property prop_8 = new Property(	MutationOperator.AODS,
 										"innerClasses/IC_1&IC_3&IC_3_1&IC_3_1_2&IC_3_1_2_1",
 										"radiatedMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,

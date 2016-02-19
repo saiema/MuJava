@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -39,7 +39,7 @@ public class GenericsWritingTests {
 		//TESTS DEFINITIONS
 		List<Pattern> classCA_1ce = new LinkedList<Pattern>();
 		classCA_1ce.add(Pattern.compile("public class CA\\_1\\<T\\>"));
-		Property propCA_1 = new Property(Mutant.AODS,
+		Property propCA_1 = new Property(MutationOperator.AODS,
 										"generics/CA_1",
 										"radiatedMethod",
 										1,
@@ -49,7 +49,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_2ce = new LinkedList<Pattern>();
 		classCA_2ce.add(Pattern.compile("public class CA\\_2\\<T extends IA\\_NG\\>"));
-		Property propCA_2 = new Property(Mutant.AODS,
+		Property propCA_2 = new Property(MutationOperator.AODS,
 										"generics/CA_2",
 										"radiatedMethod",
 										1,
@@ -59,7 +59,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_3ce = new LinkedList<Pattern>();
 		classCA_3ce.add(Pattern.compile("public class CA\\_3\\<T extends IA\\_NG \\& IB\\_NG\\>"));
-		Property propCA_3 = new Property(Mutant.AODS,
+		Property propCA_3 = new Property(MutationOperator.AODS,
 										"generics/CA_3",
 										"radiatedMethod",
 										1,
@@ -69,7 +69,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_4ce = new LinkedList<Pattern>();
 		classCA_4ce.add(Pattern.compile("public class CA\\_4\\<T extends Comparable\\<T\\>\\>"));
-		Property propCA_4 = new Property(Mutant.AODS,
+		Property propCA_4 = new Property(MutationOperator.AODS,
 										"generics/CA_4",
 										"radiatedMethod",
 										1,
@@ -79,7 +79,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_5ce = new LinkedList<Pattern>();
 		classCA_5ce.add(Pattern.compile("public class CA\\_5\\<T extends Comparable\\<\\? extends IA_NG\\>\\>"));
-		Property propCA_5 = new Property(Mutant.AODS,
+		Property propCA_5 = new Property(MutationOperator.AODS,
 										"generics/CA_5",
 										"radiatedMethod",
 										1,
@@ -89,7 +89,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_6ce = new LinkedList<Pattern>();
 		classCA_6ce.add(Pattern.compile("public class CA\\_6\\<T extends Comparable\\<\\? super IA_NG\\>\\>"));
-		Property propCA_6 = new Property(Mutant.AODS,
+		Property propCA_6 = new Property(MutationOperator.AODS,
 										"generics/CA_6",
 										"radiatedMethod",
 										1,
@@ -99,7 +99,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_7ce = new LinkedList<Pattern>();
 		classCA_7ce.add(Pattern.compile("public class CA\\_7\\<T extends Comparable\\<\\? super IA_NG\\>\\> implements (.+\\.)?IA\\_NG"));
-		Property propCA_7 = new Property(Mutant.AODS,
+		Property propCA_7 = new Property(MutationOperator.AODS,
 										"generics/CA_7",
 										"radiatedMethod",
 										1,
@@ -109,7 +109,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_8ce = new LinkedList<Pattern>();
 		classCA_8ce.add(Pattern.compile("public class CA\\_8 implements (.+\\.)?IA\\_G\\<Integer\\>"));
-		Property propCA_8 = new Property(Mutant.AODS,
+		Property propCA_8 = new Property(MutationOperator.AODS,
 										"generics/CA_8",
 										"radiatedMethod",
 										1,
@@ -119,7 +119,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_9ce = new LinkedList<Pattern>();
 		classCA_9ce.add(Pattern.compile("public class CA\\_9 implements (.+\\.)?IA\\_G\\<Comparable\\<Integer\\>\\>"));
-		Property propCA_9 = new Property(Mutant.AODS,
+		Property propCA_9 = new Property(MutationOperator.AODS,
 										"generics/CA_9",
 										"radiatedMethod",
 										1,
@@ -129,7 +129,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_10ce = new LinkedList<Pattern>();
 		classCA_10ce.add(Pattern.compile("public class CA\\_10 implements (.+\\.)?IA\\_G\\<Comparable\\<\\? extends List\\<Integer\\>\\>\\>"));
-		Property propCA_10 = new Property(Mutant.AODS,
+		Property propCA_10 = new Property(MutationOperator.AODS,
 										"generics/CA_10",
 										"radiatedMethod",
 										1,
@@ -139,7 +139,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_11ce = new LinkedList<Pattern>();
 		classCA_11ce.add(Pattern.compile("public class CA\\_11\\<T\\> implements (.+\\.)?IA\\_G\\<Comparable\\<\\? extends List\\<Integer\\>\\>\\>\\, (.+\\.)?IB\\_NG\\, (.+\\.)?IB\\_G\\<T\\>"));
-		Property propCA_11 = new Property(Mutant.AODS,
+		Property propCA_11 = new Property(MutationOperator.AODS,
 										"generics/CA_11",
 										"radiatedMethod",
 										1,
@@ -149,7 +149,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_12ce = new LinkedList<Pattern>();
 		classCA_12ce.add(Pattern.compile("public class CA\\_12\\<T\\> extends (.+\\.)?AA\\_G\\<Comparable\\<\\? extends T\\>\\> implements (.+\\.)?IA\\_G\\<Comparable\\<\\? extends List\\<Integer\\>\\>\\>\\, (.+\\.)?IB\\_NG\\, (.+\\.)?IB\\_G\\<T\\>"));
-		Property propCA_12 = new Property(Mutant.AODS,
+		Property propCA_12 = new Property(MutationOperator.AODS,
 										"generics/CA_12",
 										"radiatedMethod",
 										1,
@@ -159,7 +159,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_IC_1ce = new LinkedList<Pattern>();
 		classCA_IC_1ce.add(Pattern.compile("public class (.+\\.)?IC1\\<T\\>"));
-		Property propCA_IC_1 = new Property(Mutant.AODS,
+		Property propCA_IC_1 = new Property(MutationOperator.AODS,
 										"generics/CA_IC_1",
 										"radiatedMethod",
 										1,
@@ -169,7 +169,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_IC_2ce = new LinkedList<Pattern>();
 		classCA_IC_2ce.add(Pattern.compile("public class (.+\\.)?IC1\\<T extends IA_NG \\& IB\\_NG\\>"));
-		Property propCA_IC_2 = new Property(Mutant.AODS,
+		Property propCA_IC_2 = new Property(MutationOperator.AODS,
 										"generics/CA_IC_2",
 										"radiatedMethod",
 										1,
@@ -179,7 +179,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCA_IC_3ce = new LinkedList<Pattern>();
 		classCA_IC_3ce.add(Pattern.compile("public class (.+\\.)?IC1\\<T\\> extends (.+\\.)?AA\\_G\\<Comparable\\<\\? extends T\\>\\> implements (.+\\.)?IA\\_G\\<Comparable\\<\\? extends List\\<Integer\\>\\>\\>\\, (.+\\.)?IB\\_NG\\, (.+\\.)?IB\\_G\\<T\\>"));
-		Property propCA_IC_3 = new Property(Mutant.AODS,
+		Property propCA_IC_3 = new Property(MutationOperator.AODS,
 										"generics/CA_IC_3",
 										"radiatedMethod",
 										1,
@@ -190,7 +190,7 @@ public class GenericsWritingTests {
 		List<Pattern> classCA_IC_4ce = new LinkedList<Pattern>();
 		classCA_IC_4ce.add(Pattern.compile("public class CA\\_IC\\_4\\<T\\>"));
 		classCA_IC_4ce.add(Pattern.compile("public class (.+\\.)?IC1\\<R extends T\\> extends (.+\\.)?AA\\_G\\<Comparable\\<\\? extends T\\>\\> implements (.+\\.)?IA\\_G\\<Comparable\\<\\? extends List\\<Integer\\>\\>\\>\\, (.+\\.)?IB_NG, (.+\\.)?IB\\_G\\<T\\>"));
-		Property propCA_IC_4 = new Property(Mutant.AODS,
+		Property propCA_IC_4 = new Property(MutationOperator.AODS,
 										"generics/CA_IC_4",
 										"radiatedMethod",
 										1,
@@ -200,7 +200,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCF_1ce = new LinkedList<Pattern>();
 		classCF_1ce.add(Pattern.compile("private (.+\\.)?List\\<Integer\\> atr1\\;"));
-		Property propCF_1 = new Property(Mutant.AODS,
+		Property propCF_1 = new Property(MutationOperator.AODS,
 										"generics/CF_1",
 										"radiatedMethod",
 										1,
@@ -211,7 +211,7 @@ public class GenericsWritingTests {
 		List<Pattern> classCF_2ce = new LinkedList<Pattern>();
 		classCF_2ce.add(Pattern.compile("public class CF_2\\<T\\>"));
 		classCF_2ce.add(Pattern.compile("private (.+\\.)?List\\<\\? extends T\\> atr1\\;"));
-		Property propCF_2 = new Property(Mutant.AODS,
+		Property propCF_2 = new Property(MutationOperator.AODS,
 										"generics/CF_2",
 										"radiatedMethod",
 										1,
@@ -222,7 +222,7 @@ public class GenericsWritingTests {
 		List<Pattern> classCF_3ce = new LinkedList<Pattern>();
 		classCF_3ce.add(Pattern.compile("public class CF\\_3\\<T\\, R extends IA\\_G\\<T\\> \\& IB\\_G\\<T\\>\\>"));
 		classCF_3ce.add(Pattern.compile("private (.+\\.)?List\\<\\? super Comparable\\<\\? extends T\\>\\> atr1\\;"));
-		Property propCF_3 = new Property(Mutant.AODS,
+		Property propCF_3 = new Property(MutationOperator.AODS,
 										"generics/CF_3",
 										"radiatedMethod",
 										1,
@@ -233,7 +233,7 @@ public class GenericsWritingTests {
 		List<Pattern> classFC_1ce = new LinkedList<Pattern>();
 		classFC_1ce.add(Pattern.compile("public class FC\\_1\\<T\\>"));
 		classFC_1ce.add(Pattern.compile("for \\((.+\\.)?List\\<Integer\\> l \\= new (.+\\.)?LinkedList\\<Integer\\>\\(\\)\\; l\\.size\\(\\) \\< 10\\; l\\.add\\( i \\)\\)"));
-		Property propFC_1 = new Property(Mutant.AODS,
+		Property propFC_1 = new Property(MutationOperator.AODS,
 										"generics/FC_1",
 										"radiatedMethod",
 										1,
@@ -244,7 +244,7 @@ public class GenericsWritingTests {
 		List<Pattern> classFC_2ce = new LinkedList<Pattern>();
 		classFC_2ce.add(Pattern.compile("public class FC\\_2\\<T\\>"));
 		classFC_2ce.add(Pattern.compile("for \\((.+\\.)?List\\<List\\<\\? super Integer\\>\\> l \\= new (.+\\.)?LinkedList\\<List\\<\\? super Integer\\>\\>\\(\\)\\; l\\.size\\(\\) \\< 10\\; l\\.add\\( new (.+\\.)?LinkedList\\<Integer\\>\\(\\) \\)\\)"));
-		Property propFC_2 = new Property(Mutant.AODS,
+		Property propFC_2 = new Property(MutationOperator.AODS,
 										"generics/FC_2",
 										"radiatedMethod",
 										1,
@@ -254,7 +254,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classFLV_1ce = new LinkedList<Pattern>();
 		classFLV_1ce.add(Pattern.compile("(.+\\.)?List\\<Integer\\> lv1 \\= new (.+\\.)?LinkedList\\<Integer\\>\\(\\)\\;"));
-		Property propFLV_1 = new Property(Mutant.AODS,
+		Property propFLV_1 = new Property(MutationOperator.AODS,
 										"generics/FLV_1",
 										"radiatedMethod",
 										1,
@@ -264,7 +264,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classFLV_2ce = new LinkedList<Pattern>();
 		classFLV_2ce.add(Pattern.compile("(.+\\.)?List\\<Comparable\\<\\? extends Number\\>\\> lv1 \\= new (.+\\.)?LinkedList\\<Comparable\\<\\? extends Number\\>\\>\\(\\)\\;"));
-		Property propFLV_2 = new Property(Mutant.AODS,
+		Property propFLV_2 = new Property(MutationOperator.AODS,
 										"generics/FLV_2",
 										"radiatedMethod",
 										1,
@@ -277,7 +277,7 @@ public class GenericsWritingTests {
 		classFLV_3ce.add(Pattern.compile("defMethod\\( (.+\\.)?List\\<Comparable\\<\\? extends Number\\>\\> param1 \\)"));
 		classFLV_3ce.add(Pattern.compile("(.+\\.)?List\\<Comparable\\<\\? extends Number\\>\\> lv1 \\= new (.+\\.)?LinkedList\\<Comparable\\<\\? extends Number\\>\\>\\(\\)\\;"));
 		classFLV_3ce.add(Pattern.compile("(.+\\.)?FLV\\_3\\<\\? extends T\\, R\\> lv2 \\= new (.+\\.)?FLV\\_3\\<T\\, R\\>\\(\\)\\;"));
-		Property propFLV_3 = new Property(Mutant.AODS,
+		Property propFLV_3 = new Property(MutationOperator.AODS,
 										"generics/FLV_3",
 										"radiatedMethod",
 										1,
@@ -287,7 +287,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classLV_1ce = new LinkedList<Pattern>();
 		classLV_1ce.add(Pattern.compile("(.+\\.)?List\\<Integer\\> atr1\\;"));
-		Property propLV_1 = new Property(Mutant.AODS,
+		Property propLV_1 = new Property(MutationOperator.AODS,
 										"generics/LV_1",
 										"radiatedMethod",
 										1,
@@ -298,7 +298,7 @@ public class GenericsWritingTests {
 		List<Pattern> classLV_2ce = new LinkedList<Pattern>();
 		classLV_2ce.add(Pattern.compile("public class LV\\_2\\<T\\>"));
 		classLV_2ce.add(Pattern.compile("(.+\\.)?List\\<\\? extends T\\> atr1\\;"));
-		Property propLV_2 = new Property(Mutant.AODS,
+		Property propLV_2 = new Property(MutationOperator.AODS,
 										"generics/LV_2",
 										"radiatedMethod",
 										1,
@@ -309,7 +309,7 @@ public class GenericsWritingTests {
 		List<Pattern> classLV_3ce = new LinkedList<Pattern>();
 		classLV_3ce.add(Pattern.compile("public class LV\\_3\\<T\\, R extends IA\\_G\\<T\\> \\& IB\\_G\\<T\\>\\>"));
 		classLV_3ce.add(Pattern.compile("(.+\\.)?List\\<\\? super Comparable\\<\\? extends Number\\>\\> atr1\\;"));
-		Property propLV_3 = new Property(Mutant.AODS,
+		Property propLV_3 = new Property(MutationOperator.AODS,
 										"generics/LV_3",
 										"radiatedMethod",
 										1,
@@ -319,7 +319,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classLV_4ce = new LinkedList<Pattern>();
 		classLV_4ce.add(Pattern.compile("(.+\\.)?List\\<Integer\\> atr1 \\= new (.+\\.)?LinkedList\\<Integer\\>\\(\\)\\;"));
-		Property propLV_4 = new Property(Mutant.AODS,
+		Property propLV_4 = new Property(MutationOperator.AODS,
 										"generics/LV_4",
 										"radiatedMethod",
 										1,
@@ -332,7 +332,7 @@ public class GenericsWritingTests {
 		classLV_5ce.add(Pattern.compile("(.+\\.)?List\\<\\? super Comparable\\<\\? extends Number\\>\\> atr1 \\= new (.+\\.)?LinkedList\\<Comparable\\<\\?\\>\\>\\(\\)\\;"));
 		classLV_5ce.add(Pattern.compile("(.+\\.)?LV\\_5 atr2 \\= new (.+\\.)?LV\\_5\\(\\)\\;"));
 		classLV_5ce.add(Pattern.compile("(.+\\.)?LV\\_5\\<\\? extends T\\, R\\> atr3 \\= new (.+\\.)?LV\\_5\\<T\\, R\\>\\(\\)\\;"));
-		Property propLV_5 = new Property(Mutant.AODS,
+		Property propLV_5 = new Property(MutationOperator.AODS,
 										"generics/LV_5",
 										"radiatedMethod",
 										1,
@@ -342,7 +342,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classMS_1ce = new LinkedList<Pattern>();
 		classMS_1ce.add(Pattern.compile("public (.+\\.)?List\\<Integer\\> defMethod\\(\\)"));
-		Property propMS_1 = new Property(Mutant.AODS,
+		Property propMS_1 = new Property(MutationOperator.AODS,
 										"generics/MS_1",
 										"radiatedMethod",
 										1,
@@ -352,7 +352,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classMS_2ce = new LinkedList<Pattern>();
 		classMS_2ce.add(Pattern.compile("public void defMethod\\( (.+\\.)?List\\<Integer\\> param1 \\)"));
-		Property propMS_2 = new Property(Mutant.AODS,
+		Property propMS_2 = new Property(MutationOperator.AODS,
 										"generics/MS_2",
 										"radiatedMethod",
 										1,
@@ -362,7 +362,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classMS_3ce = new LinkedList<Pattern>();
 		classMS_3ce.add(Pattern.compile("public (.+\\.)?List\\<IB\\_G\\<Comparable\\<IB\\_NG\\>\\>\\> defMethod\\( (.+\\.)?List\\<Integer\\> param1 \\)"));
-		Property propMS_3 = new Property(Mutant.AODS,
+		Property propMS_3 = new Property(MutationOperator.AODS,
 										"generics/MS_3",
 										"radiatedMethod",
 										1,
@@ -374,7 +374,7 @@ public class GenericsWritingTests {
 		classMS_4ce.add(Pattern.compile("public class MS\\_4\\<R\\, S extends IA\\_NG \\& IB\\_G\\<R\\>\\>"));
 		classMS_4ce.add(Pattern.compile("public (.+\\.)?MS\\_4\\<\\? extends R\\, S\\> defMethod\\( (.+\\.)?List\\<Integer\\> param1\\, (.+\\.)?MS\\_4\\<R\\, \\? extends S\\> param2 \\)"));
 		classMS_4ce.add(Pattern.compile("return new (.+\\.)?MS\\_4\\<R\\, S\\>\\(\\)\\;"));
-		Property propMS_4 = new Property(Mutant.AODS,
+		Property propMS_4 = new Property(MutationOperator.AODS,
 										"generics/MS_4",
 										"radiatedMethod",
 										1,
@@ -385,7 +385,7 @@ public class GenericsWritingTests {
 		List<Pattern> classSW_1ce = new LinkedList<Pattern>();
 		classSW_1ce.add(Pattern.compile("public class SW\\_1\\<T\\>"));
 		classSW_1ce.add(Pattern.compile("switch \\(\\(new (.+\\.)?LinkedList\\<Integer\\>\\(\\)\\)\\.pop\\(\\)\\)"));
-		Property propSW_1 = new Property(Mutant.AODS,
+		Property propSW_1 = new Property(MutationOperator.AODS,
 										"generics/SW_1",
 										"radiatedMethod",
 										1,
@@ -396,7 +396,7 @@ public class GenericsWritingTests {
 		List<Pattern> classSW_2ce = new LinkedList<Pattern>();
 		classSW_2ce.add(Pattern.compile("public class SW\\_2\\<T\\>"));
 		classSW_2ce.add(Pattern.compile("switch \\(\\(new (.+\\.)?LinkedList\\<Comparable\\<\\? extends SW\\_2\\<\\? super IB\\_NG\\>\\>\\>\\(\\)\\)\\.size\\(\\)\\)"));
-		Property propSW_2 = new Property(Mutant.AODS,
+		Property propSW_2 = new Property(MutationOperator.AODS,
 										"generics/SW_2",
 										"radiatedMethod",
 										1,
@@ -409,7 +409,7 @@ public class GenericsWritingTests {
 		classSW_3ce.add(Pattern.compile("public static class A\\_G\\<R extends IA\\_NG \\& IB\\_NG\\> extends (.+\\.)?AA\\_G\\<Comparable\\<\\? extends R\\>\\>"));
 		classSW_3ce.add(Pattern.compile("switch \\(\\(new generics\\.SW\\_3\\.A\\_G\\<T\\>\\(\\)\\)\\.current\\)"));
 		classSW_3ce.add(Pattern.compile("case 1 \\:[ \n]*(.+\\.)?A\\_G\\<\\? extends T\\> a \\= new (.+\\.)?A\\_G\\<T\\>\\(\\)\\;"));
-		Property propSW_3 = new Property(Mutant.AODS,
+		Property propSW_3 = new Property(MutationOperator.AODS,
 										"generics/SW_3",
 										"radiatedMethod",
 										1,
@@ -420,7 +420,7 @@ public class GenericsWritingTests {
 		List<Pattern> classWC_1ce = new LinkedList<Pattern>();
 		classWC_1ce.add(Pattern.compile("public class WC\\_1\\<T\\>"));
 		classWC_1ce.add(Pattern.compile("while \\(new (.+\\.)?LinkedList\\<Integer\\>\\(\\) \\!\\= null\\)"));
-		Property propWC_1 = new Property(Mutant.AODS,
+		Property propWC_1 = new Property(MutationOperator.AODS,
 										"generics/WC_1",
 										"radiatedMethod",
 										1,
@@ -431,7 +431,7 @@ public class GenericsWritingTests {
 		List<Pattern> classWC_2ce = new LinkedList<Pattern>();
 		classWC_2ce.add(Pattern.compile("public class WC\\_2\\<T\\>"));
 		classWC_2ce.add(Pattern.compile("while \\(new (.+\\.)?LinkedList\\<Comparable\\<\\? extends Integer\\>\\>\\(\\) \\!\\= null \\&\\& new (.+\\.)?ArrayList\\<Comparable\\<\\? extends Integer\\>\\>\\(\\) \\!\\= null\\)"));
-		Property propWC_2 = new Property(Mutant.AODS,
+		Property propWC_2 = new Property(MutationOperator.AODS,
 										"generics/WC_2",
 										"radiatedMethod",
 										1,
@@ -444,7 +444,7 @@ public class GenericsWritingTests {
 		classWC_3ce.add(Pattern.compile("public (.+\\.)?Comparable\\<\\? extends T\\> defMethod\\( (.+\\.)?List\\<\\? extends T\\> param1 \\)"));
 		classWC_3ce.add(Pattern.compile("while \\(param1 \\!\\= new (.+\\.)?LinkedList\\<T\\>\\(\\)\\)"));
 		classWC_3ce.add(Pattern.compile("param1 \\= new (.+\\.)?LinkedList\\<T\\>\\(\\)\\;"));
-		Property propWC_3 = new Property(Mutant.AODS,
+		Property propWC_3 = new Property(MutationOperator.AODS,
 										"generics/WC_3",
 										"radiatedMethod",
 										1,
@@ -454,7 +454,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classWLV_1ce = new LinkedList<Pattern>();
 		classWLV_1ce.add(Pattern.compile("(.+\\.)?List\\<Integer\\> lv1 \\= new (.+\\.)?LinkedList\\<Integer\\>\\(\\)\\;"));
-		Property propWLV_1 = new Property(Mutant.AODS,
+		Property propWLV_1 = new Property(MutationOperator.AODS,
 										"generics/WLV_1",
 										"radiatedMethod",
 										1,
@@ -464,7 +464,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classWLV_2ce = new LinkedList<Pattern>();
 		classWLV_2ce.add(Pattern.compile("(.+\\.)?List\\<Comparable\\<\\? extends Number\\>\\> lv1 \\= new (.+\\.)?LinkedList\\<Comparable\\<\\? extends Number\\>\\>\\(\\)\\;"));
-		Property propWLV_2 = new Property(Mutant.AODS,
+		Property propWLV_2 = new Property(MutationOperator.AODS,
 										"generics/WLV_2",
 										"radiatedMethod",
 										1,
@@ -477,7 +477,7 @@ public class GenericsWritingTests {
 		classWLV_3ce.add(Pattern.compile("public void defMethod\\( (.+\\.)?List\\<Comparable\\<\\? extends Number\\>\\> param1 \\)"));
 		classWLV_3ce.add(Pattern.compile("(.+\\.)?List\\<Comparable\\<\\? extends Number\\>\\> lv1 \\= new (.+\\.)?LinkedList\\<Comparable\\<\\? extends Number\\>\\>\\(\\)\\;"));
 		classWLV_3ce.add(Pattern.compile("(.+\\.)?WLV\\_3\\<\\? extends T\\, R\\> lv2 \\= new (.+\\.)?WLV\\_3\\<T\\, R\\>\\(\\)\\;"));
-		Property propWLV_3 = new Property(Mutant.AODS,
+		Property propWLV_3 = new Property(MutationOperator.AODS,
 										"generics/WLV_3",
 										"radiatedMethod",
 										1,
@@ -488,7 +488,7 @@ public class GenericsWritingTests {
 		List<Pattern> classIO_1ce = new LinkedList<Pattern>();
 		classIO_1ce.add(Pattern.compile("public void defMethod\\( (.+\\.)?List\\<\\?\\> param1 \\)"));
 		classIO_1ce.add(Pattern.compile("boolean lv1 \\= param1 instanceof (.+\\.)?LinkedList\\<\\?\\>\\;"));
-		Property propIO_1 = new Property(Mutant.AODS,
+		Property propIO_1 = new Property(MutationOperator.AODS,
 										"generics/IO_1",
 										"radiatedMethod",
 										1,
@@ -498,7 +498,7 @@ public class GenericsWritingTests {
 		
 		List<Pattern> classCAS_1ce = new LinkedList<Pattern>();
 		classCAS_1ce.add(Pattern.compile("(.+\\.)?List\\<\\? extends Number\\> lv1 \\= param1 \\? new (.+\\.)?LinkedList\\<Integer\\>\\(\\) \\: new (.+\\.)?LinkedList\\<Float\\>\\(\\)\\;"));
-		Property propCAS_1 = new Property(Mutant.AODS,
+		Property propCAS_1 = new Property(MutationOperator.AODS,
 										"generics/CAS_1",
 										"radiatedMethod",
 										1,
@@ -510,7 +510,7 @@ public class GenericsWritingTests {
 		classCAS_2ce.add(Pattern.compile("public class CAS\\_2\\<T\\>"));
 		classCAS_2ce.add(Pattern.compile("private (.+\\.)?T atr1\\;"));
 		classCAS_2ce.add(Pattern.compile("(.+\\.)?List\\<\\? extends Number\\> lv1 \\= \\(new (.+\\.)?CAS\\_2\\<Comparable\\<\\? extends T\\>\\>\\(\\)\\)\\.atr1 \\!\\= null \\? new (.+\\.)?LinkedList\\<Integer\\>\\(\\) \\: new (.+\\.)?LinkedList\\<Float\\>\\(\\)\\;"));
-		Property propCAS_2 = new Property(Mutant.AODS,
+		Property propCAS_2 = new Property(MutationOperator.AODS,
 										"generics/CAS_2",
 										"radiatedMethod",
 										1,
@@ -521,7 +521,7 @@ public class GenericsWritingTests {
 		List<Pattern> classR_1ce = new LinkedList<Pattern>();
 		classR_1ce.add(Pattern.compile("public (.+\\.)?List\\<\\?\\> defMethod\\(\\)"));
 		classR_1ce.add(Pattern.compile("return new (.+\\.)?LinkedList\\<Integer\\>\\(\\)\\;"));
-		Property propR_1 = new Property(Mutant.AODS,
+		Property propR_1 = new Property(MutationOperator.AODS,
 										"generics/R_1",
 										"radiatedMethod",
 										1,
@@ -532,7 +532,7 @@ public class GenericsWritingTests {
 		List<Pattern> classR_2ce = new LinkedList<Pattern>();
 		classR_2ce.add(Pattern.compile("public (.+\\.)?List\\<\\?\\> defMethod\\(\\)"));
 		classR_2ce.add(Pattern.compile("return new (.+\\.)?LinkedList\\<List\\<Comparable\\<\\? extends Number\\>\\>\\>\\(\\)\\;"));
-		Property propR_2 = new Property(Mutant.AODS,
+		Property propR_2 = new Property(MutationOperator.AODS,
 										"generics/R_2",
 										"radiatedMethod",
 										1,
@@ -544,7 +544,7 @@ public class GenericsWritingTests {
 		classR_3ce.add(Pattern.compile("public class R\\_3\\<R\\, S\\, T\\>"));
 		classR_3ce.add(Pattern.compile("public (.+\\.)?R\\_3\\<\\?\\, \\?\\, \\?\\> defMethod\\(\\)"));
 		classR_3ce.add(Pattern.compile("return new (.+\\.)?R\\_3\\<Map\\<Comparable\\<\\? extends R\\>\\, \\? extends Comparable\\<T\\>\\>\\, List\\<List\\<Comparable\\<\\? extends S\\>\\>\\>\\, T\\>\\(\\)\\;"));
-		Property propR_3 = new Property(Mutant.AODS,
+		Property propR_3 = new Property(MutationOperator.AODS,
 										"generics/R_3",
 										"radiatedMethod",
 										1,

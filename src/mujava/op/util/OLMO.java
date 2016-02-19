@@ -7,7 +7,7 @@ import java.util.Map;
 
 import mujava.api.Api;
 import mujava.api.Configuration;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.Mutation;
 import openjava.ptree.AllocationExpression;
 import openjava.ptree.Annotation;
@@ -157,7 +157,7 @@ public class OLMO extends ParseTreeVisitor {
 		this.mis = orderMutants(mis);
 		ParseTreeObject lastNode = this.mis.get(this.mis.size()-1).getOriginal();
 		ParseTreeObject statementToMutate = (ParseTreeObject) getNodeStatement(lastNode).makeRecursiveCopy_keepOriginalID();
-		Mutation statementMutation = new Mutation(Mutant.MULTI, statementToMutate, (ParseTreeObject) statementToMutate.makeRecursiveCopy_keepOriginalID());
+		Mutation statementMutation = new Mutation(MutationOperator.MULTI, statementToMutate, (ParseTreeObject) statementToMutate.makeRecursiveCopy_keepOriginalID());
 		this.mis.add(statementMutation);
 		this.stopCountingLines = true;
 		this.mergingMutants = true;

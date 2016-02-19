@@ -17,7 +17,7 @@ import java.util.Set;
 import org.junit.runner.notification.Failure;
 
 import mujava.api.Configuration;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.generations.GenerationsGoalTester;
 import mujava.generations.GenerationsInformation;
 import mujava.generations.Generator;
@@ -91,11 +91,11 @@ public class Core {
 		Core.outputDir = outputDir;
 	}
 	
-	public boolean generateMutants(String className, String[] methods, Mutant[] mutOps) {
+	public boolean generateMutants(String className, String[] methods, MutationOperator[] mutOps) {
 		return generateMutants(className, methods, mutOps, 1);
 	}
 	
-	public boolean generateMutants(String className, String[] methods, Mutant[] mutOps, int generation) {
+	public boolean generateMutants(String className, String[] methods, MutationOperator[] mutOps, int generation) {
 		this.error = null;
 		this.mutantsFolders = null;
 		if (methods == null) {

@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.Mutation;
 
 
@@ -37,7 +37,7 @@ public class MutantInfo {
 	
 //	private List<Integer> mutatedLines;
 //	private List<Mutation> mutations;
-//	private List<Mutant> opsUsed;
+//	private List<MutationOperator> opsUsed;
 	
 	
 	/**
@@ -79,7 +79,7 @@ public class MutantInfo {
 	private void initializeLists() {
 //		this.mutatedLines = new LinkedList<Integer>();
 //		this.mutations = new LinkedList<Mutation>();
-//		this.opsUsed = new LinkedList<Mutant>();
+//		this.opsUsed = new LinkedList<MutationOperator>();
 		this.mutations = new LinkedList<MutationInformation>();
 	}
 	
@@ -158,10 +158,10 @@ public class MutantInfo {
 	}
 
 	/**
-	 * @return the last mutation operator used : {@code Mutant}
+	 * @return the last mutation operator used : {@code MutationOperator}
 	 */
-	public Mutant getOpUsed() {
-		Mutant opUsed = null;
+	public MutationOperator getOpUsed() {
+		MutationOperator opUsed = null;
 		if (!this.severalMutations && this.lastMutation != null) {
 			opUsed = this.lastMutation.getMutOp();
 		}
@@ -214,8 +214,8 @@ public class MutantInfo {
 	/**
 	 * @return the mutant operators used
 	 */
-	public List<Mutant> getMutantOperators() {
-		List<Mutant> ops = new LinkedList<>();
+	public List<MutationOperator> getMutantOperators() {
+		List<MutationOperator> ops = new LinkedList<>();
 		for (MutationInformation minfo : this.mutations) {
 			ops.add(minfo.getMutation().getMutOp());
 		}

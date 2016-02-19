@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,12 +37,12 @@ public class LODTests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.LOD, "utils/Set", "subtraction", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.LOD, "utils/Set", "subtraction", 0, 0, mceOMUC, mcneOMUC);
 		
 		List<Pattern> mceRem = new LinkedList<Pattern>();
 		List<Pattern> mcneRem = new LinkedList<Pattern>();
 		mceRem.add(Pattern.compile("set \\&= 1 \\<\\< elem; //mutGenLimit 0"));
-		Property propRem = new Property(Mutant.LOD, "utils/Set", "remove", 1, 1, mceRem, mcneRem);
+		Property propRem = new Property(MutationOperator.LOD, "utils/Set", "remove", 1, 1, mceRem, mcneRem);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

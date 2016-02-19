@@ -7,7 +7,7 @@
 package mujava.op;
 
 import mujava.api.Api;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -55,6 +55,6 @@ public class IPC extends mujava.op.util.Mutator {
 	 * @param mutant
 	 */
 	public void outputToFile(ConstructorDeclaration original, ConstructorInvocation mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.IPC, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.IPC, original, mutant);
 	}
 }

@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class IOPTests {
 	public static Collection<Object[]> firstValues() {
 		
 		//TESTS DEFINITIONS
-		Property propIOP_1 = new Property(Mutant.IOP,
+		Property propIOP_1 = new Property(MutationOperator.IOP,
 										"test/IOP_1",
 										"method",
 										0,
@@ -43,7 +43,7 @@ public class IOPTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propIOP_2 = new Property(Mutant.IOP,
+		Property propIOP_2 = new Property(MutationOperator.IOP,
 										"test/IOP_2",
 										"method",
 										0,
@@ -51,7 +51,7 @@ public class IOPTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propIOP_3 = new Property(Mutant.IOP,
+		Property propIOP_3 = new Property(MutationOperator.IOP,
 										"test/IOP_3",
 										"method",
 										0,
@@ -68,7 +68,7 @@ public class IOPTests {
 		 */
 		List<Pattern> mceIOP_4 = new LinkedList<Pattern>();
 		mceIOP_4.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*\\}"));
-		Property propIOP_4 = new Property(Mutant.IOP,
+		Property propIOP_4 = new Property(MutationOperator.IOP,
 										"test/IOP_4",
 										"method",
 										1,
@@ -85,7 +85,7 @@ public class IOPTests {
 		 */
 		List<Pattern> mceIOP_5 = new LinkedList<Pattern>();
 		mceIOP_5.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*\\}"));
-		Property propIOP_5 = new Property(Mutant.IOP,
+		Property propIOP_5 = new Property(MutationOperator.IOP,
 										"test/IOP_5",
 										"method",
 										1,
@@ -104,7 +104,7 @@ public class IOPTests {
 		List<Pattern> mceIOP_6 = new LinkedList<Pattern>();
 		mceIOP_6.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*\\}"));
 		mceIOP_6.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*\\}"));
-		Property propIOP_6 = new Property(Mutant.IOP,
+		Property propIOP_6 = new Property(MutationOperator.IOP,
 										"test/IOP_6",
 										"method",
 										2,
@@ -123,7 +123,7 @@ public class IOPTests {
 		List<Pattern> mceIOP_7 = new LinkedList<Pattern>();
 		mceIOP_7.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*\\}"));
 		mceIOP_7.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*\\}"));
-		Property propIOP_7 = new Property(Mutant.IOP,
+		Property propIOP_7 = new Property(MutationOperator.IOP,
 										"test/IOP_7",
 										"method",
 										2,
@@ -142,7 +142,7 @@ public class IOPTests {
 		List<Pattern> mceIOP_8 = new LinkedList<Pattern>();
 		mceIOP_8.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*\\}"));
 		mceIOP_8.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*\\}"));
-		Property propIOP_8 = new Property(Mutant.IOP,
+		Property propIOP_8 = new Property(MutationOperator.IOP,
 										"test/IOP_8",
 										"method",
 										2,
@@ -162,7 +162,7 @@ public class IOPTests {
 		List<Pattern> mceIOP_9 = new LinkedList<Pattern>();
 		mceIOP_9.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*\\}"));
 		mceIOP_9.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*\\}"));
-		Property propIOP_9 = new Property(Mutant.IOP,
+		Property propIOP_9 = new Property(MutationOperator.IOP,
 										"test/IOP_9",
 										"method",
 										2,
@@ -182,7 +182,7 @@ public class IOPTests {
 		List<Pattern> mceIOP_10 = new LinkedList<Pattern>();
 		mceIOP_10.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*\\}"));
 		mceIOP_10.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*\\}"));
-		Property propIOP_10 = new Property(Mutant.IOP,
+		Property propIOP_10 = new Property(MutationOperator.IOP,
 										"test/IOP_10",
 										"method",
 										2,
@@ -203,7 +203,7 @@ public class IOPTests {
 		mceIOP_11.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*\\}"));
 		mceIOP_11.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*\\}"));
 		mceIOP_11.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*\\}"));
-		Property propIOP_11 = new Property(Mutant.IOP,
+		Property propIOP_11 = new Property(MutationOperator.IOP,
 										"test/IOP_11",
 										"method",
 										3,
@@ -220,7 +220,7 @@ public class IOPTests {
 		 *		int c = 0;
 		 *	} //mutGenLimit 1
 		 */
-		Property propIOP_12 = new Property(Mutant.IOP,
+		Property propIOP_12 = new Property(MutationOperator.IOP,
 										"test/IOP_12",
 										"method",
 										0,
@@ -244,7 +244,7 @@ public class IOPTests {
 		mceIOP_13.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*int d = 0;([ \t\n\f\r])*\\}"));
 		mceIOP_13.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*int d = 0;([ \t\n\f\r])*\\}"));
 		mceIOP_13.add(Pattern.compile("public void method\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*int a = 0;([ \t\n\f\r])*int b = 0;([ \t\n\f\r])*int c = 0;([ \t\n\f\r])*int d = 0;([ \t\n\f\r])*super\\.method\\(\\);([ \t\n\f\r])*\\}"));
-		Property propIOP_13 = new Property(Mutant.IOP,
+		Property propIOP_13 = new Property(MutationOperator.IOP,
 										"test/IOP_13",
 										"method",
 										4,

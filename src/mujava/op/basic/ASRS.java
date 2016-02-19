@@ -6,7 +6,7 @@
 
 package mujava.op.basic;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -180,7 +180,7 @@ public class ASRS extends MethodLevelMutator
 
 		//********** MUJAVA++ MODIFICATION **********//
 		//********** date: 7 Feb 2012     **********//
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.ASRS,
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.ASRS,
 				original, mutant);
 		return;
 		//*******************************************//

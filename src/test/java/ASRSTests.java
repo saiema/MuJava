@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class ASRSTests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.ASRS, "list/ListOps", "mult", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.ASRS, "list/ListOps", "mult", 0, 0, mceOMUC, mcneOMUC);
 		
 		List<Pattern> mceAnd = new LinkedList<Pattern>();
 		List<Pattern> mcneAnd = new LinkedList<Pattern>();
@@ -51,7 +51,7 @@ public class ASRSTests {
 		mcneAnd.add(Pattern.compile("res \\<<= l\\[b\\]; //mutGenLimit 0"));
 		mcneAnd.add(Pattern.compile("res \\>>= l\\[b\\]; //mutGenLimit 0"));
 		mcneAnd.add(Pattern.compile("res \\>>>= l\\[b\\]; //mutGenLimit 0"));
-		Property propAnd = new Property(Mutant.ASRS, "list/ListOps", "and", 2, 2, mceAnd, mcneAnd);
+		Property propAnd = new Property(MutationOperator.ASRS, "list/ListOps", "and", 2, 2, mceAnd, mcneAnd);
 		
 		List<Pattern> mceSum = new LinkedList<Pattern>();
 		List<Pattern> mcneSum = new LinkedList<Pattern>();
@@ -65,7 +65,7 @@ public class ASRSTests {
 		mcneSum.add(Pattern.compile("res \\<<= l\\[i\\]; //mutGenLimit 0"));
 		mcneSum.add(Pattern.compile("res \\>>= l\\[i\\]; //mutGenLimit 0"));
 		mcneSum.add(Pattern.compile("res \\>>>= l\\[i\\]; //mutGenLimit 0"));
-		Property propSum = new Property(Mutant.ASRS, "list/ListOps", "sum", 4, 4, mceSum, mcneSum);
+		Property propSum = new Property(MutationOperator.ASRS, "list/ListOps", "sum", 4, 4, mceSum, mcneSum);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

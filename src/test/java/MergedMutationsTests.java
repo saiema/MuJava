@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -161,12 +161,12 @@ public class MergedMutationsTests {
 		 */
 		
 		//PROPERTIES
-		List<Mutant> opsMerging_1 = new LinkedList<Mutant>();
-		opsMerging_1.add(Mutant.PRVOR);
-		opsMerging_1.add(Mutant.AORB);
-		opsMerging_1.add(Mutant.COR);
-		opsMerging_1.add(Mutant.ROR);
-		opsMerging_1.add(Mutant.EOC);
+		List<MutationOperator> opsMerging_1 = new LinkedList<MutationOperator>();
+		opsMerging_1.add(MutationOperator.PRVOR);
+		opsMerging_1.add(MutationOperator.AORB);
+		opsMerging_1.add(MutationOperator.COR);
+		opsMerging_1.add(MutationOperator.ROR);
+		opsMerging_1.add(MutationOperator.EOC);
 		List<MutationExpected> me_1 = new LinkedList<MutationExpected>();
 		List<Integer> la_1 = new LinkedList<Integer>();
 		Property propMerging_1 = new Property(
@@ -179,9 +179,9 @@ public class MergedMutationsTests {
 								);
 		
 		List<MutationExpected> mutationsExpected_2 = new LinkedList<MutationExpected>();
-		MutationExpected me_2_1 = new MutationExpected("current.next == null", "current.next.equals( null )", 4, Mutant.EOC);
-		MutationExpected me_2_2 = new MutationExpected("current.next == null && current.hashCode() + header.hashCode() > 0","current.next == null | current.hashCode() + header.hashCode() > 0", 4, Mutant.COR);
-		MutationExpected me_2_3 = new MutationExpected("current.hashCode() + header.hashCode() > 0", "true", 4, Mutant.ROR);
+		MutationExpected me_2_1 = new MutationExpected("current.next == null", "current.next.equals( null )", 4, MutationOperator.EOC);
+		MutationExpected me_2_2 = new MutationExpected("current.next == null && current.hashCode() + header.hashCode() > 0","current.next == null | current.hashCode() + header.hashCode() > 0", 4, MutationOperator.COR);
+		MutationExpected me_2_3 = new MutationExpected("current.hashCode() + header.hashCode() > 0", "true", 4, MutationOperator.ROR);
 		mutationsExpected_2.add(me_2_1);
 		mutationsExpected_2.add(me_2_2);
 		mutationsExpected_2.add(me_2_3);
@@ -206,8 +206,8 @@ public class MergedMutationsTests {
 								);
 		
 		List<MutationExpected> mutationsExpected_3 = new LinkedList<MutationExpected>();
-		MutationExpected me_3_1 = new MutationExpected("current.hashCode() + header.hashCode()", "current.hashCode() * header.hashCode()", 4, Mutant.AORB);
-		MutationExpected me_3_2 = new MutationExpected("current.hashCode() + header.hashCode()", "current.hashCode() / header.hashCode()", 4, Mutant.AORB);
+		MutationExpected me_3_1 = new MutationExpected("current.hashCode() + header.hashCode()", "current.hashCode() * header.hashCode()", 4, MutationOperator.AORB);
+		MutationExpected me_3_2 = new MutationExpected("current.hashCode() + header.hashCode()", "current.hashCode() / header.hashCode()", 4, MutationOperator.AORB);
 		mutationsExpected_3.add(me_3_1);
 		mutationsExpected_3.add(me_3_2);
 		SpecificMutationsFilter filter_3 = new SpecificMutationsFilter(mutationsExpected_3);
@@ -223,9 +223,9 @@ public class MergedMutationsTests {
 								);
 		
 		List<MutationExpected> mutationsExpected_4 = new LinkedList<MutationExpected>();
-		MutationExpected me_4_1 = new MutationExpected("current.hashCode() + header.hashCode()", "current.hashCode() - header.hashCode()", 4, Mutant.AORB);
-		MutationExpected me_4_2 = new MutationExpected("current.next == null", "true", 4, Mutant.ROR);
-		MutationExpected me_4_3 = new MutationExpected("current.hashCode() + header.hashCode() > 0", "false", 4, Mutant.ROR);
+		MutationExpected me_4_1 = new MutationExpected("current.hashCode() + header.hashCode()", "current.hashCode() - header.hashCode()", 4, MutationOperator.AORB);
+		MutationExpected me_4_2 = new MutationExpected("current.next == null", "true", 4, MutationOperator.ROR);
+		MutationExpected me_4_3 = new MutationExpected("current.hashCode() + header.hashCode() > 0", "false", 4, MutationOperator.ROR);
 		mutationsExpected_4.add(me_4_1);
 		mutationsExpected_4.add(me_4_2);
 		mutationsExpected_4.add(me_4_3);

@@ -6,7 +6,7 @@
 
 package mujava.op;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -180,12 +180,12 @@ public class EOA extends mujava.op.util.Mutator {
 	
 
 	private void outputToFile(AssignmentExpression original, AssignmentExpression mutant) {
-		Mutant eoa_variant = isInNormalMode()?Mutant.EOA:(isInStrictMode()?Mutant.EOA_STRICT:Mutant.EOA_DUMB);
+		MutationOperator eoa_variant = isInNormalMode()?MutationOperator.EOA:(isInStrictMode()?MutationOperator.EOA_STRICT:MutationOperator.EOA_DUMB);
 		MutantsInformationHolder.mainHolder().addMutation(eoa_variant, original, mutant);
 	}
 	
 	private void outputToFile(VariableDeclarator original, VariableDeclarator mutant) {
-		Mutant eoa_variant = isInNormalMode()?Mutant.EOA:(isInStrictMode()?Mutant.EOA_STRICT:Mutant.EOA_DUMB);
+		MutationOperator eoa_variant = isInNormalMode()?MutationOperator.EOA:(isInStrictMode()?MutationOperator.EOA_STRICT:MutationOperator.EOA_DUMB);
 		MutantsInformationHolder.mainHolder().addMutation(eoa_variant, original, mutant);
 	}
 }

@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -47,7 +47,7 @@ public class EMMTests {
 		dllce.add(Pattern.compile("this\\.end\\.setPrev\\( newNode \\)\\; \\/\\/mutGenLimit 0"));
 		dllce.add(Pattern.compile("this\\.end\\.setData\\( newNode \\)\\; \\/\\/mutGenLimit 0"));
 		List<Pattern> dllcne = new LinkedList<Pattern>();
-		Property propDll = new Property(Mutant.EMM,
+		Property propDll = new Property(MutationOperator.EMM,
 										"objects/DoubleLinkedList",
 										"addLast",
 										6,
@@ -65,7 +65,7 @@ public class EMMTests {
 		dllnce.add(Pattern.compile("setData\\( prev \\)\\; \\/\\/mutGenLimit 0"));
 		dllnce.add(Pattern.compile("setData\\( data \\)\\; \\/\\/mutGenLimit 1"));
 		List<Pattern> dllncne = new LinkedList<Pattern>();
-		Property propDlln = new Property(Mutant.EMM,
+		Property propDlln = new Property(MutationOperator.EMM,
 										"objects/DoubleLinkedListNode",
 										"DoubleLinkedListNode",
 										4,

@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -43,7 +43,7 @@ public class PCCTests {
 		 */
 		List<Pattern> mcePCC_1 = new LinkedList<Pattern>();
 		mcePCC_1.add(Pattern.compile("(.+\\.)?PCC_Base_NG var1 = \\((.+\\.)?PCC_Base_NG\\) new (.+\\.)?PCC_Base_NG\\(\\); //mutGenLimit 876"));
-		Property propPCC_1 = new Property(Mutant.PCC,
+		Property propPCC_1 = new Property(MutationOperator.PCC,
 										"test/PCC_NG_1",
 										"radiatedMethod",
 										1,
@@ -59,7 +59,7 @@ public class PCCTests {
 		 */
 		List<Pattern> mcePCC_2 = new LinkedList<Pattern>();
 		mcePCC_2.add(Pattern.compile("(.+\\.)?PCC_Base_G_1<String> var1 = \\((.+\\.)?PCC_Base_G_1<(.+\\.)?String>\\) new (.+\\.)?PCC_Base_G_1<String>\\(\\); //mutGenLimit 876"));
-		Property propPCC_2 = new Property(Mutant.PCC,
+		Property propPCC_2 = new Property(MutationOperator.PCC,
 										"test/PCC_G_1_1",
 										"radiatedMethod",
 										1,

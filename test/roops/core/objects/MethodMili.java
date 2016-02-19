@@ -3,7 +3,7 @@ package roops.core.objects;
 import openjava.ptree.ParseTreeException;
 import mujava.OpenJavaException;
 import mujava.api.Configuration;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.Core;
 import mujava.app.MutationRequest;
 import mujava.generations.GenerationsGoalTester;
@@ -51,26 +51,26 @@ public class MethodMili {
 	public static void main(String[] args) throws ClassNotFoundException, OpenJavaException, ParseTreeException {
         String clazz = "roops"  + Core.SEPARATOR + "core" + Core.SEPARATOR + "objects"  + Core.SEPARATOR +  "MethodMili"; //clase a correr, para a.Clase pon�s "a" + Core.SEPARATOR + "Clase"
         String[] methods = {"m"}; //m�todos a mutar
-        Mutant[] ops = {                        //operadores a utilizar
-                                                Mutant.PRVOL_SMART,
-                                                Mutant.PRVOR_REFINED,
-                                                Mutant.PRVOU_REFINED,
-                                                Mutant.AODS,
-                                                Mutant.AODU,
-                                                Mutant.AOIS,
-                                                Mutant.AOIU,
-                                                Mutant.AORB,
-                                                Mutant.AORS,
-                                                Mutant.AORU,
-                                                Mutant.ASRS,
-                                                Mutant.COD,
-                                                Mutant.COI,
-                                                Mutant.COR,
-                                                Mutant.LOD,
-                                                Mutant.LOI,
-                                                Mutant.LOR,
-                                                Mutant.ROR,
-                                                Mutant.SOR
+        MutationOperator[] ops = {                        //operadores a utilizar
+                                                MutationOperator.PRVOL_SMART,
+                                                MutationOperator.PRVOR_REFINED,
+                                                MutationOperator.PRVOU_REFINED,
+                                                MutationOperator.AODS,
+                                                MutationOperator.AODU,
+                                                MutationOperator.AOIS,
+                                                MutationOperator.AOIU,
+                                                MutationOperator.AORB,
+                                                MutationOperator.AORS,
+                                                MutationOperator.AORU,
+                                                MutationOperator.ASRS,
+                                                MutationOperator.COD,
+                                                MutationOperator.COI,
+                                                MutationOperator.COR,
+                                                MutationOperator.LOD,
+                                                MutationOperator.LOI,
+                                                MutationOperator.LOR,
+                                                MutationOperator.ROR,
+                                                MutationOperator.SOR
                                                
                                         };
         Configuration.add(PRVO.ENABLE_SUPER, Boolean.TRUE); //habilita o deshabilita que PRVO genere mutantes con super

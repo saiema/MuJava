@@ -20,7 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import main.api.DependencyScanner;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.Core;
 import mujava.app.MutatorsInfo;
 
@@ -37,7 +37,7 @@ public class Config {
 	//basic mutation values
 	
 	//mutation operators
-	private Set<Mutant> operators;
+	private Set<MutationOperator> operators;
 	//mutation operators
 	
 	//advanced mutation options
@@ -99,7 +99,7 @@ public class Config {
 	private List<String> classesInOriginalBinDir;
 	private List<String> packagesInOriginalBinDir;
 	private List<String> testClassesInTestsBinDir;
-	private final Mutant[] validMutOps = Mutant.values();
+	private final MutationOperator[] validMutOps = MutationOperator.values();
 	private DependencyScanner testsScanner = null;
 	//auxiliary values
 	
@@ -208,7 +208,7 @@ public class Config {
 	}
 	
 	public boolean addOperator(String op) {
-		Mutant mop = isValidOp(op);
+		MutationOperator mop = isValidOp(op);
 		if (mop != null) {
 			this.operators.add(mop);
 			return true;
@@ -217,7 +217,7 @@ public class Config {
 	}
 	
 	public boolean removeOperator(String op) {
-		Mutant mop = isValidOp(op);
+		MutationOperator mop = isValidOp(op);
 		if (mop != null) {
 			this.operators.remove(mop);
 			return true;
@@ -226,8 +226,8 @@ public class Config {
 		}
 	}
 	
-	private Mutant isValidOp(String op) {
-		for (Mutant mop : this.validMutOps) {
+	private MutationOperator isValidOp(String op) {
+		for (MutationOperator mop : this.validMutOps) {
 			if (mop.toString().compareTo(op) == 0) {
 				return mop;
 			}
@@ -237,13 +237,13 @@ public class Config {
 	
 	public void clearOperators() {
 		if (this.operators == null) {
-			this.operators = new TreeSet<Mutant>();
+			this.operators = new TreeSet<MutationOperator>();
 		} else {
 			this.operators.clear();
 		}
 	}
 	
-	public Set<Mutant> operators() {
+	public Set<MutationOperator> operators() {
 		return this.operators;
 	}
 	
@@ -770,7 +770,7 @@ public class Config {
 //				}
 			}
 		}
-		for (Mutant m : this.operators) {
+		for (MutationOperator m : this.operators) {
 			if (!MutatorsInfo.getInstance().isSupported(m)) return "Operator " + m.toString() + " is not supported";
 		}
 		for (String method : this.methodsToMutate) {

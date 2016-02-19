@@ -31,7 +31,7 @@ import openjava.ptree.Variable;
 import openjava.ptree.VariableDeclaration;
 import openjava.ptree.VariableDeclarator;
 import openjava.ptree.WhileStatement;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.util.Mutator;
 
@@ -356,7 +356,7 @@ public class NPER extends Mutator {
 	}
 	
 	private void outputToFile(ParseTreeObject original, ParseTreeObject mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.NPER, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.NPER, original, mutant);
 	}
 
 }

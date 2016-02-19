@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class COITests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.COI, "utils/BooleanOps", "or", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.COI, "utils/BooleanOps", "or", 0, 0, mceOMUC, mcneOMUC);
 		
 		/*
 		 	boolean auxA = a; //mutGenLimit 3
@@ -54,7 +54,7 @@ public class COITests {
 		mceAnd.add(Pattern.compile("if \\(\\!\\(\\!auxA\\) \\|\\| \\!auxB\\) \\{ //mutGenLimit 0"));
 		mceAnd.add(Pattern.compile("if \\(\\!auxA \\|\\| \\!\\(\\!auxB\\)\\) \\{ //mutGenLimit 0"));
 		mceAnd.add(Pattern.compile("return \\!false; //mutGenLimit 0"));
-		Property propAnd = new Property(Mutant.COI, "utils/BooleanOps", "and", 6, 6, mceAnd, mcneAnd);
+		Property propAnd = new Property(MutationOperator.COI, "utils/BooleanOps", "and", 6, 6, mceAnd, mcneAnd);
 		
 		/*
 		 	boolean allTrue = !(!auxA || !auxB); //mutGenLimit 1
@@ -71,7 +71,7 @@ public class COITests {
 		mceXor.add(Pattern.compile("return \\!\\(\\!\\(allTrue \\|\\| allFalse\\)\\); //mutGenLimit 0"));
 		mceXor.add(Pattern.compile("return \\!\\(\\!allTrue \\|\\| allFalse\\); //mutGenLimit 0"));
 		mceXor.add(Pattern.compile("return \\!\\(allTrue \\|\\| \\!allFalse\\); //mutGenLimit 0"));
-		Property propXor = new Property(Mutant.COI, "utils/BooleanOps", "xor", 8, 8, mceXor, mcneXor);
+		Property propXor = new Property(MutationOperator.COI, "utils/BooleanOps", "xor", 8, 8, mceXor, mcneXor);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

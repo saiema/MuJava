@@ -6,7 +6,7 @@
 
 package mujava.op.basic;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.FileEnvironment;
 import openjava.ptree.AssignmentExpression;
@@ -67,6 +67,6 @@ public class AODU extends Arithmetic_OP {
 		if (comp_unit == null) 
 			return;
 		
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.AODU, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AODU, original, (ParseTreeObject) mutant);
 	}
 }

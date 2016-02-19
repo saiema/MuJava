@@ -8,6 +8,7 @@ import java.util.Stack;
 import mujava.MutationSystem;
 import mujava.NotDirBasedMutantsGenerator;
 import mujava.OpenJavaException;
+import mujava.security.ApiCaller;
 import mujava.util.Debug;
 import openjava.mop.OJSystem;
 import openjava.ptree.CompilationUnit;
@@ -66,12 +67,12 @@ public class Api {
 	 * @param javaFile			:	the java source file from which mutants will be generated		:	{@code File}
 	 * @param className			:	the qualified name of the class to consider						:	{@code String}
 	 * @param methodToConsider	:	the method in which mutants operators will be applied			:	{@code String}
-	 * @param mutOps			:	the mutations operators to apply								:	{@code Set<Mutant>}
+	 * @param mutOps			:	the mutations operators to apply								:	{@code Set<MutationOperator>}
 	 * @return a {@code MutantsInformationHolder} object that holds the generated mutations and the {@code CompilationUnit} associated with {@code javaFile}	:	{@code MutantsInformationHolder}
 	 * @see MutantsInformationHolder
 	 * @throws OpenJavaException if some exception occurs while parsing the given java file
 	 */
-	public static MutantsInformationHolder generateMutants(File javaFile, String className, String methodToConsider, Set<Mutant> mutOps) throws OpenJavaException {
+	public static MutantsInformationHolder generateMutants(File javaFile, String className, String methodToConsider, Set<MutationOperator> mutOps) throws OpenJavaException {
 		usingApi = true;
 		parseClassName(className);
 		if (cleanOJSystemBeforeGenerating) OJSystem.clean();
@@ -101,6 +102,36 @@ public class Api {
 		MutantsInformationHolder ret = MutantsInformationHolder.mainHolder();
 		MutantsInformationHolder.resetMainHolder();
 		return ret;
+	}
+	
+	public static void hijackApi(ApiCaller caller, String className, String methodToConsider, Set<MutationOperator> mutOps) {
+		usingApi = true;
+		parseClassName(className);
+		//if (cleanOJSystemBeforeGenerating) OJSystem.clean();
+		
+		int firstParenthesis = methodToConsider.indexOf('(');
+		String methodName = methodToConsider;
+		if (firstParenthesis > 0) {
+			methodName = methodToConsider.substring(0, firstParenthesis);
+			int lastParenthesis = methodToConsider.lastIndexOf(')');
+			if (lastParenthesis > 0) {
+				String argsRaw = methodToConsider.substring(firstParenthesis+1, lastParenthesis);
+				String[] args = argsRaw.split(",");
+				Api.arguments = new String[args.length];
+				int a = 0;
+				for (String argRaw : args) {
+					Api.arguments[a] = argRaw.trim().split(" ")[0].trim();
+					a++;
+				}
+			}
+		}
+		Api.methodToConsider = methodName;
+		Debug.setDebugLevel(0);
+		MutationSystem.CLASS_NAME = Api.getMainClassName(className);
+	}
+	
+	public static void cleanOJSystem(ApiCaller caller) {
+		OJSystem.clean();
 	}
 	
 	/**
@@ -203,7 +234,7 @@ public class Api {
 	}
 	
 	/**
-	 * Sets whether or not {@code OJSystem#clean()} will be called when calling {@code Api#generateMutants(File, String, String, Set<Mutant>)}
+	 * Sets whether or not {@code OJSystem#clean()} will be called when calling {@code Api#generateMutants(File, String, String, Set<MutationOperator>)}
 	 * 
 	 * @param b	:	whether or not to call {@code OJSystem#clean()}	:	{@code boolean}
 	 */

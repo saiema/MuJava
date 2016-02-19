@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -53,7 +53,7 @@ public class JTI_DUMBTests {
 		mcJTI_DUMB_1.add(Pattern.compile("int var2 = field1 \\+ field2 \\+ field3 \\+ this\\.field4 \\+ field5 \\+ field6; //mutGenLimit 2"));
 		mcJTI_DUMB_1.add(Pattern.compile("int var2 = field1 \\+ field2 \\+ field3 \\+ field4 \\+ this\\.field5 \\+ field6; //mutGenLimit 2"));
 		mcJTI_DUMB_1.add(Pattern.compile("int var2 = field1 \\+ field2 \\+ field3 \\+ field4 \\+ field5 \\+ this\\.field6; //mutGenLimit 2"));
-		Property propJTIDUMB_1 = new Property(Mutant.JTI,
+		Property propJTIDUMB_1 = new Property(MutationOperator.JTI,
 											"test/JTI_1",
 											"radiatedMethod",
 											9,
@@ -88,7 +88,7 @@ public class JTI_DUMBTests {
 		mcJTI_DUMB_2.add(Pattern.compile("return var1 \\+ radiatedMethod\\( var1 \\+ field2 \\+ field4, this\\.field3 \\); //mutGenLimit 99"));
 		mcJTI_DUMB_2.add(Pattern.compile("return this\\.var1 \\+ radiatedMethod\\( var1 \\+ field2 \\+ field4, field3 \\); //mutGenLimit 99"));
 		mcJTI_DUMB_2.add(Pattern.compile("return var1 \\+ radiatedMethod\\( this\\.var1 \\+ field2 \\+ field4, field3 \\); //mutGenLimit 99"));
-		Property propJTIDUMB_2 = new Property(Mutant.JTI,
+		Property propJTIDUMB_2 = new Property(MutationOperator.JTI,
 											"test/JTI_2",
 											"radiatedMethod",
 											17,

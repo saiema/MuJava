@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.Mutation;
 import mujava.app.MutantInfo;
 
@@ -19,9 +19,9 @@ import mujava.app.MutantInfo;
 public class GenerationsInformation {
 	private Map<Integer, List<MutantInfo>> generations;
 	private List<MutantInfo> lastGeneration;
-	private Map<Integer, Map<Integer, Map<Mutant, Integer>>> mutationsNumberPerOperatorPerLinePerGeneration;
+	private Map<Integer, Map<Integer, Map<MutationOperator, Integer>>> mutationsNumberPerOperatorPerLinePerGeneration;
 	private Map<Integer, Map<Integer, List<MutantInfo>>> mutationsPerLinePerGeneration;
-	private Map<Integer, Map<Integer, Map<Mutant, List<MutantInfo>>>> mutationsPerOperatorPerLinePerGenerations;
+	private Map<Integer, Map<Integer, Map<MutationOperator, List<MutantInfo>>>> mutationsPerOperatorPerLinePerGenerations;
 	private Integer lastGenerationUpdated = -1;
 	private List<MutantInfo> lastMutantsUpdated = null;
 	private boolean lowMemoryMode;
@@ -32,13 +32,13 @@ public class GenerationsInformation {
 	public GenerationsInformation(boolean lowMemoryMode) {
 		if (lowMemoryMode) {
 			this.lastGeneration = new LinkedList<MutantInfo>();
-			this.mutationsNumberPerOperatorPerLinePerGeneration = new HashMap<Integer, Map<Integer, Map<Mutant, Integer>>>();
+			this.mutationsNumberPerOperatorPerLinePerGeneration = new HashMap<Integer, Map<Integer, Map<MutationOperator, Integer>>>();
 			this.lastMutantsUpdated = new LinkedList<MutantInfo>();
 			this.lowMemoryMode = true;
 		} else {
 			this.generations = new HashMap<Integer, List<MutantInfo>>();
 			this.mutationsPerLinePerGeneration = new HashMap<Integer, Map<Integer, List<MutantInfo>>>();
-			this.mutationsPerOperatorPerLinePerGenerations = new HashMap<Integer, Map<Integer, Map<Mutant, List<MutantInfo>>>>();
+			this.mutationsPerOperatorPerLinePerGenerations = new HashMap<Integer, Map<Integer, Map<MutationOperator, List<MutantInfo>>>>();
 			this.lastMutantsUpdated = new LinkedList<MutantInfo>();
 			this.lowMemoryMode = false;
 		}
@@ -51,7 +51,7 @@ public class GenerationsInformation {
 	public GenerationsInformation() {
 		this.generations = new HashMap<Integer, List<MutantInfo>>();
 		this.mutationsPerLinePerGeneration = new HashMap<Integer, Map<Integer, List<MutantInfo>>>();
-		this.mutationsPerOperatorPerLinePerGenerations = new HashMap<Integer, Map<Integer, Map<Mutant, List<MutantInfo>>>>();
+		this.mutationsPerOperatorPerLinePerGenerations = new HashMap<Integer, Map<Integer, Map<MutationOperator, List<MutantInfo>>>>();
 		this.lastMutantsUpdated = new LinkedList<MutantInfo>();
 		this.lowMemoryMode = false;
 	}
@@ -111,19 +111,19 @@ public class GenerationsInformation {
 	}
 	
 	private void addMutantPerLinePerOperatorLowMemory(Integer generation, MutantInfo mutant) {
-		Map<Integer, Map<Mutant, Integer>> mutationsPerOperatorPerLine;
+		Map<Integer, Map<MutationOperator, Integer>> mutationsPerOperatorPerLine;
 		int affectedLine = mutant.getMutation() != null?mutant.getMutation().getAffectedLine():-1;
 		if (this.mutationsNumberPerOperatorPerLinePerGeneration.containsKey(generation)) {
 			mutationsPerOperatorPerLine = this.mutationsNumberPerOperatorPerLinePerGeneration.get(generation);
 		} else {
-			mutationsPerOperatorPerLine = new HashMap<Integer, Map<Mutant, Integer>>();
+			mutationsPerOperatorPerLine = new HashMap<Integer, Map<MutationOperator, Integer>>();
 			this.mutationsNumberPerOperatorPerLinePerGeneration.put(generation, mutationsPerOperatorPerLine);
 		}
-		Map<Mutant, Integer> mutationsPerOperator;
+		Map<MutationOperator, Integer> mutationsPerOperator;
 		if (mutationsPerOperatorPerLine.containsKey(affectedLine)) {
 			mutationsPerOperator = mutationsPerOperatorPerLine.get(affectedLine);
 		} else {
-			mutationsPerOperator = new HashMap<Mutant, Integer>();
+			mutationsPerOperator = new HashMap<MutationOperator, Integer>();
 			mutationsPerOperatorPerLine.put(affectedLine, mutationsPerOperator);
 		}
 		Integer mutations;
@@ -154,18 +154,18 @@ public class GenerationsInformation {
 	}
 	
 	private void addMutantPerLinePerOperator(Integer generation, MutantInfo mutant) {
-		Map<Integer, Map<Mutant, List<MutantInfo>>> mutationsPerOperatorPerLine;
+		Map<Integer, Map<MutationOperator, List<MutantInfo>>> mutationsPerOperatorPerLine;
 		if (this.mutationsPerOperatorPerLinePerGenerations.containsKey(generation)) {
 			mutationsPerOperatorPerLine = this.mutationsPerOperatorPerLinePerGenerations.get(generation);
 		} else {
-			mutationsPerOperatorPerLine = new HashMap<Integer, Map<Mutant, List<MutantInfo>>>();
+			mutationsPerOperatorPerLine = new HashMap<Integer, Map<MutationOperator, List<MutantInfo>>>();
 			this.mutationsPerOperatorPerLinePerGenerations.put(generation, mutationsPerOperatorPerLine);
 		}
-		Map<Mutant, List<MutantInfo>> mutationsPerOperator;
+		Map<MutationOperator, List<MutantInfo>> mutationsPerOperator;
 		if (mutationsPerOperatorPerLine.containsKey(mutant.getMutatedLine())) {
 			mutationsPerOperator = mutationsPerOperatorPerLine.get(mutant.getMutatedLine());
 		} else {
-			mutationsPerOperator = new HashMap<Mutant, List<MutantInfo>>();
+			mutationsPerOperator = new HashMap<MutationOperator, List<MutantInfo>>();
 			mutationsPerOperatorPerLine.put(mutant.getMutatedLine(), mutationsPerOperator);
 		}
 		List<MutantInfo> mutations;
@@ -279,10 +279,10 @@ public class GenerationsInformation {
 	
 	private int getGenerationMutationsNumber(Integer generation) {
 		if (this.lowMemoryMode) {
-			Map<Integer, Map<Mutant, Integer>> mutationsForGeneration = this.mutationsNumberPerOperatorPerLinePerGeneration.get(generation);
+			Map<Integer, Map<MutationOperator, Integer>> mutationsForGeneration = this.mutationsNumberPerOperatorPerLinePerGeneration.get(generation);
 			int mutations = 0;
-			for (Entry<Integer, Map<Mutant, Integer>> entry : mutationsForGeneration.entrySet()) {
-				for (Entry<Mutant, Integer> mutationsPerOperator : entry.getValue().entrySet()) {
+			for (Entry<Integer, Map<MutationOperator, Integer>> entry : mutationsForGeneration.entrySet()) {
+				for (Entry<MutationOperator, Integer> mutationsPerOperator : entry.getValue().entrySet()) {
 					mutations += mutationsPerOperator.getValue();
 				}
 			}
@@ -297,13 +297,13 @@ public class GenerationsInformation {
 			return showFullGenerationInfoLowMemory(generation);
 		}
 		String res = "";
-		Map<Integer, Map<Mutant, List<MutantInfo>>> mutationsPerOperatorPerLine = this.mutationsPerOperatorPerLinePerGenerations.get(generation);
+		Map<Integer, Map<MutationOperator, List<MutantInfo>>> mutationsPerOperatorPerLine = this.mutationsPerOperatorPerLinePerGenerations.get(generation);
 		if (mutationsPerOperatorPerLine == null) {
 			return "";
 		}
-		for (Entry<Integer, Map<Mutant, List<MutantInfo>>> mpopl : mutationsPerOperatorPerLine.entrySet()) {
+		for (Entry<Integer, Map<MutationOperator, List<MutantInfo>>> mpopl : mutationsPerOperatorPerLine.entrySet()) {
 			res += "mutations for line : " + mpopl.getKey() + "\n";
-			for (Entry<Mutant, List<MutantInfo>> mpo : mpopl.getValue().entrySet()) {
+			for (Entry<MutationOperator, List<MutantInfo>> mpo : mpopl.getValue().entrySet()) {
 				res += "\tmutations for operator " + (mpo.getKey()==null?"N/A":mpo.getKey().name()) + " : " + mpo.getValue().size() + "\n"; 
 				for (MutantInfo mi : mpo.getValue()) {
 //					res += "\t\tmutation: ";
@@ -324,13 +324,13 @@ public class GenerationsInformation {
 	
 	private String showFullGenerationInfoLowMemory(Integer generation) {
 		String res = "";
-		Map<Integer, Map<Mutant, Integer>> mutationsPerOperatorPerLine = this.mutationsNumberPerOperatorPerLinePerGeneration.get(generation);
+		Map<Integer, Map<MutationOperator, Integer>> mutationsPerOperatorPerLine = this.mutationsNumberPerOperatorPerLinePerGeneration.get(generation);
 		if (mutationsPerOperatorPerLine == null) {
 			return "";
 		}
-		for (Entry<Integer, Map<Mutant, Integer>> mpopl : mutationsPerOperatorPerLine.entrySet()) {
+		for (Entry<Integer, Map<MutationOperator, Integer>> mpopl : mutationsPerOperatorPerLine.entrySet()) {
 			res += "mutations for line : " + mpopl.getKey() + "\n";
-			for (Entry<Mutant, Integer> mpo : mpopl.getValue().entrySet()) {
+			for (Entry<MutationOperator, Integer> mpo : mpopl.getValue().entrySet()) {
 				res += "\tmutations for operator " + (mpo.getKey()==null?"N/A":mpo.getKey().name()) + " : " + mpo.getValue() + "\n"; 
 			}
 		}

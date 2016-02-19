@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.List;
 //import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class IHDTests {
 		//TESTS DEFINITIONS
 //		List<Pattern> a2_4_Dce = new LinkedList<Pattern>();
 //		List<Pattern> a2_4_Dcne = new LinkedList<Pattern>();
-		Property propA2_4_D = new Property(Mutant.IHD,
+		Property propA2_4_D = new Property(MutationOperator.IHD,
 										"classMutations/A2_4_D",
 										Property.MUTATE_CLASS,
 										1,
@@ -47,7 +47,7 @@ public class IHDTests {
 		
 //		List<Pattern> a2_1_Dce = new LinkedList<Pattern>();
 //		List<Pattern> a2_1_Dcne = new LinkedList<Pattern>();
-		Property propA2_1_D = new Property(Mutant.IHD,
+		Property propA2_1_D = new Property(MutationOperator.IHD,
 										"classMutations/A2_1_D",
 										Property.MUTATE_CLASS,
 										5,

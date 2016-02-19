@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class AODUTests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.AODU, "sort/Sorting", "mergeSort", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.AODU, "sort/Sorting", "mergeSort", 0, 0, mceOMUC, mcneOMUC);
 		
 		List<Pattern> mceSortingMerge = new LinkedList<Pattern>();
 		List<Pattern> mcneSortingMerge = new LinkedList<Pattern>();
@@ -45,7 +45,7 @@ public class AODUTests {
 		mceSortingMerge.add(Pattern.compile("a = a \\+ auxB; //mutGenLimit 0"));
 		mceSortingMerge.add(Pattern.compile("auxB = b; //mutGenLimit 0"));
 		mcneSortingMerge.add(Pattern.compile(".+//mutGenLimit -[0..9]+"));
-		Property propSortingMerge = new Property(Mutant.AODU, "sort/Sorting", "swap", 2, 2, mceSortingMerge, mcneSortingMerge);
+		Property propSortingMerge = new Property(MutationOperator.AODU, "sort/Sorting", "swap", 2, 2, mceSortingMerge, mcneSortingMerge);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

@@ -14,7 +14,7 @@ import openjava.ptree.ParameterList;
 import openjava.ptree.ParseTreeException;
 import openjava.ptree.StatementList;
 import mujava.api.Api;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.util.Mutator;
 
@@ -107,7 +107,7 @@ public class OMR extends Mutator {
 	}
 
 	private void outputToFile(MethodDeclaration original, MethodDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.OMR, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.OMR, original, mutant);
 	}
 	
 	

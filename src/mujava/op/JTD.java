@@ -6,7 +6,7 @@
 
 package mujava.op;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 
 import openjava.mop.*;
@@ -81,11 +81,11 @@ public class JTD extends mujava.op.util.Mutator {
 	}
 	
 	private void outputToFile(FieldAccess original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.JTD, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.JTD, original, (ParseTreeObject) mutant);
 	}
 
 	private void outputToFile(MethodCall original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.JTD, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.JTD, original, (ParseTreeObject) mutant);
 	}
 	
 	public void visit(BinaryExpression p) throws ParseTreeException {

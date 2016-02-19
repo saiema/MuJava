@@ -147,7 +147,7 @@ public class MutantsInformationHolder {
 		return compUnit;
 	}
 
-	public void addMutation(Mutant mutOp, ParseTreeObject original, ParseTreeObject mutant) {
+	public void addMutation(MutationOperator mutOp, ParseTreeObject original, ParseTreeObject mutant) {
 		if (isEqualToOriginal(original, (ParseTreeObject)mutant)) return;
 		if (alreadyGenerated(original, (ParseTreeObject)mutant)) return;
 		if (verbose) {

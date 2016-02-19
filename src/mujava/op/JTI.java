@@ -6,7 +6,7 @@
 
 package mujava.op;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -85,7 +85,7 @@ public class JTI extends mujava.op.util.Mutator {
 	}
 
 	private void outputToFile(Variable original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(this.smartMode?Mutant.JTI_SMART:Mutant.JTI, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(this.smartMode?MutationOperator.JTI_SMART:MutationOperator.JTI, original, (ParseTreeObject) mutant);
 	}
 	
 	public void visit(BinaryExpression p) throws ParseTreeException {

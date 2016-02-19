@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class RORTests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.ROR, "sort/Sorting", "mergeSort", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.ROR, "sort/Sorting", "mergeSort", 0, 0, mceOMUC, mcneOMUC);
 		
 		List<Pattern> mceMerge = new LinkedList<Pattern>();
 		List<Pattern> mcneMerge = new LinkedList<Pattern>();
@@ -58,7 +58,7 @@ public class RORTests {
 		
 		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| true\\) \\{ //mutGenLimit 0"));
 		mceMerge.add(Pattern.compile("while \\(i \\< lenL \\|\\| false\\) \\{ //mutGenLimit 0"));
-		Property propMerge = new Property(Mutant.ROR, "sort/Sorting", "merge", 14, 14, mceMerge, mcneMerge);
+		Property propMerge = new Property(MutationOperator.ROR, "sort/Sorting", "merge", 14, 14, mceMerge, mcneMerge);
 		
 		List<Pattern> mceOrdered = new LinkedList<Pattern>();
 		List<Pattern> mcneOrdered = new LinkedList<Pattern>();
@@ -70,7 +70,7 @@ public class RORTests {
 		
 		mceOrdered.add(Pattern.compile("for \\(int v = 1; true; v\\+\\+\\) \\{ //mutGenLimit 0"));
 		mceOrdered.add(Pattern.compile("for \\(int v = 1; false; v\\+\\+\\) \\{ //mutGenLimit 0"));
-		Property propOrdered = new Property(Mutant.ROR, "sort/Sorting", "ordered", 7, 6, mceOrdered, mcneOrdered);
+		Property propOrdered = new Property(MutationOperator.ROR, "sort/Sorting", "ordered", 7, 6, mceOrdered, mcneOrdered);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

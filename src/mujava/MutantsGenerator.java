@@ -40,7 +40,7 @@ public abstract class MutantsGenerator {
 	String[] operators = null;
 
 	FileEnvironment file_env = null;
-	CompilationUnit comp_unit = null;
+	protected CompilationUnit comp_unit = null;
 
 	public MutantsGenerator(File f) {
 		this.original_file = f;
@@ -85,7 +85,7 @@ public abstract class MutantsGenerator {
 		return true;
 	}
 
-	abstract void genMutants();
+	protected abstract void genMutants();
 
 	/**
 	 * Generate mutants from Java bytecode
@@ -105,7 +105,7 @@ public abstract class MutantsGenerator {
 	 * 
 	 * @throws OpenJavaException
 	 */
-	private void initParseTree() throws OpenJavaException {
+	protected void initParseTree() throws OpenJavaException {
 		try {
 			// System.out.println("OJSystem.env0 :" + OJSystem.env );
 			comp_unit.accept(new TypeNameQualifier(file_env));
@@ -120,25 +120,25 @@ public abstract class MutantsGenerator {
 		}
 	}
 
-	/**
-	 * Initialize parse tree
-	 * 
-	 * @param parent_comp_unit
-	 * @param parent_file_env
-	 */
-	void initParseTree(CompilationUnit[] parent_comp_unit,
-			FileEnvironment[] parent_file_env) {
-		try {
-			parent_comp_unit[0]
-					.accept(new TypeNameQualifier(parent_file_env[0]));
-			MemberAccessCorrector corrector = new MemberAccessCorrector(
-					parent_file_env[0]);
-			parent_comp_unit[0].accept(corrector);
-		} catch (ParseTreeException e) {
-			System.err.println("Encountered errors during analysis.");
-			e.printStackTrace();
-		}
-	}
+//	/**
+//	 * Initialize parse tree
+//	 * 
+//	 * @param parent_comp_unit
+//	 * @param parent_file_env
+//	 */
+//	void initParseTree(CompilationUnit[] parent_comp_unit,
+//			FileEnvironment[] parent_file_env) {
+//		try {
+//			parent_comp_unit[0]
+//					.accept(new TypeNameQualifier(parent_file_env[0]));
+//			MemberAccessCorrector corrector = new MemberAccessCorrector(
+//					parent_file_env[0]);
+//			parent_comp_unit[0].accept(corrector);
+//		} catch (ParseTreeException e) {
+//			System.err.println("Encountered errors during analysis.");
+//			e.printStackTrace();
+//		}
+//	}
 
 	/**
 	 * Generate parse tree

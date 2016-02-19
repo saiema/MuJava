@@ -6,7 +6,7 @@
 
 package mujava.op.basic;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.FileEnvironment;
 import openjava.mop.OJSystem;
@@ -112,27 +112,27 @@ public class COI extends MethodLevelMutator {
 
 	private void outputToFile(UnaryExpression original, UnaryExpression mutant) {
 		if (comp_unit == null) return;
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.COI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.COI, original, mutant);
 	}
 	
 	private void outputToFile(Variable original, UnaryExpression mutant) {
 		if (comp_unit == null) return;
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.COI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.COI, original, mutant);
 	}
 	
 	private void outputToFile(Literal original, UnaryExpression mutant) {
 		if (comp_unit == null) return;
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.COI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.COI, original, mutant);
 	}
 	
 	private void outputToFile(FieldAccess original, UnaryExpression mutant) {
 		if (comp_unit == null) return;
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.COI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.COI, original, mutant);
 	}
 	
 	private void outputToFile(BinaryExpression original, UnaryExpression mutant) {
 		if (comp_unit == null) return;
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.COI, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.COI, original, mutant);
 	}
 	
 }

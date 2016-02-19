@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -43,7 +43,7 @@ public class IHITests {
 		List<Pattern> ihiTestA2_1cne = new LinkedList<Pattern>();
 		ihiTestA2_1cne.add(Pattern.compile("private (.+\\.)?String atr1\\;"));
 		ihiTestA2_1cne.add(Pattern.compile("protected (.+\\.)?String atr2\\;"));
-		Property propA2_1 = new Property(Mutant.IHI,
+		Property propA2_1 = new Property(MutationOperator.IHI,
 										"classMutations/A2_1",
 										Property.MUTATE_CLASS,
 										4,
@@ -60,7 +60,7 @@ public class IHITests {
 		List<Pattern> ihiTestA2_2cne = new LinkedList<Pattern>();
 		ihiTestA2_2cne.add(Pattern.compile("private (.+\\.)?String atr1\\;"));
 		ihiTestA2_2cne.add(Pattern.compile("protected (.+\\.)?String atr2\\;"));
-		Property propA2_2 = new Property(Mutant.IHI,
+		Property propA2_2 = new Property(MutationOperator.IHI,
 										"classMutations/A2_2",
 										Property.MUTATE_CLASS,
 										4,
@@ -77,7 +77,7 @@ public class IHITests {
 		List<Pattern> ihiTestA2_3cne = new LinkedList<Pattern>();
 		ihiTestA2_3cne.add(Pattern.compile("private (.+\\.)?String atr1\\;"));
 		ihiTestA2_3cne.add(Pattern.compile("protected (.+\\.)?String atr2\\;"));
-		Property propA2_3 = new Property(Mutant.IHI,
+		Property propA2_3 = new Property(MutationOperator.IHI,
 										"classMutations/A2_3",
 										Property.MUTATE_CLASS,
 										4,
@@ -94,7 +94,7 @@ public class IHITests {
 		ihiTestA2_4ce.add(Pattern.compile("public (.+\\.)?List\\<(.+\\.)?String\\> atr6\\;"));
 		List<Pattern> ihiTestA2_4cne = new LinkedList<Pattern>();
 		ihiTestA2_4cne.add(Pattern.compile("private (.+\\.)?String atr1\\;"));
-		Property propA2_4 = new Property(Mutant.IHI,
+		Property propA2_4 = new Property(MutationOperator.IHI,
 										"classMutations/A2_4",
 										Property.MUTATE_CLASS,
 										5,
@@ -111,7 +111,7 @@ public class IHITests {
 		List<Pattern> ihiTestA2_5cne = new LinkedList<Pattern>();
 		ihiTestA2_5cne.add(Pattern.compile("private (.+\\.)?String atr1\\;"));
 		ihiTestA2_5cne.add(Pattern.compile("protected (.+\\.)?String atr2\\;"));
-		Property propA2_5 = new Property(Mutant.IHI,
+		Property propA2_5 = new Property(MutationOperator.IHI,
 										"classMutations/A2_5",
 										Property.MUTATE_CLASS,
 										4,

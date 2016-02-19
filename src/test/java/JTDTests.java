@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -47,7 +47,7 @@ public class JTDTests {
 		mceJTD_1.add(Pattern.compile("(.+\\.)?Comparator\\<String\\> stringVar_2 = atr1\\.trim\\(\\)\\.CASE_INSENSITIVE_ORDER; //mutGenLimit 0"));
 		mceJTD_1.add(Pattern.compile("(.+\\.)?String stringVar_3 = stringMethod_3\\( 1, 2 \\)\\.concat\\( \"lalala\" \\)\\.intern\\(\\); //mutGenLimit 0"));
 		mceJTD_1.add(Pattern.compile("(.+\\.)?Comparator\\<String\\> stringVar_4 = stringMethod_4\\( 1, 2 \\)\\.CASE_INSENSITIVE_ORDER; //mutGenLimit 0"));
-		Property propJTD_1 = new Property(Mutant.JTD,
+		Property propJTD_1 = new Property(MutationOperator.JTD,
 											"test/JTD_1",
 											"radiatedMethod",
 											3,
@@ -69,7 +69,7 @@ public class JTDTests {
 		mceJTD_2.add(Pattern.compile("(.+\\.)?String stringVar_3 = stringMethod_3\\( 1, 2 \\); //mutGenLimit 0"));
 		mceJTD_2.add(Pattern.compile("(.+\\.)?String stringVar_4 = atr2; //mutGenLimit 0"));
 		mceJTD_2.add(Pattern.compile("(.+\\.)?String stringVar_5 = atr2; //mutGenLimit 0"));
-		Property propJTD_2 = new Property(Mutant.JTD,
+		Property propJTD_2 = new Property(MutationOperator.JTD,
 											"test/JTD_2",
 											"radiatedMethod",
 											4,
@@ -101,7 +101,7 @@ public class JTDTests {
 		mceJTD_3.add(Pattern.compile("int var4 = this\\.method1\\( this\\.method1\\( this\\.field1, this\\.method2\\( this\\.field2, field3 \\) \\), 0 \\); //mutGenLimit 1"));
 		mceJTD_3.add(Pattern.compile(""));
 		mceJTD_3.add(Pattern.compile(""));
-		Property propJTD_3 = new Property(Mutant.JTD,
+		Property propJTD_3 = new Property(MutationOperator.JTD,
 											"test/JTD_3",
 											"radiatedMethod",
 											12,

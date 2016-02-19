@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -54,7 +54,7 @@ public class OANTests {
 		mceOAN_1.add(Pattern.compile("int var2 = method1A\\( \"chacha\" \\) \\+ method1A\\( 0\\.5f, \"chuchu\" \\); //mutGenLimit 999"));
 		mceOAN_1.add(Pattern.compile("int var2 = method1A\\( \"chacha\" \\) \\+ method1A\\(\\); //mutGenLimit 999"));
 		mceOAN_1.add(Pattern.compile("int var2 = method1A\\( \"chacha\" \\) \\+ method1A\\( 0\\.5f, \"chuchu\", method1A\\(\\) \\+ method1A\\(\\) \\); //mutGenLimit 999"));
-		Property propOAN_1 = new Property(Mutant.OAN,
+		Property propOAN_1 = new Property(MutationOperator.OAN,
 										"test/OAN_1",
 										"radiatedMethod",
 										10,

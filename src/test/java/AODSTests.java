@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,11 +37,11 @@ public class AODSTests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.AODS, "list/SinglyLinkedListOutsideMUC", "getHeader", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.AODS, "list/SinglyLinkedListOutsideMUC", "getHeader", 0, 0, mceOMUC, mcneOMUC);
 		
 		List<Pattern> mceSortingFor = new LinkedList<Pattern>();
 		List<Pattern> mcneSortingFor = new LinkedList<Pattern>();
-		Property propSortingFor = new Property(Mutant.AODS, "sort/Sorting", "selectionSort", 0, 0, mceSortingFor, mcneSortingFor);
+		Property propSortingFor = new Property(MutationOperator.AODS, "sort/Sorting", "selectionSort", 0, 0, mceSortingFor, mcneSortingFor);
 		
 		List<Pattern> mceSortingMerge = new LinkedList<Pattern>();
 		List<Pattern> mcneSortingMerge = new LinkedList<Pattern>();
@@ -50,7 +50,7 @@ public class AODSTests {
 		mceSortingMerge.add(Pattern.compile("i++; //mutGenLimit 0"));
 		mceSortingMerge.add(Pattern.compile("j++; //mutGenLimit 0"));
 		mcneSortingMerge.add(Pattern.compile(".+//mutGenLimit -[0..9]+"));
-		Property propSortingMerge = new Property(Mutant.AODS, "sort/Sorting", "merge", 2, 0, mceSortingMerge, mcneSortingMerge);
+		Property propSortingMerge = new Property(MutationOperator.AODS, "sort/Sorting", "merge", 2, 0, mceSortingMerge, mcneSortingMerge);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

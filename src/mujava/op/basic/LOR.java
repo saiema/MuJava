@@ -6,7 +6,7 @@
 
 package mujava.op.basic;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -87,6 +87,6 @@ public class LOR extends MethodLevelMutator {
 		if (comp_unit == null) 
 			return;
 		
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.LOR, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.LOR, original, mutant);
 	}
 }

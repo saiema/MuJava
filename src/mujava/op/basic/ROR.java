@@ -7,7 +7,7 @@
 package mujava.op.basic;
 
 import mujava.api.Configuration;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.util.Mutator;
 import openjava.mop.FileEnvironment;
@@ -176,7 +176,7 @@ public class ROR extends Arithmetic_OP {
 		if (comp_unit == null)
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.ROR, original,
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.ROR, original,
 				mutant);
 
 	}
@@ -185,7 +185,7 @@ public class ROR extends Arithmetic_OP {
 		if (comp_unit == null)
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.ROR, original,
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.ROR, original,
 				mutant);
 	}
 

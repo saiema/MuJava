@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -38,7 +38,7 @@ public class IPCTests {
 		List<Pattern> ceIPC_1 = new LinkedList<Pattern>();
 		ceIPC_1.add(Pattern.compile("public IPC\\_1\\(\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*\\}"));
 		ceIPC_1.add(Pattern.compile("public IPC\\_1\\(([ \t\n\f\r])*int param1\\,([ \t\n\f\r])*boolean param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*\\}"));
-		Property propIPC_1 = new Property(Mutant.IPC,
+		Property propIPC_1 = new Property(MutationOperator.IPC,
 										"test/IPC_1",
 										"IPC_1",
 										2,

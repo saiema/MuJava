@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -64,7 +64,7 @@ public class PNCTests {
 		
 		mcePNC_1.add(Pattern.compile("boolean someBool = someOtherMethod\\( new (.+\\.)?PCI\\_1\\(\\) \\) \\&\\& someOtherMethod\\( new (.+\\.)?PCI\\_3\\(\\) \\) \\&\\& someOtherMethod\\( new (.+\\.)?PCI\\_3\\(\\) \\); //mutGenLimit 0"));
 		
-		Property propPNC_1 = new Property(Mutant.PNC,
+		Property propPNC_1 = new Property(MutationOperator.PNC,
 										"test/PCI_3",
 										"radiatedMethod2",
 										6,

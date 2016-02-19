@@ -9,7 +9,7 @@ package mujava.op;
 //import java.io.*;
 
 import mujava.api.Api;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.app.MutationRequest;
 import openjava.mop.*;
@@ -106,6 +106,6 @@ public class AMC extends mujava.op.util.Mutator {
 	 * @param mutant
 	 */
 	public void outputToFile(ModifierList original, ModifierList mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.AMC, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AMC, original, mutant);
 	}
 }

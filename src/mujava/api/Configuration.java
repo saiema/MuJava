@@ -12,7 +12,7 @@ import mujava.op.util.OLMO;
 /**
  * This class allows to specify certain arguments to alter muJava++ behaviour
  * It's just a relation of {@code argument -> value} to be used by any class during runtime
- * e.g.: Mutant operators, Writers, Filters, etc. 
+ * e.g.: MutationOperator operators, Writers, Filters, etc. 
  * 
  * @author Simón Emmanuel Gutiérrez Brida
  * @version 0.1u
