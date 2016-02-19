@@ -114,6 +114,10 @@ public class JavaAST extends ApiCaller {
 		this.mutated = true;
 	}
 	
+	void unflagAsMutated() {
+		this.mutated = false;
+	}
+	
 	public String getClassName() { 
 		return className;
 	}

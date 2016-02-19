@@ -62,6 +62,30 @@ public class MutatedAST {
 		return this.original;
 	}
 	
+	public JavaAST undoMutations() throws ParseTreeException {
+		Set<String> methods = this.mutationsPerLinePerMethod.keySet();
+		for (String method : methods) {
+			Set<Integer> lines = this.mutationsPerLinePerMethod.get(method).keySet();
+			for (Integer line : lines) {
+				undoMutations(method, line);
+			}
+		}
+		this.mutationsApplied = false;
+		this.original.unflagAsMutated();
+		return this.original;
+	}
+	
+	public JavaAST undoMutations(String method, Integer line) throws ParseTreeException {
+		MutationInformation mergedMinfo = mergeMutations(method, line); 
+		if (mergedMinfo == null) throw new IllegalStateException("Couldn't merge mutations for method " + method + ", line " + line);
+		Mutation merged = mergedMinfo.getMutation();
+		Mutation reversed = new Mutation(merged.getMutOp(), merged.getMutant(), merged.getOriginal());
+		OLMO olmo = new OLMO();
+		olmo.modifyAST(this.original.getCompUnit(), reversed, method);
+		this.original.flagAsMutated();
+		return this.original;
+	}
+	
 	public JavaAST applyMutations(String method, Integer line) throws ParseTreeException {
 		MutationInformation mergedMinfo = mergeMutations(method, line); 
 		if (mergedMinfo == null) throw new IllegalStateException("Couldn't merge mutations for method " + method + ", line " + line);

@@ -52,7 +52,9 @@ public class TestMJ2 {
 		multiMutantMutations.add(mutationsAsList.get(47));
 		MutatedAST mutatedAST = new MutatedAST(utilBooleanOpsAST, multiMutantMutations);
 		mutatedAST.writeInFolder(new File("/home/stein/Desktop/TEST/mutants/"));
+		//mutatedAST.applyMutations().writeInFolder(new File("/home/stein/Desktop/TEST/"), true);
 		mutatedAST.applyMutations().writeInFolder(new File("/home/stein/Desktop/TEST/"), true);
+		mutatedAST.undoMutations().writeInFolder(new File("/home/stein/Desktop/TEST/"), true);
 	}
 
 }
