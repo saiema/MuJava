@@ -25,7 +25,7 @@ public class TestMJ2 {
 		
 		
 		JavaAST utilBooleanOpsAST = JavaAST.fromFile("test", "utils.BooleanOps");
-		byte[] hash = utilBooleanOpsAST.writeInFolder(new File("/home/stein/Desktop/TEST/"), true);
+		byte[] hash = utilBooleanOpsAST.writeInFolder(new File("/home/stein/Desktop/TEST/original/"), true);
 		System.out.println("utils.BooleanOps AST written with hash : " + Arrays.toString(hash));
 		
 		Collection<MutationOperator> ops = Arrays.asList(COR, ROR, COI, COD, AORU, PRVOU_REFINED);
@@ -51,10 +51,9 @@ public class TestMJ2 {
 		multiMutantMutations.add(mutationsAsList.get(46));
 		multiMutantMutations.add(mutationsAsList.get(47));
 		MutatedAST mutatedAST = new MutatedAST(utilBooleanOpsAST, multiMutantMutations);
-		mutatedAST.writeInFolder(new File("/home/stein/Desktop/TEST/mutants/"));
-		//mutatedAST.applyMutations().writeInFolder(new File("/home/stein/Desktop/TEST/"), true);
-		mutatedAST.applyMutations().writeInFolder(new File("/home/stein/Desktop/TEST/"), true);
-		mutatedAST.undoMutations().writeInFolder(new File("/home/stein/Desktop/TEST/"), true);
+		mutatedAST.writeInFolder(new File("/home/stein/Desktop/TEST/nonASTalteringMutants/"));
+		mutatedAST.applyMutations().writeInFolder(new File("/home/stein/Desktop/TEST/ASTalteringMutants/"), true);
+		mutatedAST.undoMutations().writeInFolder(new File("/home/stein/Desktop/TEST/undoMutations/"), true);
 	}
 
 }

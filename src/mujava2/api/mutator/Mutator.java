@@ -23,12 +23,33 @@ import mujava2.api.program.JavaAST;
 import openjava.ptree.ParseTreeException;
 import openjava.ptree.ParseTreeObject;
 
+/**
+ * A very simple mutation generator.
+ * 
+ * @author Simon Emmanuel Gutierrez Brida
+ * @version 0.1
+ */
 public class Mutator extends ApiCaller {
 	
+	/**
+	 * The AST to use when generating mutations
+	 */
 	private JavaAST originalAST;
+	/**
+	 * The mutation request
+	 */
 	private MutationRequest req;
+	/**
+	 * A reusable mutation generator, this is the class that really generates the mutations.
+	 */
 	private ReusableMutantsGenerator generator;
 	
+	/**
+	 * Creates a new Mutator instance.
+	 * 
+	 * @param originalAST		:	the AST from which mutations will be generated
+	 * @param req				:	the mutation request
+	 */
 	public Mutator(JavaAST originalAST, MutationRequest req) {
 		super();
 		this.originalAST = originalAST;
@@ -37,6 +58,13 @@ public class Mutator extends ApiCaller {
 	}
 
 	
+	/**
+	 * Generates mutations from the AST and mutation request given in the constructor.
+	 * 
+	 * @return a collection of mutations (as {@code MutationInformation} objects) generated from the AST given in this class constructor
+	 * @throws OpenJavaException
+	 * @throws ParseTreeException
+	 */
 	public Collection<MutationInformation> generateMutations() throws OpenJavaException, ParseTreeException {
 		Map<String, MutantsInformationHolder> mutants = new HashMap<String, MutantsInformationHolder>();
 		LinkedList<MutationInformation> mutations = new LinkedList<>();

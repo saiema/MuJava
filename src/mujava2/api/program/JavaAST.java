@@ -17,6 +17,12 @@ import mujava2.parser.MJParser;
 import openjava.ptree.CompilationUnit;
 import openjava.ptree.ParseTreeException;
 
+/**
+ * A representation of an AST from a java source file.
+ * 
+ * @author Simon Emmanuel Gutierrez Brida
+ * @version 0.1
+ */
 public class JavaAST extends ApiCaller {
 	
 	private String rootFolder;

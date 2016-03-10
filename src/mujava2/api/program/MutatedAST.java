@@ -16,6 +16,7 @@ import java.util.TreeMap;
 
 import mujava.api.Mutation;
 import mujava.app.MutationInformation;
+import static mujava.api.MutationOperator.*;
 import mujava.op.util.OLMO;
 import mujava.util.JustCodeDigest;
 import mujava2.api.writer.ASTWriter;
@@ -23,6 +24,7 @@ import openjava.ptree.ParseTreeException;
 
 public class MutatedAST {
 	
+	private MutatedAST parent;
 	private JavaAST original;
 	private List<MutationInformation> mutations;
 	private Map<String, Map<Integer, List<MutationInformation>>> mutationsPerLinePerMethod;
@@ -33,8 +35,17 @@ public class MutatedAST {
 		if (mutations == null) throw new IllegalArgumentException("null List<MutationInformation> argument");
 		if (mutations.isEmpty()) throw new IllegalArgumentException("no mutations in List<MutationInformation> argument");
 		if (mutations.contains(null)) throw new IllegalArgumentException("null mutation in List<MutationInformation> argument");
+		this.mutationsApplied = false;
 		this.original = original;
 		this.mutations = mutations;
+		String error = validateMutations(mutations);
+		if (!error.isEmpty()) throw new IllegalArgumentException("Invalid mutations : " + error);
+	}
+	
+	public MutatedAST(MutatedAST parent, List<MutationInformation> mutations) {
+		this.mutationsApplied = false;
+		this.parent = parent;
+		this.original = this.parent.original;
 		String error = validateMutations(mutations);
 		if (!error.isEmpty()) throw new IllegalArgumentException("Invalid mutations : " + error);
 	}
@@ -52,13 +63,36 @@ public class MutatedAST {
 	}
 	
 	public JavaAST applyMutations() throws ParseTreeException {
+		if (this.parent != null) {
+			this.parent.applyMutations();
+			this.original = this.parent.original;
+		}
 		Set<String> methods = this.mutationsPerLinePerMethod.keySet();
 		for (String method : methods) {
 			Set<Integer> lines = this.mutationsPerLinePerMethod.get(method).keySet();
 			for (Integer line : lines) {
-				applyMutations(method, line);
+				applyMutations(method, line, false);
 			}
 		}
+		return this.original;
+	}
+	
+	public JavaAST applyMutations(String method, Integer line) throws ParseTreeException {
+		return applyMutations(method, line, true);
+	}
+	
+	private JavaAST applyMutations(String method, Integer line, boolean applyToParentFirst) throws ParseTreeException {
+		if (this.parent != null && applyToParentFirst) {
+			this.parent.applyMutations(method, line, true);
+			this.original = this.parent.original;
+		}
+		MutationInformation mergedMinfo = mergeMutations(method, line); 
+		if (mergedMinfo == null) throw new IllegalStateException("Couldn't merge mutations for method " + method + ", line " + line);
+		Mutation merged = mergedMinfo.getMutation();
+		OLMO olmo = new OLMO();
+		olmo.modifyAST(this.original.getCompUnit(), merged, method);
+		this.original.flagAsMutated();
+		this.mutationsApplied = true;
 		return this.original;
 	}
 	
@@ -67,8 +101,12 @@ public class MutatedAST {
 		for (String method : methods) {
 			Set<Integer> lines = this.mutationsPerLinePerMethod.get(method).keySet();
 			for (Integer line : lines) {
-				undoMutations(method, line);
+				undoMutations(method, line, false);
 			}
+		}
+		if (this.parent != null) {
+			this.parent.undoMutations();
+			this.original = this.parent.original;
 		}
 		this.mutationsApplied = false;
 		this.original.unflagAsMutated();
@@ -76,24 +114,21 @@ public class MutatedAST {
 	}
 	
 	public JavaAST undoMutations(String method, Integer line) throws ParseTreeException {
+		return undoMutations(method, line, true);
+	}
+	
+	private JavaAST undoMutations(String method, Integer line, boolean applyToParentFirst) throws ParseTreeException {
 		MutationInformation mergedMinfo = mergeMutations(method, line); 
 		if (mergedMinfo == null) throw new IllegalStateException("Couldn't merge mutations for method " + method + ", line " + line);
 		Mutation merged = mergedMinfo.getMutation();
 		Mutation reversed = new Mutation(merged.getMutOp(), merged.getMutant(), merged.getOriginal());
 		OLMO olmo = new OLMO();
 		olmo.modifyAST(this.original.getCompUnit(), reversed, method);
+		if (this.parent != null && applyToParentFirst) {
+			this.parent.undoMutations(method, line, true);
+			this.original = this.parent.original;
+		}
 		this.original.flagAsMutated();
-		return this.original;
-	}
-	
-	public JavaAST applyMutations(String method, Integer line) throws ParseTreeException {
-		MutationInformation mergedMinfo = mergeMutations(method, line); 
-		if (mergedMinfo == null) throw new IllegalStateException("Couldn't merge mutations for method " + method + ", line " + line);
-		Mutation merged = mergedMinfo.getMutation();
-		OLMO olmo = new OLMO();
-		olmo.modifyAST(this.original.getCompUnit(), merged, method);
-		this.original.flagAsMutated();
-		this.mutationsApplied = true;
 		return this.original;
 	}
 	
@@ -118,13 +153,34 @@ public class MutatedAST {
 		return mergedMutations;
 	}
 	
+	public List<MutationInformation> mergeMutationsAcrossGenerations() throws ParseTreeException {
+		if (this.parent != null) {
+			List<MutationInformation> mergedMutations = mergeAllMutations();
+			List<MutationInformation> firstGenMergedMutations = getFirstGenMergedMutations();
+			Map<String, Map<Integer, List<MutationInformation>>> firstGen = orderMergedMutations(firstGenMergedMutations);
+			Map<String, Map<Integer, List<MutationInformation>>> thisGen = orderMergedMutations(mergedMutations);
+			Map<String, Map<Integer, List<MutationInformation>>> mergedGens = mergeMergedOrderedMutations(firstGen, thisGen);
+			return orderedMutationsAsList(mergedGens);
+		} else {
+			return mergeAllMutations();
+		}
+	}
+	
+	private List<MutationInformation> getFirstGenMergedMutations() throws ParseTreeException {
+		MutatedAST current = this;
+		while (current.parent != null) {
+			current = current.parent;
+		}
+		return current.mergeAllMutations();
+	}
+	
 	public byte[] writeToFile(File file) throws IOException, ParseTreeException {
 		file.getParentFile().mkdirs();
 		file.createNewFile();
 		OutputStream os = new FileOutputStream(file, true);
 		PrintWriter pw = new PrintWriter(os);
 		ASTWriter writer = new ASTWriter(pw);
-		if (!this.mutationsApplied) writer.setMutationsFromMutationInformation(mergeAllMutations());
+		if (!this.mutationsApplied) writer.setMutationsFromMutationInformation(mergeMutationsAcrossGenerations());//mergeAllMutations());
 		this.original.getCompUnit().accept(writer);
 		pw.flush();  
 		pw.close();
@@ -150,6 +206,60 @@ public class MutatedAST {
 			}
 		}
 		return mutations;
+	}
+	
+	private Map<String, Map<Integer, List<MutationInformation>>> orderMergedMutations(List<MutationInformation> mutations) {
+		Map<String, Map<Integer, List<MutationInformation>>> orderedMutations = new TreeMap<String, Map<Integer, List<MutationInformation>>>();
+		for (MutationInformation minfo : mutations) {
+			String method = minfo.getMethod();
+			Map<Integer, List<MutationInformation>> mutationsPerLine = null;
+			if (orderedMutations.containsKey(method)) {
+				mutationsPerLine = orderedMutations.get(method);
+			} else {
+				mutationsPerLine = new TreeMap<Integer, List<MutationInformation>>();
+				orderedMutations.put(method, mutationsPerLine);
+			}
+			List<MutationInformation> muts = null;
+			Integer line = minfo.getMutatedLine();
+			if (mutationsPerLine.containsKey(line)) {
+				muts = mutationsPerLine.get(line);
+			} else {
+				muts = new LinkedList<MutationInformation>();
+				mutationsPerLine.put(line, muts);
+			}
+			muts.add(minfo);
+		}
+		return orderedMutations;
+	}
+	
+	private Map<String, Map<Integer, List<MutationInformation>>> mergeMergedOrderedMutations(Map<String, Map<Integer, List<MutationInformation>>> a, Map<String, Map<Integer, List<MutationInformation>>> b) {
+		Map<String, Map<Integer, List<MutationInformation>>> mergedMergedOrderedMutations = new TreeMap<String, Map<Integer, List<MutationInformation>>>();
+		for (Entry<String, Map<Integer, List<MutationInformation>>> aMutsPerMethods : a.entrySet()) {
+			String method = aMutsPerMethods.getKey();
+			if (!b.containsKey(method)) {
+				b.put(method, aMutsPerMethods.getValue());
+				continue;
+			}
+			for (Entry<Integer, List<MutationInformation>> aMutsPerLine : aMutsPerMethods.getValue().entrySet()) {
+				Integer line = aMutsPerLine.getKey();
+				if (!b.get(method).containsKey(line)) {
+					b.get(method).put(line, aMutsPerLine.getValue());
+				} else {
+					//there should be only one mutations for this method and line
+					//TODO: add a check for this (maybe?)
+					MutationInformation aMut = aMutsPerLine.getValue().get(0);
+					MutationInformation bMut = b.get(method).get(line).get(0);
+					Mutation mergedMutation = new Mutation(MULTI, aMut.getMutation().getOriginal(), bMut.getMutation().getMutant());
+					MutationInformation minfo = new MutationInformation(method, mergedMutation);
+					Map<Integer, List<MutationInformation>> newMPLPM = new TreeMap<>();
+					List<MutationInformation> newMPL = new LinkedList<>();
+					newMPL.add(minfo);
+					newMPLPM.put(line, newMPL);
+					mergedMergedOrderedMutations.put(method, newMPLPM);
+				}
+			}
+		}
+		return mergedMergedOrderedMutations;
 	}
 
 	private String validateMutations(List<MutationInformation> mutations) {
@@ -236,6 +346,16 @@ public class MutatedAST {
 		for (int i = 0; i < len; i++)
 			sb.append(AB.charAt(rnd.nextInt(AB.length())));
 		return sb.toString();
+	}
+	
+	private List<MutationInformation> orderedMutationsAsList(Map<String, Map<Integer, List<MutationInformation>>> orderedMutations) {
+		List<MutationInformation> mutationsAsList = new LinkedList<>();
+		for (Entry<String, Map<Integer, List<MutationInformation>>> mpm : orderedMutations.entrySet()) {
+			for (Entry<Integer, List<MutationInformation>> mpmpl : mpm.getValue().entrySet()) {
+				mutationsAsList.addAll(mpmpl.getValue());
+			}
+		}
+		return mutationsAsList;
 	}
 
 }
