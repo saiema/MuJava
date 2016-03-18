@@ -546,6 +546,10 @@ public class Main {
 		}
 		System.out.println("\nMutants generated\n\n");
 		
+		if (!mutationScore && config.fullVerboseMode()) {
+			core.printLastGeneration();
+		}
+		
 		//==============================Mutation score====================================================//;
 		if (mutationScore && core.lastMutantsFolder() != null && !core.lastMutantsFolder().isEmpty()) {
 			System.out.println("Calculating mutation score for generation (" + generations + ")\n");

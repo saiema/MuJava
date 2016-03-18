@@ -596,7 +596,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		}
 
 		if (p.toString().compareTo("<type>null") == 0) {
-			return c == null || c.toString().compareTo("<type>null") == 0;
+			return c == null || c.toString().compareTo("<type>null") == 0 || !c.isPrimitive();
 		}
 
 		if ("void".equalsIgnoreCase(c.getName())) {

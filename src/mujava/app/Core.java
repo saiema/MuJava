@@ -169,6 +169,13 @@ public class Core {
 		return Core.outputDir;
 	}
 	
+	public void printLastGeneration() {
+		for (MutantInfo mut : this.lastGeneration) {
+			System.out.println("Mutant : "+mut.getPath()+'\n');
+			System.out.println(mut.toString());
+		}
+	}
+	
 	public float calculateMutationScore(String[] testClasses, String className) {
 		if (this.lastGeneration == null) {
 			this.error = new IllegalStateException("There are no recorder mutants in the last generation");
