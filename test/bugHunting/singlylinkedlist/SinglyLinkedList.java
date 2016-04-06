@@ -114,5 +114,27 @@ public class SinglyLinkedList {
           }
           return count; //mutGenLimit 0
     }
+    
+    /*@ requires n >= 0;
+    @ requires n < \reach(this.header, SinglyLinkedListNode, next).int_size();
+    @ ensures \old(\reach(this.header, SinglyLinkedListNode, next)).has(\result);
+    @ ensures !\reach(this.header, SinglyLinkedListNode, next).has(\result);
+    @ signals (Exception e) false;
+    @*/
+    public SinglyLinkedListNode removeNthFromEnd(int n) {
+        SinglyLinkedListNode start = new SinglyLinkedListNode(); //mutGenLimit 0
+        SinglyLinkedListNode slow = start; //mutGenLimit 0
+        SinglyLinkedListNode fast = start; //mutGenLimit 0
+        slow.next = header; //mutGenLimit 0
+        for(int i=1; i<=n+1; i++) { //mutGenLimit 1
+            fast = fast.next; //mutGenLimit 0
+        }
+        while(fast != null) { //mutGenLimit 0
+            slow = slow.next; //mutGenLimit 0
+            fast = fast.next; //mutGenLimit 0
+        }
+        slow.next = slow.next.next; //mutGenLimit 0
+        return start.next; //mutGenLimit 0
+    }
 
 }
