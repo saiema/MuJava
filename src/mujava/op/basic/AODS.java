@@ -6,7 +6,7 @@
 
 package mujava.op.basic;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.FileEnvironment;
 import openjava.ptree.ClassDeclaration;
@@ -60,7 +60,7 @@ public class AODS extends MethodLevelMutator {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.AODS, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AODS, original, (ParseTreeObject) mutant);
 
 	}
 }

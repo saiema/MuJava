@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -55,7 +55,7 @@ public class OMRTests {
 				"(.+\\.)?List<String> list1 = new (.+\\.)?LinkedList<String>\\(\\);([ \t\n\f\r])*" +
 				"list1\\.add\\( \"lame!\" \\);([ \t\n\f\r])*" +
 				"\\}"));
-		Property propOMR_1 = new Property(Mutant.OMR,
+		Property propOMR_1 = new Property(MutationOperator.OMR,
 										"test/OMR_1",
 										"radiatedMethod",
 										2,

@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -38,7 +38,7 @@ public class EOA_STRICTTests {
 		List<Pattern> ceEOA_1 = new LinkedList<Pattern>();
 		ceEOA_1.add(Pattern.compile("(.+\\.)?EOA\\_1 var1 = param1\\.clone\\(\\); //mutGenLimit 0"));
 		ceEOA_1.add(Pattern.compile("(.+\\.)?EOA\\_1 var2 = auxMethod1\\( var1\\, param1 \\)\\.clone\\(\\); //mutGenLimit 0"));
-		Property propEOA_1 = new Property(Mutant.EOA_STRICT,
+		Property propEOA_1 = new Property(MutationOperator.EOA_STRICT,
 										"test/EOA_1",
 										"radiatedMethod",
 										2,
@@ -47,7 +47,7 @@ public class EOA_STRICTTests {
 										TestingTools.NO_PATTERN_EXPECTED);
 		
 		List<Pattern> ceEOA_2 = new LinkedList<Pattern>();
-		Property propEOA_2 = new Property(Mutant.EOA_STRICT,
+		Property propEOA_2 = new Property(MutationOperator.EOA_STRICT,
 										"test/EOA_2",
 										"radiatedMethod",
 										0,
@@ -58,7 +58,7 @@ public class EOA_STRICTTests {
 		List<Pattern> ceEOA_3 = new LinkedList<Pattern>();
 		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_1 var3 = param1\\.clone\\(\\); //mutGenLimit 0"));
 		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_2 var4 = \\(\\((.+\\.)?EOA\\_Base\\_2\\) auxMethod2\\( auxMethod1\\( var1\\, param1 \\)\\, \\((.+\\.)?EOA\\_Base\\_2\\) var3\\, param1 \\)\\)\\.clone\\(\\); //mutGenLimit 0"));
-		Property propEOA_3 = new Property(Mutant.EOA_STRICT,
+		Property propEOA_3 = new Property(MutationOperator.EOA_STRICT,
 										"test/EOA_3",
 										"radiatedMethod",
 										2,
@@ -67,7 +67,7 @@ public class EOA_STRICTTests {
 										TestingTools.NO_PATTERN_EXPECTED);
 	
 		List<Pattern> ceEOA_4 = new LinkedList<Pattern>();
-		Property propEOA_4 = new Property(Mutant.EOA_STRICT,
+		Property propEOA_4 = new Property(MutationOperator.EOA_STRICT,
 										"test/EOA_4",
 										"radiatedMethod",
 										0,

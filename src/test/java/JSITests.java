@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -46,7 +46,7 @@ public class JSITests {
 		List<Pattern> mceJSI_1 = new LinkedList<Pattern>();
 		mceJSI_1.add(Pattern.compile("private static int field1; //mutGenLimit 0"));
 		mceJSI_1.add(Pattern.compile("protected static int field2 = this\\.field1; //mutGenLimit 1"));
-		Property propJSI_1 = new Property(Mutant.JSI,
+		Property propJSI_1 = new Property(MutationOperator.JSI,
 											"test/JSI_1",
 											Property.MUTATE_FIELDS,
 											2,
@@ -63,7 +63,7 @@ public class JSITests {
 		 */
 		List<Pattern> mceJSI_2 = new LinkedList<Pattern>();
 		mceJSI_2.add(Pattern.compile("public static void method1\\(([ \t\n\f\r])*int param1,([ \t\n\f\r])*(.+\\.)?String param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*\\}"));
-		Property propJSI_2 = new Property(Mutant.JSI,
+		Property propJSI_2 = new Property(MutationOperator.JSI,
 											"test/JSI_1",
 											"method1",
 											1,
@@ -80,7 +80,7 @@ public class JSITests {
 		 */
 		List<Pattern> mceJSI_3 = new LinkedList<Pattern>();
 		mceJSI_3.add(Pattern.compile("protected static void method2\\(([ \t\n\f\r])*int param1,([ \t\n\f\r])*(.+\\.)?String param2([ \t\n\f\r])*\\)([ \t\n\f\r])*\\{ //mutGenLimit 1([ \t\n\f\r])*\\}"));
-		Property propJSI_3 = new Property(Mutant.JSI,
+		Property propJSI_3 = new Property(MutationOperator.JSI,
 											"test/JSI_1",
 											"method2",
 											1,
@@ -95,7 +95,7 @@ public class JSITests {
 		 *	} //mutGenLimit 0
 		 * 
 		 */
-		Property propJSI_4 = new Property(Mutant.JSI,
+		Property propJSI_4 = new Property(MutationOperator.JSI,
 											"test/JSI_1",
 											"method3",
 											0,

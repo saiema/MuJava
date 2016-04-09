@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -43,7 +43,7 @@ public class PMDTests {
 		 */
 		List<Pattern> mcePMD_1 = new LinkedList<Pattern>();
 		mcePMD_1.add(Pattern.compile("(.+\\.)?PMD_Base var1 = new (.+\\.)?PMD_1\\(\\); //mutGenLimit 12"));
-		Property propPMD_1 = new Property(Mutant.PMD,
+		Property propPMD_1 = new Property(MutationOperator.PMD,
 										"test/PMD_1",
 										"radiatedMethod",
 										1,
@@ -59,7 +59,7 @@ public class PMDTests {
 		 */
 		List<Pattern> mcePMD_2 = new LinkedList<Pattern>();
 		mcePMD_2.add(Pattern.compile("protected (.+\\.)?PMD_Base field1; //mutGenLimit 9999"));
-		Property propPMD_2 = new Property(Mutant.PMD,
+		Property propPMD_2 = new Property(MutationOperator.PMD,
 										"test/PMD_1",
 										Property.MUTATE_FIELDS,
 										1,

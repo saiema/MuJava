@@ -1,7 +1,7 @@
 package mujava.op;
 
 import mujava.api.Api;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.app.MutationRequest;
 import openjava.mop.FileEnvironment;
@@ -158,7 +158,7 @@ public class IOD extends mujava.op.util.Mutator {
 	}
 
 	private void outputToFile(ClassDeclaration original, MethodDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.IOD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.IOD, original, mutant);
 	}
 
 }

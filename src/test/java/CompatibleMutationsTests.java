@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,12 +39,12 @@ public class CompatibleMutationsTests {
 		
 		
 		//PROPERTIES
-		List<Mutant> opsMerging_1 = new LinkedList<Mutant>();
-		opsMerging_1.add(Mutant.PRVOR);
-		opsMerging_1.add(Mutant.AORB);
-		opsMerging_1.add(Mutant.COR);
-		opsMerging_1.add(Mutant.ROR);
-		opsMerging_1.add(Mutant.EOC);
+		List<MutationOperator> opsMerging_1 = new LinkedList<MutationOperator>();
+		opsMerging_1.add(MutationOperator.PRVOR);
+		opsMerging_1.add(MutationOperator.AORB);
+		opsMerging_1.add(MutationOperator.COR);
+		opsMerging_1.add(MutationOperator.ROR);
+		opsMerging_1.add(MutationOperator.EOC);
 		Property propMerging_1 = new Property(
 									opsMerging_1,
 									"test/MultiMutations",
@@ -53,12 +53,12 @@ public class CompatibleMutationsTests {
 									false
 								);
 		
-		List<Mutant> opsMerging_2 = new LinkedList<Mutant>();
-		opsMerging_2.add(Mutant.PRVOR);
-		opsMerging_2.add(Mutant.AORB);
-		opsMerging_2.add(Mutant.COR);
-		opsMerging_2.add(Mutant.ROR);
-		opsMerging_2.add(Mutant.EOC);
+		List<MutationOperator> opsMerging_2 = new LinkedList<MutationOperator>();
+		opsMerging_2.add(MutationOperator.PRVOR);
+		opsMerging_2.add(MutationOperator.AORB);
+		opsMerging_2.add(MutationOperator.COR);
+		opsMerging_2.add(MutationOperator.ROR);
+		opsMerging_2.add(MutationOperator.EOC);
 		Property propMerging_2 = new Property(
 									opsMerging_2,
 									"test/MultiMutations",
@@ -190,12 +190,12 @@ public class CompatibleMutationsTests {
 		 
 		 */
 		
-		List<Mutant> opsMerging_3 = new LinkedList<Mutant>();
-		opsMerging_3.add(Mutant.PRVOR);
-		opsMerging_3.add(Mutant.AORB);
-		opsMerging_3.add(Mutant.COR);
-		opsMerging_3.add(Mutant.ROR);
-		opsMerging_3.add(Mutant.EOC);
+		List<MutationOperator> opsMerging_3 = new LinkedList<MutationOperator>();
+		opsMerging_3.add(MutationOperator.PRVOR);
+		opsMerging_3.add(MutationOperator.AORB);
+		opsMerging_3.add(MutationOperator.COR);
+		opsMerging_3.add(MutationOperator.ROR);
+		opsMerging_3.add(MutationOperator.EOC);
 		ManualMutationsFilter mmf_3 = new ManualMutationsFilter();
 		Set<Integer> selectedMutations_3 = new HashSet<Integer>();
 		selectedMutations_3.add(0);
@@ -209,12 +209,12 @@ public class CompatibleMutationsTests {
 									false
 								);
 		
-		List<Mutant> opsMerging_4 = new LinkedList<Mutant>();
-		opsMerging_4.add(Mutant.PRVOR);
-		opsMerging_4.add(Mutant.AORB);
-		opsMerging_4.add(Mutant.COR);
-		opsMerging_4.add(Mutant.ROR);
-		opsMerging_4.add(Mutant.EOC);
+		List<MutationOperator> opsMerging_4 = new LinkedList<MutationOperator>();
+		opsMerging_4.add(MutationOperator.PRVOR);
+		opsMerging_4.add(MutationOperator.AORB);
+		opsMerging_4.add(MutationOperator.COR);
+		opsMerging_4.add(MutationOperator.ROR);
+		opsMerging_4.add(MutationOperator.EOC);
 		ManualMutationsFilter mmf_4 = new ManualMutationsFilter();
 		Set<Integer> selectedMutations_4 = new HashSet<Integer>();
 		selectedMutations_4.add(3);
@@ -229,12 +229,12 @@ public class CompatibleMutationsTests {
 									false
 								);
 		
-		List<Mutant> opsMerging_5 = new LinkedList<Mutant>();
-		opsMerging_5.add(Mutant.PRVOR);
-		opsMerging_5.add(Mutant.AORB);
-		opsMerging_5.add(Mutant.COR);
-		opsMerging_5.add(Mutant.ROR);
-		opsMerging_5.add(Mutant.EOC);
+		List<MutationOperator> opsMerging_5 = new LinkedList<MutationOperator>();
+		opsMerging_5.add(MutationOperator.PRVOR);
+		opsMerging_5.add(MutationOperator.AORB);
+		opsMerging_5.add(MutationOperator.COR);
+		opsMerging_5.add(MutationOperator.ROR);
+		opsMerging_5.add(MutationOperator.EOC);
 		ManualMutationsFilter mmf_5 = new ManualMutationsFilter();
 		Set<Integer> selectedMutations_5 = new HashSet<Integer>();
 		selectedMutations_5.add(6);

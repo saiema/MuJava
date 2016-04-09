@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.BeforeClass;
@@ -52,7 +52,7 @@ public class EAMTests {
 		eamce_1.add(Pattern.compile("if \\(getFromLast\\( i \\) == data\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*return true;([ \t\n\f\r])*\\}"));
 		eamce_1.add(Pattern.compile("if \\(getFromStart\\( i \\) == data\\)([ \t\n\f\r])*\\{ //mutGenLimit 0([ \t\n\f\r])*return true;([ \t\n\f\r])*\\}"));
 		List<Pattern> eamcne_1 = new LinkedList<Pattern>();
-		Property propEAM_1 = new Property(Mutant.EAM,
+		Property propEAM_1 = new Property(MutationOperator.EAM,
 										"objects/DoubleLinkedList",
 										"find",
 										2,
@@ -73,7 +73,7 @@ public class EAMTests {
 		eamce_2.add(Pattern.compile("(.+\\.)?DoubleLinkedListNode next = getPrev\\(\\); //mutGenLimit 0"));
 		eamce_2.add(Pattern.compile("(.+\\.)?DoubleLinkedListNode prev = getNext\\(\\); //mutGenLimit 0"));
 		List<Pattern> eamcne_2 = new LinkedList<Pattern>();
-		Property propEAM_2 = new Property(Mutant.EAM,
+		Property propEAM_2 = new Property(MutationOperator.EAM,
 										"objects/DoubleLinkedListNode",
 										"toString",
 										4,

@@ -22,7 +22,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import mujava.OpenJavaException;
 import mujava.api.Api;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.Mutation;
 import mujava.api.MutantType;
 import mujava.api.MutantsInformationHolder;
@@ -217,7 +217,7 @@ public class Mutator implements Runnable{
 		Mutationss = new LinkedList<List<Mutation>>();
 		//String basePath = request.outputDir;
 		//List<MutantsInformationHolder> mihs = null;
-		Set<Mutant> mutOps = new HashSet<Mutant>();
+		Set<MutationOperator> mutOps = new HashSet<MutationOperator>();
 		mihs = new LinkedList<MutantsInformationHolder>();
 		MutantsInformationHolder mih;
 		mutOps.addAll(Arrays.asList(request.ops));
@@ -329,7 +329,7 @@ public class Mutator implements Runnable{
 	public Map<String, MutantsInformationHolder> obtainMutants() throws OpenJavaException, ClassNotFoundException, ParseTreeException {
 		Map<String, MutantsInformationHolder> mutants = new HashMap<String, MutantsInformationHolder>();
 		//|--------------------Initialization--------------------|
-		Set<Mutant> mutOps = new HashSet<Mutant>();
+		Set<MutationOperator> mutOps = new HashSet<MutationOperator>();
 		mutOps.addAll(Arrays.asList(request.ops));
 		String className = request.clazz;
 		String[] paks = className.split(Core.SEPARATOR);
@@ -600,7 +600,7 @@ public class Mutator implements Runnable{
 			}
 			olmo = new OLMO();
 			for (Mutation mi : mutationsToWrite) {
-				if (mi.getMutOp() == Mutant.MULTI) {
+				if (mi.getMutOp() == MutationOperator.MULTI) {
 					olmo.modifyAST(mih.getCompUnit(), mi);
 					olmo.decreaseMutationLimit(mih.getCompUnit(), mi);
 				} else {
@@ -642,7 +642,7 @@ public class Mutator implements Runnable{
 			} else {
 				methodName = method;
 			}
-			Mutant op = applyAllMutantsToSameFile?Mutant.MULTI:mi.getMutOp();
+			MutationOperator op = applyAllMutantsToSameFile?MutationOperator.MULTI:mi.getMutOp();
 			if ((applyAllMutantsToSameFile && mutatedFile == null) || !applyAllMutantsToSameFile) {
 				mutatedFile = new File(	this.request.outputDir +
 										this.request.clazz + Core.SEPARATOR +
@@ -671,7 +671,7 @@ public class Mutator implements Runnable{
 				//int mutatedLine = -1;
 				
 				if (applyAllMutantsToSameFile && !mutationsWritten) {
-					Mutation dummy = new Mutation(Mutant.MULTI, null, null);
+					Mutation dummy = new Mutation(MutationOperator.MULTI, null, null);
 					Api.writeMutant(mih.getCompUnit(), dummy, pw);
 					mutationsWritten = true;
 				} else if (!applyAllMutantsToSameFile) {

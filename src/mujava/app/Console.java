@@ -11,7 +11,7 @@ import java.util.TreeSet;
 
 import mujava.api.Api;
 import mujava.api.Configuration;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.loader.Reloader;
 import mujava.op.PRVO;
 import mujava.util.ConfigReader;
@@ -107,15 +107,15 @@ public class Console {
 		System.out.println(mutationScore?"Will calculate mutation score":"");
 		
 		//===========================validate mutation operators========================================//
-		List<Mutant> ops = new LinkedList<Mutant>();
+		List<MutationOperator> ops = new LinkedList<MutationOperator>();
 		if (flags.flagExist('x')) {
 			for (String op : flags.getFlagValues('x')) {
-				if (!mi.isSupported(Mutant.valueOf(op))) {
+				if (!mi.isSupported(MutationOperator.valueOf(op))) {
 					System.err.println("Mutation operator ("+op+") is unsupported");
 					System.err.println("To see a list with all mutation operators currently supported run mujava++ with only flag -h");
 					return;
 				}
-				ops.add(Mutant.valueOf(op));
+				ops.add(MutationOperator.valueOf(op));
 			}
 		} else {
 			ops.addAll(mi.allOps());
@@ -405,8 +405,8 @@ public class Console {
 		
 		//================================Mutants generation==============================================//
 		System.out.println("Generating mutants...\n");
-		//List<Mutant> basicMutants = mi.listBasicOperators();
-		boolean result = core.generateMutants(classToMutate, methodsToMutate, ops.toArray(new Mutant[ops.size()]), generations);
+		//List<MutationOperator> basicMutants = mi.listBasicOperators();
+		boolean result = core.generateMutants(classToMutate, methodsToMutate, ops.toArray(new MutationOperator[ops.size()]), generations);
 		if (!result) {
 			core.lastError().printStackTrace(System.err);
 		} else {

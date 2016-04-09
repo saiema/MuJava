@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -38,7 +38,7 @@ public class EOA_DUMBTests {
 		List<Pattern> ceEOA_1 = new LinkedList<Pattern>();
 		ceEOA_1.add(Pattern.compile("(.+\\.)?EOA\\_1 var1 = param1\\.clone\\(\\); //mutGenLimit 0"));
 		ceEOA_1.add(Pattern.compile("(.+\\.)?EOA\\_1 var2 = auxMethod1\\( var1\\, param1 \\)\\.clone\\(\\); //mutGenLimit 0"));
-		Property propEOA_1 = new Property(Mutant.EOA_DUMB,
+		Property propEOA_1 = new Property(MutationOperator.EOA_DUMB,
 										"test/EOA_1",
 										"radiatedMethod",
 										2,
@@ -49,7 +49,7 @@ public class EOA_DUMBTests {
 		List<Pattern> ceEOA_2 = new LinkedList<Pattern>();
 		ceEOA_2.add(Pattern.compile("(.+\\.)?EOA\\_2 var1 = param1\\.clone\\(\\); //mutGenLimit 0"));
 		ceEOA_2.add(Pattern.compile("(.+\\.)?EOA\\_2 var2 = auxMethod1\\( var1\\, param1 \\)\\.clone\\(\\); //mutGenLimit 0"));
-		Property propEOA_2 = new Property(Mutant.EOA_DUMB,
+		Property propEOA_2 = new Property(MutationOperator.EOA_DUMB,
 										"test/EOA_2",
 										"radiatedMethod",
 										2,
@@ -62,7 +62,7 @@ public class EOA_DUMBTests {
 		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_3 var2 = auxMethod1\\( var1\\, param1 \\)\\.clone\\(\\); //mutGenLimit 0"));
 		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_1 var3 = param1\\.clone\\(\\); //mutGenLimit 0"));
 		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_2 var4 = \\(\\((.+\\.)?EOA\\_Base\\_2\\) auxMethod2\\( auxMethod1\\( var1\\, param1 \\)\\, \\((.+\\.)?EOA\\_Base\\_2\\) var3\\, param1 \\)\\)\\.clone\\(\\); //mutGenLimit 0"));
-		Property propEOA_3 = new Property(Mutant.EOA_DUMB,
+		Property propEOA_3 = new Property(MutationOperator.EOA_DUMB,
 										"test/EOA_3",
 										"radiatedMethod",
 										4,
@@ -73,7 +73,7 @@ public class EOA_DUMBTests {
 		List<Pattern> ceEOA_4 = new LinkedList<Pattern>();
 		ceEOA_4.add(Pattern.compile("(.+\\.)?EOA\\_4 var2 = \\(\\((.+\\.)?EOA\\_4\\) auxMethod2\\( var1\\, \\((.+\\.)?EOA\\_Base\\_2\\) var1\\, param1 \\)\\)\\.clone\\(\\); //mutGenLimit 0"));
 		ceEOA_4.add(Pattern.compile("boolean var3 = \\(param1 = var2\\.clone\\(\\)\\) == null; //mutGenLimit 0"));
-		Property propEOA_4 = new Property(Mutant.EOA_DUMB,
+		Property propEOA_4 = new Property(MutationOperator.EOA_DUMB,
 										"test/EOA_4",
 										"radiatedMethod",
 										2,

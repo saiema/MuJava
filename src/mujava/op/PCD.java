@@ -13,7 +13,7 @@ import openjava.ptree.ParseTreeException;
 import openjava.ptree.ParseTreeObject;
 import openjava.ptree.ReturnStatement;
 import openjava.ptree.VariableDeclarator;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.util.Mutator;
 
@@ -29,7 +29,7 @@ public class PCD extends Mutator {
 	}
 
 	private void outputToFile(CastExpression original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.PCD, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.PCD, original, (ParseTreeObject) mutant);
 	}
 	
 	public void visit(MethodCall p) throws ParseTreeException {

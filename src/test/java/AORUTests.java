@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,7 +37,7 @@ public class AORUTests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.AORU, "sort/Sorting", "ordered", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.AORU, "sort/Sorting", "ordered", 0, 0, mceOMUC, mcneOMUC);
 		
 		List<Pattern> mceSwap = new LinkedList<Pattern>();
 		List<Pattern> mcneSwap = new LinkedList<Pattern>();
@@ -46,7 +46,7 @@ public class AORUTests {
 		mceSwap.add(Pattern.compile("Integer auxB = \\-\\(\\-b\\); //mutGenLimit 0"));
 		mceSwap.add(Pattern.compile("auxB = \\-b; //mutGenLimit 0"));
 		mceSwap.add(Pattern.compile("a = a \\+ \\+auxB; //mutGenLimit 0"));
-		Property propSwap = new Property(Mutant.AORU, "sort/Sorting", "swap2", 4, 4, mceSwap, mcneSwap);
+		Property propSwap = new Property(MutationOperator.AORU, "sort/Sorting", "swap2", 4, 4, mceSwap, mcneSwap);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

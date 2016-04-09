@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import mujava.api.Configuration;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 import mujava.op.PRVO;
 
@@ -45,7 +45,7 @@ public class PRVO_replaceAllByOne_left_Options_Tests {
 		
 		List<Pattern> ncll_me_addFirst_PRVOR = new LinkedList<Pattern>();
 		List<Pattern> ncll_mne_addFirst_PRVOR = new LinkedList<Pattern>();
-		Property prop_ncll_addFirst_PRVOR = new Property(Mutant.PRVOR_REFINED, "pldi/nodecachinglinkedlist/NodeCachingLinkedList", "addFirstUglyCopy", 0, 0, ncll_me_addFirst_PRVOR, ncll_mne_addFirst_PRVOR);
+		Property prop_ncll_addFirst_PRVOR = new Property(MutationOperator.PRVOR_REFINED, "pldi/nodecachinglinkedlist/NodeCachingLinkedList", "addFirstUglyCopy", 0, 0, ncll_me_addFirst_PRVOR, ncll_mne_addFirst_PRVOR);
 		
 		/*
 		 * ORIGINAL
@@ -73,7 +73,7 @@ public class PRVO_replaceAllByOne_left_Options_Tests {
 		ncll_me_addFirst_PRVOL.add(Pattern.compile("this\\.header = newNode\\.next\\.previous; //mutGenLimit 1"));
 		ncll_me_addFirst_PRVOL.add(Pattern.compile("this\\.firstCachedNode = newNode\\.next\\.previous; //mutGenLimit 1"));
 		//line 7 ---------------------------------------------------------
-		Property prop_ncll_addFirst_PRVOL = new Property(Mutant.PRVOL_SMART, "pldi/nodecachinglinkedlist/NodeCachingLinkedList", "addFirstUglyCopy", 10, 10, ncll_me_addFirst_PRVOL, ncll_mne_addFirst_PRVOL);
+		Property prop_ncll_addFirst_PRVOL = new Property(MutationOperator.PRVOL_SMART, "pldi/nodecachinglinkedlist/NodeCachingLinkedList", "addFirstUglyCopy", 10, 10, ncll_me_addFirst_PRVOL, ncll_mne_addFirst_PRVOL);
 		
 		List<MutantInfo> mf_ncll_addFirst_PRVOR;
 		List<MutantInfo> mf_ncll_addFirst_PRVOL;

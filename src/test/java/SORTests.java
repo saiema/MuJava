@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,19 +37,19 @@ public class SORTests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.SOR, "utils/Set", "add", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.SOR, "utils/Set", "add", 0, 0, mceOMUC, mcneOMUC);
 		
 		List<Pattern> mceRem = new LinkedList<Pattern>();
 		List<Pattern> mcneRem = new LinkedList<Pattern>();
 		mceRem.add(Pattern.compile("set \\&= \\~\\(1 \\>\\> elem\\); //mutGenLimit 0"));
 		mceRem.add(Pattern.compile("set \\&= \\~\\(1 \\>\\>\\> elem\\); //mutGenLimit 0"));
-		Property propRem = new Property(Mutant.SOR, "utils/Set", "remove", 2, 2, mceRem, mcneRem);
+		Property propRem = new Property(MutationOperator.SOR, "utils/Set", "remove", 2, 2, mceRem, mcneRem);
 		
 		List<Pattern> mceContains = new LinkedList<Pattern>();
 		List<Pattern> mcneContains = new LinkedList<Pattern>();
 		mceContains.add(Pattern.compile("return \\(set \\& 1 \\>\\> elem\\) \\!= 0; //mutGenLimit 0"));
 		mceContains.add(Pattern.compile("return \\(set \\& 1 \\>\\>\\> elem\\) \\!= 0; //mutGenLimit 0"));
-		Property propContains = new Property(Mutant.SOR, "utils/Set", "contains", 2, 2, mceContains, mcneContains);
+		Property propContains = new Property(MutationOperator.SOR, "utils/Set", "contains", 2, 2, mceContains, mcneContains);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

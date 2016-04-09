@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -45,7 +45,7 @@ public class PPDTests {
 		 */
 		List<Pattern> mcePPD_1 = new LinkedList<Pattern>();
 		mcePPD_1.add(Pattern.compile("public void radiatedMethod\\( (.+\\.)?PMD_Base param1 \\)([ \t\n\f\r])*\\{ //mutGenLimit 0"));
-		Property propPPD_1 = new Property(Mutant.PPD,
+		Property propPPD_1 = new Property(MutationOperator.PPD,
 										"test/PMD_1",
 										"radiatedMethod",
 										1,

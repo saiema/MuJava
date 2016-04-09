@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,19 +37,19 @@ public class LORTests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.LOR, "utils/Set", "subtraction", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.LOR, "utils/Set", "subtraction", 0, 0, mceOMUC, mcneOMUC);
 		
 		List<Pattern> mceUnion = new LinkedList<Pattern>();
 		List<Pattern> mcneUnion = new LinkedList<Pattern>();
 		mceUnion.add(Pattern.compile("unionSet.set = this\\.set \\& s\\.set; //mutGenLimit 0"));
 		mceUnion.add(Pattern.compile("unionSet.set = this\\.set \\^ s\\.set; //mutGenLimit 0"));
-		Property propUnion = new Property(Mutant.LOR, "utils/Set", "union", 2, 2, mceUnion, mcneUnion);
+		Property propUnion = new Property(MutationOperator.LOR, "utils/Set", "union", 2, 2, mceUnion, mcneUnion);
 		
 		List<Pattern> mceContains = new LinkedList<Pattern>();
 		List<Pattern> mcneContains = new LinkedList<Pattern>();
 		mceContains.add(Pattern.compile("return \\(set \\| 1 \\<\\< elem\\) \\!= 0; //mutGenLimit 0"));
 		mceContains.add(Pattern.compile("return \\(set \\^ 1 \\<\\< elem\\) \\!= 0; //mutGenLimit 0"));
-		Property propContains = new Property(Mutant.LOR, "utils/Set", "contains", 2, 2, mceContains, mcneContains);
+		Property propContains = new Property(MutationOperator.LOR, "utils/Set", "contains", 2, 2, mceContains, mcneContains);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

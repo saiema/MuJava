@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import mujava.api.Configuration;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 import mujava.op.PRVO;
 
@@ -102,7 +102,7 @@ public class PRVO_TwoByOne_OneByTwo_Disabled_Options_Tests {
 			//replaceTwoByOne+++
 			//replaceTwoByOne---
 		//line 6 -----------------------------------
-		Property prop_ncll_addFirst_PRVOR = new Property(Mutant.PRVOR_REFINED, "pldi/nodecachinglinkedlist/NodeCachingLinkedList", "addFirst", 14, 14, ncll_me_addFirst_PRVOR, ncll_mne_addFirst_PRVOR);
+		Property prop_ncll_addFirst_PRVOR = new Property(MutationOperator.PRVOR_REFINED, "pldi/nodecachinglinkedlist/NodeCachingLinkedList", "addFirst", 14, 14, ncll_me_addFirst_PRVOR, ncll_mne_addFirst_PRVOR);
 		
 		/*
 		 * ORIGINAL
@@ -179,7 +179,7 @@ public class PRVO_TwoByOne_OneByTwo_Disabled_Options_Tests {
 			ncll_mne_addFirst_PRVOL.add(Pattern.compile("this\\.firstCachedNode\\.next = newNode; //mutGenLimit 1"));
 			//replaceTwoByOne---
 		//line 6 -----------------------------------
-		Property prop_ncll_addFirst_PRVOL = new Property(Mutant.PRVOL_SMART, "pldi/nodecachinglinkedlist/NodeCachingLinkedList", "addFirst", 23, 23, ncll_me_addFirst_PRVOL, ncll_mne_addFirst_PRVOL);
+		Property prop_ncll_addFirst_PRVOL = new Property(MutationOperator.PRVOL_SMART, "pldi/nodecachinglinkedlist/NodeCachingLinkedList", "addFirst", 23, 23, ncll_me_addFirst_PRVOL, ncll_mne_addFirst_PRVOL);
 		
 		/*
 		 * ORIGINAL
@@ -212,7 +212,7 @@ public class PRVO_TwoByOne_OneByTwo_Disabled_Options_Tests {
 			ncll_mne_addFirst_PRVOU.add(Pattern.compile("insertBeforeNode = newNode\\.next; //mutGenLimit 1"));
 			//replaceTwoByOne---
 		//line 3 -----------------------------------
-		Property prop_ncll_addFirst_PRVOU = new Property(Mutant.PRVOU_REFINED, "pldi/nodecachinglinkedlist/NodeCachingLinkedList", "addFirst", 7, 7, ncll_me_addFirst_PRVOU, ncll_mne_addFirst_PRVOU);
+		Property prop_ncll_addFirst_PRVOU = new Property(MutationOperator.PRVOU_REFINED, "pldi/nodecachinglinkedlist/NodeCachingLinkedList", "addFirst", 7, 7, ncll_me_addFirst_PRVOU, ncll_mne_addFirst_PRVOU);
 		
 		List<MutantInfo> mf_ncll_addFirst_PRVOR;
 		List<MutantInfo> mf_ncll_addFirst_PRVOL;

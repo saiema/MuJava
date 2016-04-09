@@ -166,6 +166,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		this.modified |= same;
 		return same;
 	}
+	
 
 	public void visit(ClassDeclaration p) throws ParseTreeException {
 		outputCommentIfApplicable(p.getComment()); //added (10/09/14) [simon]

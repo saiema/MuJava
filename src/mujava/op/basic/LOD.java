@@ -6,7 +6,7 @@
 
 package mujava.op.basic;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -63,6 +63,6 @@ public class LOD extends MethodLevelMutator {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.LOD, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.LOD, original, (ParseTreeObject) mutant);
 	}
 }

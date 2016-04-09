@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import mujava.api.Configuration;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 import mujava.op.PRVO;
 
@@ -110,7 +110,7 @@ public class LiteralNumbersVariationsTests {
 		mceLNV_1_right.add(Pattern.compile("2\\.38700008392334d \\+ localNumber2\\); //mutGenLimit 0"));
 		mceLNV_1_right.add(Pattern.compile("localNumber1 \\+ 2\\.387f\\); //mutGenLimit 0"));
 		mceLNV_1_right.add(Pattern.compile("localNumber1 \\+ 2\\.38700008392334d\\); //mutGenLimit 0"));
-		Property propLNV_1_1 = new Property(Mutant.PRVOU_REFINED, "literalNumbersVariations/LNV_1", "radiatedMethod", mceLNV_1_right.size(), mceLNV_1_right.size(), mceLNV_1_right, mcneLNV_1_right);
+		Property propLNV_1_1 = new Property(MutationOperator.PRVOU_REFINED, "literalNumbersVariations/LNV_1", "radiatedMethod", mceLNV_1_right.size(), mceLNV_1_right.size(), mceLNV_1_right, mcneLNV_1_right);
 		
 		
 		List<MutantInfo> mfLNV_1_1;

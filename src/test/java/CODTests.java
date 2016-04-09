@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -43,7 +43,7 @@ public class CODTests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.COD, "utils/BooleanOps", "or", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.COD, "utils/BooleanOps", "or", 0, 0, mceOMUC, mcneOMUC);
 		
 		List<Pattern> mceXor = new LinkedList<Pattern>();
 		List<Pattern> mcneXor = new LinkedList<Pattern>();
@@ -54,7 +54,7 @@ public class CODTests {
 		mceXor.add(Pattern.compile("boolean allTrue = \\!\\(\\!auxA \\|\\| auxB\\); //mutGenLimit 0"));
 		mceXor.add(Pattern.compile("return allTrue \\|\\| allFalse; //mutGenLimit 0"));
 		mcneXor.add(Pattern.compile(".+//mutGenLimit -[0..9]+"));
-		Property propXor = new Property(Mutant.COD, "utils/BooleanOps", "xor", 6, 6, mceXor, mcneXor);
+		Property propXor = new Property(MutationOperator.COD, "utils/BooleanOps", "xor", 6, 6, mceXor, mcneXor);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

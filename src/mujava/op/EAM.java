@@ -6,7 +6,7 @@
 
 package mujava.op;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -136,7 +136,7 @@ public class EAM extends mujava.op.util.Mutator {
 	 * @param mutant
 	 */
 	public void outputToFile(MethodCall original, MethodCall mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.EAM, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.EAM, original, mutant);
 	}
 
 }

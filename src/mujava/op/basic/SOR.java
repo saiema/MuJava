@@ -6,7 +6,7 @@
 
 package mujava.op.basic;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -79,7 +79,7 @@ public class SOR extends MethodLevelMutator {
 		if (comp_unit == null) 
 			return;
 		
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.SOR, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.SOR, original, mutant);
 		
 	}
 }

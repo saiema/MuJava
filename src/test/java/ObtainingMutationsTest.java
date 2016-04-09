@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,9 +35,9 @@ public class ObtainingMutationsTest {
 		
 		
 		//PROPERTIES
-		List<Mutant> opsTAL_1 = new LinkedList<Mutant>();
-		opsTAL_1.add(Mutant.COR);
-		opsTAL_1.add(Mutant.COI);
+		List<MutationOperator> opsTAL_1 = new LinkedList<MutationOperator>();
+		opsTAL_1.add(MutationOperator.COR);
+		opsTAL_1.add(MutationOperator.COI);
 		List<Integer> expectedAffectedLinesTAL_1 = new LinkedList<Integer>();
 		expectedAffectedLinesTAL_1.add(1);
 		expectedAffectedLinesTAL_1.add(2);
@@ -60,8 +60,8 @@ public class ObtainingMutationsTest {
 									expectedAffectedLinesTAL_1
 								);
 		
-		List<Mutant> opsTAL_2 = new LinkedList<Mutant>();
-		opsTAL_2.add(Mutant.COI);
+		List<MutationOperator> opsTAL_2 = new LinkedList<MutationOperator>();
+		opsTAL_2.add(MutationOperator.COI);
 		List<Integer> expectedAffectedLinesTAL_2 = new LinkedList<Integer>();
 		expectedAffectedLinesTAL_2.add(4);
 		expectedAffectedLinesTAL_2.add(5);
@@ -78,12 +78,12 @@ public class ObtainingMutationsTest {
 									expectedAffectedLinesTAL_2
 								);
 		
-		List<Mutant> opsTAL_3 = new LinkedList<Mutant>();
-		opsTAL_3.add(Mutant.COI);
-		opsTAL_3.add(Mutant.PRVOU);
-		opsTAL_3.add(Mutant.PRVOR);
-		opsTAL_3.add(Mutant.AODS);
-		opsTAL_3.add(Mutant.ROR);
+		List<MutationOperator> opsTAL_3 = new LinkedList<MutationOperator>();
+		opsTAL_3.add(MutationOperator.COI);
+		opsTAL_3.add(MutationOperator.PRVOU);
+		opsTAL_3.add(MutationOperator.PRVOR);
+		opsTAL_3.add(MutationOperator.AODS);
+		opsTAL_3.add(MutationOperator.ROR);
 		List<Integer> expectedAffectedLinesTAL_3 = new LinkedList<Integer>();
 		expectedAffectedLinesTAL_3.add(1);
 		expectedAffectedLinesTAL_3.add(2);

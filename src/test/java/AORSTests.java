@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,17 +37,17 @@ public class AORSTests {
 		//TESTS DEFINITIONS
 		List<Pattern> mceOMUC = new LinkedList<Pattern>();
 		List<Pattern> mcneOMUC = new LinkedList<Pattern>();
-		Property propOMUC = new Property(Mutant.AORS, "list/SinglyLinkedListOutsideMUC", "getHeader", 0, 0, mceOMUC, mcneOMUC);
+		Property propOMUC = new Property(MutationOperator.AORS, "list/SinglyLinkedListOutsideMUC", "getHeader", 0, 0, mceOMUC, mcneOMUC);
 		
 		List<Pattern> mceSortingFor = new LinkedList<Pattern>();
 		List<Pattern> mcneSortingFor = new LinkedList<Pattern>();
-		Property propSortingFor = new Property(Mutant.AORS, "sort/Sorting", "selectionSort", 0, 0, mceSortingFor, mcneSortingFor);
+		Property propSortingFor = new Property(MutationOperator.AORS, "sort/Sorting", "selectionSort", 0, 0, mceSortingFor, mcneSortingFor);
 		
 		List<Pattern> mceSortingOrdered = new LinkedList<Pattern>();
 		List<Pattern> mcneSortingOrdered = new LinkedList<Pattern>();
 		mceSortingOrdered.add(Pattern.compile("for \\(int v = 1; v < arr\\.length; v\\-\\-\\)"));
 		mcneSortingOrdered.add(Pattern.compile(".+//mutGenLimit -[0..9]+"));
-		Property propSortingOrdered = new Property(Mutant.AORS, "sort/Sorting", "ordered", 1, 1, mceSortingOrdered, mcneSortingOrdered);
+		Property propSortingOrdered = new Property(MutationOperator.AORS, "sort/Sorting", "ordered", 1, 1, mceSortingOrdered, mcneSortingOrdered);
 		
 		//MUTANTS FOLDERS
 		List<MutantInfo> mfOMUC;

@@ -1,7 +1,7 @@
 package mujava.op;
 
 import mujava.api.Api;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.app.MutationRequest;
 import openjava.mop.FileEnvironment;
@@ -86,7 +86,7 @@ public class JDC extends mujava.op.util.Mutator {
 
 
 	private void outputToFile(ClassDeclaration original, ConstructorDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.JDC,original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.JDC,original, mutant);
 	}
 	
 }

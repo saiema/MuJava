@@ -5,7 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 package mujava.op.basic;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.FileEnvironment;
 import openjava.ptree.AssignmentExpression;
@@ -111,14 +111,14 @@ public class AOIU extends Arithmetic_OP {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.AOIU, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AOIU, original, mutant);
 	}
 	
 	public void outputToFile(UnaryExpression original, UnaryExpression mutant) {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.AOIU, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AOIU, original, mutant);
 	}
 	
 	
@@ -126,14 +126,14 @@ public class AOIU extends Arithmetic_OP {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.AOIU, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AOIU, original, mutant);
 	}
 
 	public void outputToFile(Variable original, UnaryExpression mutant) {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.AOIU, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AOIU, original, mutant);
 	}
 
 

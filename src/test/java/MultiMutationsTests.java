@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -37,8 +37,8 @@ public class MultiMutationsTests {
 	public static Collection<Object[]> firstValues() {
 		
 		//TESTS DEFINITIONS
-		List<Mutant> operators_1 = new LinkedList<Mutant>();
-		operators_1.add(Mutant.PRVOR);
+		List<MutationOperator> operators_1 = new LinkedList<MutationOperator>();
+		operators_1.add(MutationOperator.PRVOR);
 		String clazz_1 = "roops/core/objects/SinglyLinkedList2";
 		String method_1 = "contains";
 		Integer mutantsExpected_1 = 1;
@@ -47,7 +47,7 @@ public class MultiMutationsTests {
 		mce_1.add(Pattern.compile("current = header\\.next; //mutGenLimit 0"));
 		List<Pattern> mcne_1 = TestingTools.NO_PATTERN_EXPECTED;
 		List<MutationExpected> mutationsExpected_1 = new LinkedList<MutationExpected>();
-		MutationExpected me_1_1 = new MutationExpected("this.header.next", "header.next", 3, Mutant.PRVOR);
+		MutationExpected me_1_1 = new MutationExpected("this.header.next", "header.next", 3, MutationOperator.PRVOR);
 		mutationsExpected_1.add(me_1_1);
 		SpecificMutationsFilter filter_1 = new SpecificMutationsFilter(mutationsExpected_1);
 		boolean writeToSameFile_1 = true;
@@ -62,9 +62,9 @@ public class MultiMutationsTests {
 									writeToSameFile_1);
 		
 		
-		List<Mutant> operators_2 = new LinkedList<Mutant>();
-		operators_2.add(Mutant.PRVOR);
-		operators_2.add(Mutant.COI);
+		List<MutationOperator> operators_2 = new LinkedList<MutationOperator>();
+		operators_2.add(MutationOperator.PRVOR);
+		operators_2.add(MutationOperator.COI);
 		String clazz_2 = "roops/core/objects/SinglyLinkedList2";
 		String method_2 = "contains";
 		Integer mutantsExpected_2 = 1;
@@ -74,8 +74,8 @@ public class MultiMutationsTests {
 		mce_2.add(Pattern.compile("equalVal = \\!false; //mutGenLimit 0"));
 		List<Pattern> mcne_2 = TestingTools.NO_PATTERN_EXPECTED;
 		List<MutationExpected> mutationsExpected_2 = new LinkedList<MutationExpected>();
-		MutationExpected me_2_1 = new MutationExpected("current.next.next", "current.next", 23, Mutant.PRVOR);
-		MutationExpected me_2_2 = new MutationExpected("false", "!false", 8, Mutant.COI);
+		MutationExpected me_2_1 = new MutationExpected("current.next.next", "current.next", 23, MutationOperator.PRVOR);
+		MutationExpected me_2_2 = new MutationExpected("false", "!false", 8, MutationOperator.COI);
 		mutationsExpected_2.add(me_2_1);
 		mutationsExpected_2.add(me_2_2);
 		SpecificMutationsFilter filter_2 = new SpecificMutationsFilter(mutationsExpected_2);
@@ -91,8 +91,8 @@ public class MultiMutationsTests {
 									writeToSameFile_2);
 		
 		
-		List<Mutant> operators_3 = new LinkedList<Mutant>();
-		operators_3.add(Mutant.PRVOR);
+		List<MutationOperator> operators_3 = new LinkedList<MutationOperator>();
+		operators_3.add(MutationOperator.PRVOR);
 		String clazz_3 = "roops/core/objects/SinglyLinkedList2";
 		String method_3 = "contains";
 		Integer mutantsExpected_3 = 1;
@@ -101,7 +101,7 @@ public class MultiMutationsTests {
 		mce_3.add(Pattern.compile("equalVal = this\\.showInstance\\(\\); //mutGenLimit 0"));
 		List<Pattern> mcne_3 = TestingTools.NO_PATTERN_EXPECTED;
 		List<MutationExpected> mutationsExpected_3 = new LinkedList<MutationExpected>();
-		MutationExpected me_3_1 = new MutationExpected("false", "this.showInstance()", 8, Mutant.PRVOR);
+		MutationExpected me_3_1 = new MutationExpected("false", "this.showInstance()", 8, MutationOperator.PRVOR);
 		mutationsExpected_3.add(me_3_1);
 		SpecificMutationsFilter filter_3 = new SpecificMutationsFilter(mutationsExpected_3);
 		boolean writeToSameFile_3 = true;
@@ -115,11 +115,11 @@ public class MultiMutationsTests {
 									filter_3,
 									writeToSameFile_3);
 		
-		List<Mutant> operators_4 = new LinkedList<Mutant>();
-		operators_4.add(Mutant.AORB);
-		operators_4.add(Mutant.COR);
-		operators_4.add(Mutant.ROR);
-		operators_4.add(Mutant.EOC);
+		List<MutationOperator> operators_4 = new LinkedList<MutationOperator>();
+		operators_4.add(MutationOperator.AORB);
+		operators_4.add(MutationOperator.COR);
+		operators_4.add(MutationOperator.ROR);
+		operators_4.add(MutationOperator.EOC);
 		String clazz_4 = "test/MultiMutations";
 		String method_4 = "contains";
 		Integer mutantsExpected_4 = 1;
@@ -128,10 +128,10 @@ public class MultiMutationsTests {
 		mce_4.add(Pattern.compile("boolean res = current\\.next \\!\\= null \\|\\| current\\.hashCode\\(\\) \\* header\\.hashCode\\(\\) \\>\\= 0; //mutGenLimit 9"));
 		List<Pattern> mcne_4 = TestingTools.NO_PATTERN_EXPECTED;
 		List<MutationExpected> mutationsExpected_4 = new LinkedList<MutationExpected>();
-		MutationExpected me_4_1 = new MutationExpected("current.next == null", "current.next != null", 4, Mutant.ROR);
-		MutationExpected me_4_2 = new MutationExpected("current.next == null && current.hashCode() + header.hashCode() > 0", "current.next == null || current.hashCode() + header.hashCode() > 0", 4, Mutant.COR);
-		MutationExpected me_4_3 = new MutationExpected("current.hashCode() + header.hashCode()", "current.hashCode() * header.hashCode()", 4, Mutant.AORB);
-		MutationExpected me_4_4 = new MutationExpected("current.hashCode() + header.hashCode() > 0", "current.hashCode() + header.hashCode() >= 0", 4, Mutant.ROR);
+		MutationExpected me_4_1 = new MutationExpected("current.next == null", "current.next != null", 4, MutationOperator.ROR);
+		MutationExpected me_4_2 = new MutationExpected("current.next == null && current.hashCode() + header.hashCode() > 0", "current.next == null || current.hashCode() + header.hashCode() > 0", 4, MutationOperator.COR);
+		MutationExpected me_4_3 = new MutationExpected("current.hashCode() + header.hashCode()", "current.hashCode() * header.hashCode()", 4, MutationOperator.AORB);
+		MutationExpected me_4_4 = new MutationExpected("current.hashCode() + header.hashCode() > 0", "current.hashCode() + header.hashCode() >= 0", 4, MutationOperator.ROR);
 		mutationsExpected_4.add(me_4_1);
 		mutationsExpected_4.add(me_4_2);
 		mutationsExpected_4.add(me_4_3);
@@ -148,13 +148,13 @@ public class MultiMutationsTests {
 									filter_4,
 									writeToSameFile_4);
 		
-		List<Mutant> operators_5 = new LinkedList<Mutant>();
-		operators_5.add(Mutant.AORB);
-		operators_5.add(Mutant.COR);
-		operators_5.add(Mutant.ROR);
-		operators_5.add(Mutant.EOC);
-		operators_5.add(Mutant.COI);
-		operators_5.add(Mutant.PRVOR);
+		List<MutationOperator> operators_5 = new LinkedList<MutationOperator>();
+		operators_5.add(MutationOperator.AORB);
+		operators_5.add(MutationOperator.COR);
+		operators_5.add(MutationOperator.ROR);
+		operators_5.add(MutationOperator.EOC);
+		operators_5.add(MutationOperator.COI);
+		operators_5.add(MutationOperator.PRVOR);
 		String clazz_5 = "test/MultiMutations";
 		String method_5 = "contains";
 		Integer mutantsExpected_5 = 1;
@@ -165,12 +165,12 @@ public class MultiMutationsTests {
 		mce_5.add(Pattern.compile("current = current\\.next\\.next; //mutGenLimit 2"));
 		List<Pattern> mcne_5 = TestingTools.NO_PATTERN_EXPECTED;
 		List<MutationExpected> mutationsExpected_5 = new LinkedList<MutationExpected>();
-		MutationExpected me_5_1 = new MutationExpected("current.next == null", "current.next != null", 4, Mutant.ROR);
-		MutationExpected me_5_2 = new MutationExpected("current.next == null && current.hashCode() + header.hashCode() > 0", "current.next == null || current.hashCode() + header.hashCode() > 0", 4, Mutant.COR);
-		MutationExpected me_5_3 = new MutationExpected("current.hashCode() + header.hashCode()", "current.hashCode() * header.hashCode()", 4, Mutant.AORB);
-		MutationExpected me_5_4 = new MutationExpected("current.hashCode() + header.hashCode() > 0", "current.hashCode() + header.hashCode() >= 0", 4, Mutant.ROR);
-		MutationExpected me_5_5 = new MutationExpected("true", "!true", 10, Mutant.COI);
-		MutationExpected me_5_6 = new MutationExpected("current.next", "current.next.next", 25, Mutant.PRVOR);
+		MutationExpected me_5_1 = new MutationExpected("current.next == null", "current.next != null", 4, MutationOperator.ROR);
+		MutationExpected me_5_2 = new MutationExpected("current.next == null && current.hashCode() + header.hashCode() > 0", "current.next == null || current.hashCode() + header.hashCode() > 0", 4, MutationOperator.COR);
+		MutationExpected me_5_3 = new MutationExpected("current.hashCode() + header.hashCode()", "current.hashCode() * header.hashCode()", 4, MutationOperator.AORB);
+		MutationExpected me_5_4 = new MutationExpected("current.hashCode() + header.hashCode() > 0", "current.hashCode() + header.hashCode() >= 0", 4, MutationOperator.ROR);
+		MutationExpected me_5_5 = new MutationExpected("true", "!true", 10, MutationOperator.COI);
+		MutationExpected me_5_6 = new MutationExpected("current.next", "current.next.next", 25, MutationOperator.PRVOR);
 		mutationsExpected_5.add(me_5_1);
 		mutationsExpected_5.add(me_5_2);
 		mutationsExpected_5.add(me_5_3);

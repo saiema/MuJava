@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -51,7 +51,7 @@ public class JIDTests {
 		List<Pattern> mcneJID_1 = new LinkedList<Pattern>();
 		mcneJID_1.add(Pattern.compile("private int field1; //mutGenLimit 0"));
 		mcneJID_1.add(Pattern.compile("public final int field5; //mutGenLimit 0"));
-		Property propJID_1 = new Property(Mutant.JID,
+		Property propJID_1 = new Property(MutationOperator.JID,
 								"test/JID_1",
 								Property.MUTATE_FIELDS,
 								3,

@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -39,7 +39,7 @@ public class ISD_SMARTTests {
 		ceISD_1.add(Pattern.compile("(.+\\.)?Comparator\\<String\\> stringVar\\_2 = atr1\\.trim\\(\\)\\.CASE\\_INSENSITIVE\\_ORDER\\; //mutGenLimit 0"));
 		ceISD_1.add(Pattern.compile("(.+\\.)?String stringVar\\_3 = stringMethod\\_3\\( 1\\, 2 \\)\\.concat\\( \"lalala\" \\)\\.intern\\(\\)\\; //mutGenLimit 0"));
 		ceISD_1.add(Pattern.compile("(.+\\.)?Comparator\\<String\\> stringVar\\_4 = stringMethod\\_4\\( 1\\, 2 \\)\\.CASE\\_INSENSITIVE\\_ORDER; //mutGenLimit 0"));
-		Property propISD_1 = new Property(Mutant.ISD_SMART,
+		Property propISD_1 = new Property(MutationOperator.ISD_SMART,
 										"test/ISD_1",
 										"radiatedMethod",
 										3,
@@ -52,7 +52,7 @@ public class ISD_SMARTTests {
 		ceISD_2.add(Pattern.compile("(.+\\.)?String stringVar\\_3 = stringMethod\\_3\\( 1\\, 2 \\)\\; //mutGenLimit 0"));
 		ceISD_2.add(Pattern.compile("(.+\\.)?String stringVar\\_4 = this\\.atr2\\; //mutGenLimit 0"));
 		ceISD_2.add(Pattern.compile("(.+\\.)?String stringVar\\_5 = atr2\\; //mutGenLimit 0"));
-		Property propISD_2 = new Property(Mutant.ISD_SMART,
+		Property propISD_2 = new Property(MutationOperator.ISD_SMART,
 										"test/ISD_2",
 										"radiatedMethod",
 										4,

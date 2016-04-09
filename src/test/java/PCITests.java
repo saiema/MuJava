@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -66,7 +66,7 @@ public class PCITests {
 		mcePCI_1.add(Pattern.compile("boolean someBool = someOtherMethod\\( pci3 \\) \\&\\& someOtherMethod\\( pci22 \\) \\&\\& someOtherMethod\\( \\((.+\\.)?PCI\\_3\\) pci1 \\); //mutGenLimit 0"));
 		mcePCI_1.add(Pattern.compile("boolean someBool = someOtherMethod\\( pci3 \\) \\&\\& someOtherMethod\\( pci22 \\) \\&\\& someOtherMethod\\( \\((.+\\.)?PCI\\_2\\) pci1 \\); //mutGenLimit 0"));
 		
-		Property propPCI_1 = new Property(Mutant.PCI,
+		Property propPCI_1 = new Property(MutationOperator.PCI,
 										"test/PCI_3",
 										"radiatedMethod",
 										18,

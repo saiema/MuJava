@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import mujava.api.Api;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.app.MutationRequest;
 import openjava.mop.FileEnvironment;
@@ -124,7 +124,7 @@ public class IHD extends mujava.op.util.Mutator {
 	}
 
 	private void outputToFile(ClassDeclaration original, FieldDeclaration mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.IHD, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.IHD, original, mutant);
 	}
 
 }

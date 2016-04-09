@@ -6,7 +6,7 @@
 
 package mujava.op;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -209,7 +209,7 @@ public class EOC extends mujava.op.util.Mutator {
 	}
 
 	private void outputToFile(BinaryExpression original, MethodCall mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.EOC, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.EOC, original, mutant);
 	}
 	
 }

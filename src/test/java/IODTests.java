@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
 import org.junit.Test;
@@ -32,7 +32,7 @@ public class IODTests {
 	public static Collection<Object[]> firstValues() {
 		
 		//TESTS DEFINITIONS
-		Property propIOD_1 = new Property(Mutant.IOD,
+		Property propIOD_1 = new Property(MutationOperator.IOD,
 										"test/IOD_1",
 										Property.MUTATE_CLASS,
 										3,

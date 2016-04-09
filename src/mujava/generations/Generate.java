@@ -6,7 +6,7 @@ import java.util.List;
 import openjava.ptree.ParseTreeException;
 import mujava.OpenJavaException;
 import mujava.api.Configuration;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.app.Core;
 import mujava.app.MutationRequest;
@@ -27,71 +27,71 @@ public class Generate {
 		//String clazz = "rfm" + Core.SEPARATOR + "testingtool" + Core.SEPARATOR + "structures" + Core.SEPARATOR + "bstree" + Core.SEPARATOR + "BSTree";
 		String[] methods = {"getNodeBis"};
 		//String[] methods = {"remove"};// newNode removeNode smallest"};
-		Mutant[] ops = {	
-//				Mutant.PRVOL_SMART,
-//		        Mutant.PRVOR_REFINED,
-//		        Mutant.PRVOU_REFINED,
-				Mutant.PRVOL_SMART,
-		        Mutant.PRVOR_REFINED,
-		        Mutant.PRVOU_REFINED,
-				Mutant.AODS,
-				Mutant.AODU,
-				Mutant.AOIS,
-				Mutant.AOIU,
-				Mutant.AORB,
-				Mutant.AORS,
-				Mutant.AORU,
-				Mutant.ASRS,
-				Mutant.COD,
-				Mutant.COI,
-				Mutant.COR,
-				Mutant.LOD,
-				Mutant.LOR,
-				Mutant.ROR,
-				Mutant.SOR,
-//		        Mutant.AODS,
-//		        Mutant.AODU,
-//		        Mutant.AOIS,
-//		        Mutant.AORB,
-//		        Mutant.AORS,
-//		        Mutant.AORU,
-//		        Mutant.ASRS,
-//		        Mutant.COI,
-//		        Mutant.COR,
-//		        Mutant.LOD,
-//		        Mutant.LOI,
-//		        Mutant.LOR,
-//		        Mutant.ROR,
-//		        Mutant.SOR,
-//		        Mutant.EMM,
-//		        Mutant.EOC,
-//		        Mutant.IPC,
-//		        Mutant.EAM,
-//		        Mutant.IOP,
-//		        Mutant.JTI_SMART,
-//		        Mutant.JTD,
-//		        Mutant.ISD_SMART,
-//		        Mutant.ISI_SMART,
-//		        Mutant.COD,
-//		        Mutant.AOIU,
-//		        Mutant.OAN_RELAXED,
-//		        Mutant.EOA,
-//				Mutant.AODS,
-//				Mutant.AODU,
-//				Mutant.AOIS,
-//				Mutant.AOIU,
-//				Mutant.AORB,
-//				Mutant.AORS,
-//				Mutant.AORU,
-//				Mutant.ASRS,
-//				Mutant.COD,
-//				Mutant.COI,
-//				Mutant.COR,
-//				Mutant.LOD,
-//				Mutant.LOR,
-//				Mutant.ROR,
-//				Mutant.SOR 	
-//				Mutant.NPER
+		MutationOperator[] ops = {	
+//				MutationOperator.PRVOL_SMART,
+//		        MutationOperator.PRVOR_REFINED,
+//		        MutationOperator.PRVOU_REFINED,
+				MutationOperator.PRVOL_SMART,
+		        MutationOperator.PRVOR_REFINED,
+		        MutationOperator.PRVOU_REFINED,
+				MutationOperator.AODS,
+				MutationOperator.AODU,
+				MutationOperator.AOIS,
+				MutationOperator.AOIU,
+				MutationOperator.AORB,
+				MutationOperator.AORS,
+				MutationOperator.AORU,
+				MutationOperator.ASRS,
+				MutationOperator.COD,
+				MutationOperator.COI,
+				MutationOperator.COR,
+				MutationOperator.LOD,
+				MutationOperator.LOR,
+				MutationOperator.ROR,
+				MutationOperator.SOR,
+//		        MutationOperator.AODS,
+//		        MutationOperator.AODU,
+//		        MutationOperator.AOIS,
+//		        MutationOperator.AORB,
+//		        MutationOperator.AORS,
+//		        MutationOperator.AORU,
+//		        MutationOperator.ASRS,
+//		        MutationOperator.COI,
+//		        MutationOperator.COR,
+//		        MutationOperator.LOD,
+//		        MutationOperator.LOI,
+//		        MutationOperator.LOR,
+//		        MutationOperator.ROR,
+//		        MutationOperator.SOR,
+//		        MutationOperator.EMM,
+//		        MutationOperator.EOC,
+//		        MutationOperator.IPC,
+//		        MutationOperator.EAM,
+//		        MutationOperator.IOP,
+//		        MutationOperator.JTI_SMART,
+//		        MutationOperator.JTD,
+//		        MutationOperator.ISD_SMART,
+//		        MutationOperator.ISI_SMART,
+//		        MutationOperator.COD,
+//		        MutationOperator.AOIU,
+//		        MutationOperator.OAN_RELAXED,
+//		        MutationOperator.EOA,
+//				MutationOperator.AODS,
+//				MutationOperator.AODU,
+//				MutationOperator.AOIS,
+//				MutationOperator.AOIU,
+//				MutationOperator.AORB,
+//				MutationOperator.AORS,
+//				MutationOperator.AORU,
+//				MutationOperator.ASRS,
+//				MutationOperator.COD,
+//				MutationOperator.COI,
+//				MutationOperator.COR,
+//				MutationOperator.LOD,
+//				MutationOperator.LOR,
+//				MutationOperator.ROR,
+//				MutationOperator.SOR 	
+//				MutationOperator.NPER
 						};
 		String basePathOriginals = args[0]; //test/
 		String basePathMutants = args[1];	//mutants/
@@ -137,7 +137,7 @@ public class Generate {
 	 * 
 	 * @param clazz					:	the clazz to mutate																												:	{@code String}
 	 * @param methods				:	the methods to mutate																											:	{@code String[]}
-	 * @param ops					:	mutation operators to use																										:	{@code Mutant[]}
+	 * @param ops					:	mutation operators to use																										:	{@code MutationOperator[]}
 	 * @param basePathOriginals		:	the folder where original class is found (e.g.: src/)																			:	{@code String}
 	 * @param basePathMutants		:	the folder where mutants will be stored (e.g.: mutants/)																		:	{@code String}
 	 * @param generations			:	how many generations will be generated (keep in mind that this value will not overwrite mutGenLimit annotations)				:	{@code int}
@@ -146,7 +146,7 @@ public class Generate {
 	 * @throws OpenJavaException 
 	 * @throws ClassNotFoundException 
 	 */
-	public static void generate(String clazz, String[] methods, Mutant[] ops, String basePathOriginals, String basePathMutants, int generations, boolean lowMemory) throws ClassNotFoundException, OpenJavaException, ParseTreeException {
+	public static void generate(String clazz, String[] methods, MutationOperator[] ops, String basePathOriginals, String basePathMutants, int generations, boolean lowMemory) throws ClassNotFoundException, OpenJavaException, ParseTreeException {
 		MutationRequest originalRequest = new MutationRequest(clazz, methods, ops, basePathOriginals, basePathMutants);
 		GoalTester goalTester = new GenerationsGoalTester(generations);
 		RequestGenerator requestGenerator = new SameRequestGenerator(originalRequest);

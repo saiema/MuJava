@@ -18,7 +18,7 @@ import openjava.ptree.ReturnStatement;
 import openjava.ptree.SelfAccess;
 import openjava.ptree.Variable;
 import openjava.ptree.VariableDeclarator;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.util.Mutator;
 
@@ -166,11 +166,11 @@ public class ISD extends Mutator {
 	
 
 	private void outputToFile(FieldAccess original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(this.smartMode?Mutant.ISD_SMART:Mutant.ISD, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(this.smartMode?MutationOperator.ISD_SMART:MutationOperator.ISD, original, (ParseTreeObject) mutant);
 	}
 
 	private void outputToFile(MethodCall original, Expression mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(this.smartMode?Mutant.ISD_SMART:Mutant.ISD, original, (ParseTreeObject) mutant);
+		MutantsInformationHolder.mainHolder().addMutation(this.smartMode?MutationOperator.ISD_SMART:MutationOperator.ISD, original, (ParseTreeObject) mutant);
 	}
 	
 	public void visit(BinaryExpression p) throws ParseTreeException {

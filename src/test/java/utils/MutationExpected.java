@@ -1,12 +1,12 @@
 package test.java.utils;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 
 public class MutationExpected {
 	private String original;
 	private String mutant;
 	private int mutatedLine;
-	private Mutant op;
+	private MutationOperator op;
 	
 	public MutationExpected(String orig, String mut, int mutatedLine) {
 		this.original		= orig;
@@ -14,7 +14,7 @@ public class MutationExpected {
 		this.mutatedLine 	= mutatedLine;
 	}
 	
-	public MutationExpected(String orig, String mut, int mutatedLine, Mutant op) {
+	public MutationExpected(String orig, String mut, int mutatedLine, MutationOperator op) {
 		this(orig, mut, mutatedLine);
 		this.op = op;
 	}
@@ -26,7 +26,7 @@ public class MutationExpected {
 		return originalMatches && mutantMatches && linesMatches;
 	}
 	
-	public boolean compareExpectedWithObtained(String orig, String mut, int line, Mutant op) {
+	public boolean compareExpectedWithObtained(String orig, String mut, int line, MutationOperator op) {
 		boolean usualCompare = this.compareExpectedWithObtained(orig, mut, line);
 		boolean operatorsMatch = this.op.toString().compareTo(op.toString()) == 0;
 		return usualCompare && operatorsMatch;

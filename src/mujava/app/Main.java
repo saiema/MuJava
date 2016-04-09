@@ -20,7 +20,7 @@ import org.apache.commons.cli.ParseException;
 
 import mujava.api.Api;
 import mujava.api.Configuration;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.loader.Reloader;
 import mujava.op.PRVO;
 import mujava.op.util.MutantCodeWriter;
@@ -107,8 +107,8 @@ public class Main {
 		System.out.println(mutationScore?"Will calculate mutation score":"");
 		
 		//===========================validate mutation operators========================================//
-		List<Mutant> ops = new LinkedList<Mutant>();
-		Set<Mutant> operators = config.operators();
+		List<MutationOperator> ops = new LinkedList<MutationOperator>();
+		Set<MutationOperator> operators = config.operators();
 		if (!operators.isEmpty()) {
 			ops.addAll(operators);
 		} else {
@@ -537,8 +537,8 @@ public class Main {
 		
 		//================================Mutants generation==============================================//
 		System.out.println("Generating mutants...\n");
-		//List<Mutant> basicMutants = mi.listBasicOperators();
-		boolean result = core.generateMutants(classToMutate, methodsToMutate, ops.toArray(new Mutant[ops.size()]), generations);
+		//List<MutationOperator> basicMutants = mi.listBasicOperators();
+		boolean result = core.generateMutants(classToMutate, methodsToMutate, ops.toArray(new MutationOperator[ops.size()]), generations);
 		if (!result) {
 			core.lastError().printStackTrace(System.err);
 		} else {

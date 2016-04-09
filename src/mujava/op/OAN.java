@@ -20,7 +20,7 @@ import openjava.ptree.SelfAccess;
 import openjava.ptree.StatementList;
 import openjava.ptree.VariableDeclarator;
 import mujava.api.Api;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.util.Mutator;
 
@@ -56,7 +56,7 @@ public class OAN extends Mutator {
 	}
 	
 	private void outputToFile(MethodCall original, MethodCall mutant) {
-		MutantsInformationHolder.mainHolder().addMutation(this.relaxed?Mutant.OAN_RELAXED:Mutant.OAN, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(this.relaxed?MutationOperator.OAN_RELAXED:MutationOperator.OAN, original, mutant);
 	}
 	
 	

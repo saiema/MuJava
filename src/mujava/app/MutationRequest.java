@@ -1,6 +1,6 @@
 package mujava.app;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 
 /**
  * This class represents a request to generate mutants
@@ -16,13 +16,13 @@ public class MutationRequest {
 	/**
 	 * @param clazz				: 	The class to be mutated, must include package if it has one (eg: util.List) : {@code String}
 	 * @param methods			:	The methods to be mutated, just the name (eg: toString) : {@code String[]}
-	 * @param ops				:	Mutation operators to be used : {@code Mutant[]}
+	 * @param ops				:	Mutation operators to be used : {@code MutationOperator[]}
 	 * @param inputDir			:	Root directory of the source files to be mutated : {@code String}
 	 * @param outputDir			:	Root directory where mutants will be created : {@code String}
 	 * @param mutateClassFields	:	used to set if class fields should be mutated or not : {@code boolean}
 	 * @param mutateClass		:	used to set if class should be mutated or not : {@code boolean}
 	 */
-	public MutationRequest(String clazz, String[] methods, Mutant[] ops, String inputDir, String outputDir, boolean mutateClassFields, boolean mutateClass) {
+	public MutationRequest(String clazz, String[] methods, MutationOperator[] ops, String inputDir, String outputDir, boolean mutateClassFields, boolean mutateClass) {
 		this.clazz 					= clazz;		
 		this.ops 					= ops;
 		this.inputDir				= inputDir;
@@ -50,12 +50,12 @@ public class MutationRequest {
 	/**
 	 * @param clazz				: 	The class to be mutated, must include package if it has one (eg: util.List) : {@code String}
 	 * @param methods			:	The methods to be mutated, just the name (eg: toString) : {@code String[]}
-	 * @param ops				:	Mutation operators to be used : {@code Mutant[]}
+	 * @param ops				:	Mutation operators to be used : {@code MutationOperator[]}
 	 * @param inputDir			:	Root directory of the source files to be mutated : {@code String}
 	 * @param outputDir			:	Root directory where mutants will be created : {@code String}
 	 * @param mutateClassFields	:	used to set if class fields should be mutated or not : {@code boolean}
 	 */
-	public MutationRequest(String clazz, String[] methods, Mutant[] ops, String inputDir, String outputDir, boolean mutateClassFields) {
+	public MutationRequest(String clazz, String[] methods, MutationOperator[] ops, String inputDir, String outputDir, boolean mutateClassFields) {
 		this.clazz 					= clazz;		
 		this.ops 					= ops;
 		this.inputDir				= inputDir;
@@ -76,11 +76,11 @@ public class MutationRequest {
 	/**
 	 * @param clazz				: 	The class to be mutated, must include package if it has one (eg: util.List) : {@code String}
 	 * @param methods			:	The methods to be mutated, just the name (eg: toString) : {@code String[]}
-	 * @param ops				:	Mutation operators to be used : {@code Mutant[]}
+	 * @param ops				:	Mutation operators to be used : {@code MutationOperator[]}
 	 * @param inputDir			:	Root directory of the source files to be mutated : {@code String}
 	 * @param outputDir			:	Root directory where mutants will be created : {@code String}
 	 */
-	public MutationRequest(String clazz, String[] methods, Mutant[] ops, String inputDir, String outputDir) {
+	public MutationRequest(String clazz, String[] methods, MutationOperator[] ops, String inputDir, String outputDir) {
 		this.clazz 					= clazz;
 		this.methods				= methods;
 		this.ops 					= ops;
@@ -101,7 +101,7 @@ public class MutationRequest {
 	/**
 	 * Mutation operators to be used
 	 */
-	public Mutant[] ops;
+	public MutationOperator[] ops;
 	/**
 	 * root directory of the source files to be mutated
 	 */

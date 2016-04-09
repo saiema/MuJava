@@ -6,7 +6,7 @@
 
 package mujava.op.basic;
 
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -126,7 +126,7 @@ public class AORB extends Arithmetic_OP
 
 		//********** MUJAVA++ MODIFICATION **********//
 		//********** date: 7 Feb 2012     **********//
-		MutantsInformationHolder.mainHolder().addMutation(Mutant.AORB,original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AORB,original, mutant);
 		return;
 		//*******************************************//
 

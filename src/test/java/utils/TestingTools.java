@@ -20,7 +20,7 @@ import javax.tools.ToolProvider;
 import openjava.ptree.ParseTreeException;
 
 import mujava.OpenJavaException;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 import mujava.api.Mutation;
 import mujava.api.MutantsInformationHolder;
 import mujava.app.MutantInfo;
@@ -61,7 +61,7 @@ public class TestingTools {
 	public static List<MutantInfo> generateMutants(Property p, boolean writeAllToSameFile) {
 		List<MutantInfo> mutantsInfo = new LinkedList<MutantInfo>();
 		try {
-			Mutant[] reqOps = p.ops!=null?p.ops.toArray(new Mutant[p.ops.size()]):new Mutant[]{p.op};
+			MutationOperator[] reqOps = p.ops!=null?p.ops.toArray(new MutationOperator[p.ops.size()]):new MutationOperator[]{p.op};
 			MutationRequest request = new MutationRequest(	p.clazz,
 															new String[] {p.method},
 															reqOps,
@@ -100,7 +100,7 @@ public class TestingTools {
 		try {
 			MutationRequest request = new MutationRequest(	p.clazz,
 					new String[] {p.method},
-					p.ops.toArray(new Mutant[p.ops.size()]),
+					p.ops.toArray(new MutationOperator[p.ops.size()]),
 					"test/",
 					"test/mutantExamples/");
 			mutator.setRequest(request);
@@ -148,7 +148,7 @@ public class TestingTools {
 		try {
 			MutationRequest request = new MutationRequest(	p.clazz,
 					new String[] {p.method},
-					new Mutant[] {p.op},
+					new MutationOperator[] {p.op},
 					"test/",
 					"test/mutantExamples/");
 			mutator.generateMutants(request);
@@ -168,7 +168,7 @@ public class TestingTools {
 		try {
 			MutationRequest request = new MutationRequest(	p.clazz,
 					new String[] {p.method},
-					p.ops.toArray(new Mutant[p.ops.size()]),
+					p.ops.toArray(new MutationOperator[p.ops.size()]),
 					"test/",
 					"test/mutantExamples/");
 			//modified to allow filtering
@@ -192,14 +192,14 @@ public class TestingTools {
 					boolean originalNodeIsChainedExpression = mi.isChainedExpression(Mutation.TARGET.ORIGINAL);
 					boolean mutantNodeIsChainedExpression = mi.isChainedExpression(Mutation.TARGET.MUTANT);
 					System.out.println("Original node is a chained expression: " + originalNodeIsChainedExpression);
-					System.out.println("Mutant node is a chained expression: " + mutantNodeIsChainedExpression);
+					System.out.println("MutationOperator node is a chained expression: " + mutantNodeIsChainedExpression);
 					String mutantNodeIsATailModificationOfOriginalNode = "N/A";
 					if (originalNodeIsChainedExpression && mutantNodeIsChainedExpression) {
 						mutantNodeIsATailModificationOfOriginalNode = Boolean.toString(mi.isMutantTailChangeOfOriginal());
 					}
-					System.out.println("Mutant node is a tail modification of original node: " + mutantNodeIsATailModificationOfOriginalNode);
-					System.out.println("Mutant affects a variable declaration expression: " + mi.isVariableDeclarationMutation());
-					System.out.println("Mutant affects an assignment expression:" + mi.isAssignmentMutation());
+					System.out.println("MutationOperator node is a tail modification of original node: " + mutantNodeIsATailModificationOfOriginalNode);
+					System.out.println("MutationOperator affects a variable declaration expression: " + mi.isVariableDeclarationMutation());
+					System.out.println("MutationOperator affects an assignment expression:" + mi.isAssignmentMutation());
 					System.out.println("\tMutant affects left side of an assignment expression:" + mi.isAssignmentMutationLeft());
 					System.out.println("\t\tMutant affects left side of an assignment expression and the left side is a Variable:" + mi.isAssignmentMutationLeftVariable());
 					System.out.println("\t\tMutant affects left side of an assignment expression and the left side is a FieldAccess:" + mi.isAssignmentMutationLeftFieldAccess());

@@ -4,7 +4,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
-import mujava.api.Mutant;
+import mujava.api.MutationOperator;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +28,7 @@ public class GenericsParsingTests {
 	public static Collection<Object[]> firstValues() {
 		
 		//TESTS DEFINITIONS
-		Property propCA_1 = new Property(Mutant.AMC,
+		Property propCA_1 = new Property(MutationOperator.AMC,
 										"generics/CA_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -36,7 +36,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_2 = new Property(Mutant.AMC,
+		Property propCA_2 = new Property(MutationOperator.AMC,
 										"generics/CA_2",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -44,7 +44,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_3 = new Property(Mutant.AMC,
+		Property propCA_3 = new Property(MutationOperator.AMC,
 										"generics/CA_3",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -52,7 +52,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_4 = new Property(Mutant.AMC,
+		Property propCA_4 = new Property(MutationOperator.AMC,
 										"generics/CA_4",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -60,7 +60,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_5 = new Property(Mutant.AMC,
+		Property propCA_5 = new Property(MutationOperator.AMC,
 										"generics/CA_5",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -68,7 +68,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_6 = new Property(Mutant.AMC,
+		Property propCA_6 = new Property(MutationOperator.AMC,
 										"generics/CA_6",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -76,7 +76,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_7 = new Property(Mutant.AMC,
+		Property propCA_7 = new Property(MutationOperator.AMC,
 										"generics/CA_7",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -84,7 +84,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_8 = new Property(Mutant.AMC,
+		Property propCA_8 = new Property(MutationOperator.AMC,
 										"generics/CA_8",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -92,7 +92,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_9 = new Property(Mutant.AMC,
+		Property propCA_9 = new Property(MutationOperator.AMC,
 										"generics/CA_9",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -100,7 +100,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_10 = new Property(Mutant.AMC,
+		Property propCA_10 = new Property(MutationOperator.AMC,
 										"generics/CA_10",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -108,7 +108,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_11 = new Property(Mutant.AMC,
+		Property propCA_11 = new Property(MutationOperator.AMC,
 										"generics/CA_11",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -116,7 +116,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_12 = new Property(Mutant.AMC,
+		Property propCA_12 = new Property(MutationOperator.AMC,
 										"generics/CA_12",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -124,7 +124,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_IC_1 = new Property(Mutant.AMC,
+		Property propCA_IC_1 = new Property(MutationOperator.AMC,
 										"generics/CA_IC_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -132,7 +132,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_IC_2 = new Property(Mutant.AMC,
+		Property propCA_IC_2 = new Property(MutationOperator.AMC,
 										"generics/CA_IC_2",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -140,7 +140,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_IC_3 = new Property(Mutant.AMC,
+		Property propCA_IC_3 = new Property(MutationOperator.AMC,
 										"generics/CA_IC_3",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -148,7 +148,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCA_IC_4 = new Property(Mutant.AMC,
+		Property propCA_IC_4 = new Property(MutationOperator.AMC,
 										"generics/CA_IC_4",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -156,7 +156,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCF_1 = new Property(Mutant.AMC,
+		Property propCF_1 = new Property(MutationOperator.AMC,
 										"generics/CF_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -164,7 +164,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCF_2 = new Property(Mutant.AMC,
+		Property propCF_2 = new Property(MutationOperator.AMC,
 										"generics/CF_2",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -172,7 +172,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCF_3 = new Property(Mutant.AMC,
+		Property propCF_3 = new Property(MutationOperator.AMC,
 										"generics/CF_3",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -180,7 +180,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propLV_1 = new Property(Mutant.AMC,
+		Property propLV_1 = new Property(MutationOperator.AMC,
 										"generics/LV_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -188,7 +188,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propLV_2 = new Property(Mutant.AMC,
+		Property propLV_2 = new Property(MutationOperator.AMC,
 										"generics/LV_2",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -196,7 +196,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propLV_3 = new Property(Mutant.AMC,
+		Property propLV_3 = new Property(MutationOperator.AMC,
 										"generics/LV_3",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -204,7 +204,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propLV_4 = new Property(Mutant.AMC,
+		Property propLV_4 = new Property(MutationOperator.AMC,
 										"generics/LV_4",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -212,7 +212,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propLV_5 = new Property(Mutant.AMC,
+		Property propLV_5 = new Property(MutationOperator.AMC,
 										"generics/LV_5",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -220,7 +220,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propMS_1 = new Property(Mutant.AMC,
+		Property propMS_1 = new Property(MutationOperator.AMC,
 										"generics/MS_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -228,7 +228,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propMS_2 = new Property(Mutant.AMC,
+		Property propMS_2 = new Property(MutationOperator.AMC,
 										"generics/MS_2",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -236,7 +236,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propMS_3 = new Property(Mutant.AMC,
+		Property propMS_3 = new Property(MutationOperator.AMC,
 										"generics/MS_3",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -244,7 +244,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propMS_4 = new Property(Mutant.AMC,
+		Property propMS_4 = new Property(MutationOperator.AMC,
 										"generics/MS_4",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -252,7 +252,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propWLV_1 = new Property(Mutant.AMC,
+		Property propWLV_1 = new Property(MutationOperator.AMC,
 										"generics/WLV_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -260,7 +260,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propWLV_2 = new Property(Mutant.AMC,
+		Property propWLV_2 = new Property(MutationOperator.AMC,
 										"generics/WLV_2",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -268,7 +268,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propWLV_3 = new Property(Mutant.AMC,
+		Property propWLV_3 = new Property(MutationOperator.AMC,
 										"generics/WLV_3",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -276,7 +276,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propFLV_1 = new Property(Mutant.AMC,
+		Property propFLV_1 = new Property(MutationOperator.AMC,
 										"generics/FLV_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -284,7 +284,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propFLV_2 = new Property(Mutant.AMC,
+		Property propFLV_2 = new Property(MutationOperator.AMC,
 										"generics/FLV_2",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -292,7 +292,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propFLV_3 = new Property(Mutant.AMC,
+		Property propFLV_3 = new Property(MutationOperator.AMC,
 										"generics/FLV_3",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -300,7 +300,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propWC_1 = new Property(Mutant.AMC,
+		Property propWC_1 = new Property(MutationOperator.AMC,
 										"generics/WC_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -308,7 +308,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propWC_2 = new Property(Mutant.AMC,
+		Property propWC_2 = new Property(MutationOperator.AMC,
 										"generics/WC_2",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -316,7 +316,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propWC_3 = new Property(Mutant.AMC,
+		Property propWC_3 = new Property(MutationOperator.AMC,
 										"generics/WC_3",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -324,7 +324,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propFC_1 = new Property(Mutant.AMC,
+		Property propFC_1 = new Property(MutationOperator.AMC,
 										"generics/FC_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -332,7 +332,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propFC_2 = new Property(Mutant.AMC,
+		Property propFC_2 = new Property(MutationOperator.AMC,
 										"generics/FC_2",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -340,7 +340,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-//		Property propFC_3 = new Property(Mutant.AMC,
+//		Property propFC_3 = new Property(MutationOperator.AMC,
 //										"generics/FC_3",
 //										"defMethod",
 //										TestingTools.NO_MUTANTS_EXPECTED,
@@ -348,7 +348,7 @@ public class GenericsParsingTests {
 //										TestingTools.NO_PATTERN_EXPECTED,
 //										TestingTools.NO_PATTERN_EXPECTED);
 //		
-//		Property propFC_4 = new Property(Mutant.AMC,
+//		Property propFC_4 = new Property(MutationOperator.AMC,
 //										"generics/FC_4",
 //										"defMethod",
 //										TestingTools.NO_MUTANTS_EXPECTED,
@@ -356,7 +356,7 @@ public class GenericsParsingTests {
 //										TestingTools.NO_PATTERN_EXPECTED,
 //										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propSW_1 = new Property(Mutant.AMC,
+		Property propSW_1 = new Property(MutationOperator.AMC,
 										"generics/SW_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -364,7 +364,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propSW_2 = new Property(Mutant.AMC,
+		Property propSW_2 = new Property(MutationOperator.AMC,
 										"generics/SW_2",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -372,7 +372,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propSW_3 = new Property(Mutant.AMC,
+		Property propSW_3 = new Property(MutationOperator.AMC,
 										"generics/SW_3",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -380,7 +380,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propIO_1 = new Property(Mutant.AMC,
+		Property propIO_1 = new Property(MutationOperator.AMC,
 										"generics/IO_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -388,7 +388,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCAS_1 = new Property(Mutant.AMC,
+		Property propCAS_1 = new Property(MutationOperator.AMC,
 										"generics/CAS_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -396,7 +396,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propCAS_2 = new Property(Mutant.AMC,
+		Property propCAS_2 = new Property(MutationOperator.AMC,
 										"generics/CAS_2",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -404,7 +404,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propR_1 = new Property(Mutant.AMC,
+		Property propR_1 = new Property(MutationOperator.AMC,
 										"generics/R_1",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -412,7 +412,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propR_2 = new Property(Mutant.AMC,
+		Property propR_2 = new Property(MutationOperator.AMC,
 										"generics/R_2",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
@@ -420,7 +420,7 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-		Property propR_3 = new Property(Mutant.AMC,
+		Property propR_3 = new Property(MutationOperator.AMC,
 										"generics/R_3",
 										"defMethod",
 										TestingTools.NO_MUTANTS_EXPECTED,
