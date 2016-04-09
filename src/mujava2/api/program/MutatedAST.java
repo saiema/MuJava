@@ -28,30 +28,66 @@ public class MutatedAST {
 	private JavaAST original;
 	private List<MutationInformation> mutations;
 	private Map<String, Map<Integer, List<MutationInformation>>> mutationsPerLinePerMethod;
-	private boolean mutationsApplied;
+	private Map<String, Map<Integer, Boolean>> mutationsAppliedPerLinePerMethod;
+//	private boolean mutationsApplied;
 	
 	public MutatedAST(JavaAST original, List<MutationInformation> mutations) {
 		if (original == null) throw new IllegalArgumentException("null JavaAST argument");
 		if (mutations == null) throw new IllegalArgumentException("null List<MutationInformation> argument");
 		if (mutations.isEmpty()) throw new IllegalArgumentException("no mutations in List<MutationInformation> argument");
 		if (mutations.contains(null)) throw new IllegalArgumentException("null mutation in List<MutationInformation> argument");
-		this.mutationsApplied = false;
+//		this.mutationsApplied = false;
 		this.original = original;
 		this.mutations = mutations;
 		String error = validateMutations(mutations);
 		if (!error.isEmpty()) throw new IllegalArgumentException("Invalid mutations : " + error);
+		initializeMutationsApplied();
 	}
 	
 	public MutatedAST(MutatedAST parent, List<MutationInformation> mutations) {
-		this.mutationsApplied = false;
+//		this.mutationsApplied = false;
 		this.parent = parent;
 		this.original = this.parent.original;
 		String error = validateMutations(mutations);
 		if (!error.isEmpty()) throw new IllegalArgumentException("Invalid mutations : " + error);
+		initializeMutationsApplied();
 	}
 	
 	public MutatedAST(JavaAST original, MutationInformation mutation) {
 		this(original, Arrays.asList(mutation));
+	}
+	
+	public MutatedAST(MutatedAST parent, MutationInformation mutation) {
+		this(parent, Arrays.asList(mutation));
+	}
+	
+	private void initializeMutationsApplied() {
+		for (Entry<String, Map<Integer, Boolean>> appliedPerMethod : this.mutationsAppliedPerLinePerMethod.entrySet()) {
+			for (Entry<Integer, Boolean> appliedPerLine : appliedPerMethod.getValue().entrySet()) {
+				appliedPerLine.setValue(Boolean.FALSE);
+			}
+		}
+	}
+	
+	public int getGeneration() {
+		int gen = 1;
+		MutatedAST curr = this.parent;
+		while (curr != null) {
+			gen++;
+			curr = curr.parent;
+		}
+		return gen;
+	}
+	
+	public MutatedAST getMutatedASTfromGeneration(int gen) {
+		int currGen = getGeneration();
+		if (gen < 1 || gen > currGen) throw new IllegalArgumentException("MutatedAST#getMutatedASTfromGeneration(" + gen + ") : illegal gen value");
+		MutatedAST result = this;
+		while (gen < currGen) {
+			result = result.parent;
+			currGen--;
+		}
+		return result;
 	}
 	
 	public List<MutationInformation> getMutations(){
@@ -59,7 +95,30 @@ public class MutatedAST {
 	}
 	
 	public boolean mutationsApplied() {
-		return this.mutationsApplied;
+		for (String method : this.mutationsAppliedPerLinePerMethod.keySet()) {
+			if (!mutationsApplied(method)) return false;
+		}
+		return true;
+	}
+	
+	public boolean mutationsApplied(String method) {
+		if (this.mutationsAppliedPerLinePerMethod.containsKey(method)) {
+			for (Integer line : this.mutationsAppliedPerLinePerMethod.get(method).keySet()) {
+				if (!mutationsApplied(method, line)) return false;
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean mutationsApplied(String method, Integer line) {
+		if (this.mutationsAppliedPerLinePerMethod.containsKey(method)) {
+			if (this.mutationsAppliedPerLinePerMethod.get(method).containsKey(line)) {
+				return this.mutationsAppliedPerLinePerMethod.get(method).get(line);
+			}
+			return false;
+		}
+		return false;
 	}
 	
 	public JavaAST applyMutations() throws ParseTreeException {
@@ -73,6 +132,18 @@ public class MutatedAST {
 			for (Integer line : lines) {
 				applyMutations(method, line, false);
 			}
+		}
+		return this.original;
+	}
+	
+	public JavaAST applyMutations(String method) throws ParseTreeException {
+		if (this.parent != null) {
+			this.parent.applyMutations(method);
+			this.original = this.parent.original;
+		}
+		Set<Integer> lines = this.mutationsPerLinePerMethod.get(method).keySet();
+		for (Integer line : lines) {
+			applyMutations(method, line, false);
 		}
 		return this.original;
 	}
@@ -92,7 +163,7 @@ public class MutatedAST {
 		OLMO olmo = new OLMO();
 		olmo.modifyAST(this.original.getCompUnit(), merged, method);
 		this.original.flagAsMutated();
-		this.mutationsApplied = true;
+		this.mutationsAppliedPerLinePerMethod.get(method).put(line, Boolean.TRUE);
 		return this.original;
 	}
 	
@@ -108,8 +179,20 @@ public class MutatedAST {
 			this.parent.undoMutations();
 			this.original = this.parent.original;
 		}
-		this.mutationsApplied = false;
-		this.original.unflagAsMutated();
+		if (!mutationsApplied()) this.original.unflagAsMutated();
+		return this.original;
+	}
+	
+	public JavaAST undoMutations(String method) throws ParseTreeException  {
+		Set<Integer> lines = this.mutationsPerLinePerMethod.get(method).keySet();
+		for (Integer line : lines) {
+			undoMutations(method, line, false);
+		}
+		if (this.parent != null) {
+			this.parent.undoMutations(method);
+			this.original = this.parent.original;
+		}
+		if (!mutationsApplied()) this.original.unflagAsMutated();
 		return this.original;
 	}
 	
@@ -128,7 +211,7 @@ public class MutatedAST {
 			this.parent.undoMutations(method, line, true);
 			this.original = this.parent.original;
 		}
-		this.original.flagAsMutated();
+		this.mutationsAppliedPerLinePerMethod.get(method).put(line, Boolean.FALSE);
 		return this.original;
 	}
 	
@@ -180,7 +263,7 @@ public class MutatedAST {
 		OutputStream os = new FileOutputStream(file, true);
 		PrintWriter pw = new PrintWriter(os);
 		ASTWriter writer = new ASTWriter(pw);
-		if (!this.mutationsApplied) writer.setMutationsFromMutationInformation(mergeMutationsAcrossGenerations());//mergeAllMutations());
+		if (!this.mutationsApplied()) writer.setMutationsFromMutationInformation(mergeMutationsAcrossGenerations());//mergeAllMutations());
 		this.original.getCompUnit().accept(writer);
 		pw.flush();  
 		pw.close();

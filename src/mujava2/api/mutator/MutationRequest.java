@@ -1,5 +1,8 @@
 package mujava2.api.mutator;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -23,6 +26,11 @@ public class MutationRequest {
 	public final static String MUTATE_CLASS= "0_mutateClass";
 	
 	/**
+	 * Where to look for the class (the root folder of the class)
+	 */
+	private final String location;
+	
+	/**
 	 * The fully qualified name of the class to mutate, e.g.: java.util.List
 	 */
 	private final String fullyQualifiedClassName;
@@ -42,17 +50,29 @@ public class MutationRequest {
 	/**
 	 * Creates a new mutation request.
 	 * 
+	 * @param location					:	the root folder of the class
 	 * @param classToMutate				:	the fully qualified name of the class to mutate
 	 * @param ops						:	the mutation operators to use
 	 * @param methods					:	the methods to mutate
 	 * @param mutateClassFields			:	if class fields will be mutated or not
 	 * @param mutateClass				:	if class declaration will be mutated or not
 	 */
-	public MutationRequest (String classToMutate, Collection<MutationOperator> ops, Collection<String> methods, boolean mutateClassFields, boolean mutateClass) {
-		this(classToMutate, ops, methods, mutateClassFields, mutateClass, 1);
+	public MutationRequest (String location, String classToMutate, Collection<MutationOperator> ops, Collection<String> methods, boolean mutateClassFields, boolean mutateClass) {
+		this(location, classToMutate, ops, methods, mutateClassFields, mutateClass, 1);
 	}
 	
-	public MutationRequest (String classToMutate, Collection<MutationOperator> ops, Collection<String> methods, boolean mutateClassFields, boolean mutateClass, Integer generations) {
+	/**
+	 * Creates a new mutation request.
+	 * 
+	 * @param location					:	the root folder of the class
+	 * @param classToMutate				:	the fully qualified name of the class to mutate
+	 * @param ops						:	the mutation operators to use
+	 * @param methods					:	the methods to mutate
+	 * @param mutateClassFields			:	if class fields will be mutated or not
+	 * @param mutateClass				:	if class declaration will be mutated or not
+	 * @param generations				:	how many generations to generate
+	 */
+	public MutationRequest (String location, String classToMutate, Collection<MutationOperator> ops, Collection<String> methods, boolean mutateClassFields, boolean mutateClass, Integer generations) {
 		if (classToMutate == null) throw new IllegalArgumentException("classToMutate is null");
 		if (classToMutate.isEmpty()) throw new IllegalArgumentException("classToMutate is empty");
 		if (ops == null) throw new IllegalArgumentException("Operators collection is null");
@@ -64,6 +84,11 @@ public class MutationRequest {
 		if (!mutateClassFields && methods.contains(MUTATE_FIELDS)) throw new IllegalArgumentException("mutateClassFields argument is false but methods collection is forcing to mutate class fields");
 		if (!methods.contains(MUTATE_CLASS) && mutateClass) methods.add(MUTATE_CLASS);
 		if (!methods.contains(MUTATE_FIELDS) && mutateClassFields) methods.add(MUTATE_FIELDS);
+		Path path = Paths.get(location);
+		if (Files.notExists(path)) {
+		  throw new IllegalArgumentException("location (" + location + ") doesn't exists");
+		}
+		this.location = location;
 		this.fullyQualifiedClassName = classToMutate;
 		this.operators = new LinkedList<MutationOperator>(ops);
 		this.methods = new LinkedList<String>(methods);
@@ -82,6 +107,13 @@ public class MutationRequest {
 	 */
 	public Collection<String> getMethods() {
 		return methods;
+	}
+	
+	/**
+	 * @return the root folder of the class
+	 */
+	public String getLocation() {
+		return this.location;
 	}
 	
 	/**
@@ -114,8 +146,9 @@ public class MutationRequest {
 		boolean mutateClass = clonedMethods.remove(MUTATE_CLASS);
 		boolean mutateFields = clonedMethods.remove(MUTATE_FIELDS);
 		String className = this.fullyQualifiedClassName;
+		String location = this.location;
 		int generations = this.generations;
-		return new MutationRequest(className, clonedOperators, clonedMethods, mutateFields, mutateClass, generations);
+		return new MutationRequest(location, className, clonedOperators, clonedMethods, mutateFields, mutateClass, generations);
 	}
 	
 }

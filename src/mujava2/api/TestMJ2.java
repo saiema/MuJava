@@ -30,7 +30,7 @@ public class TestMJ2 {
 		
 		Collection<MutationOperator> ops = Arrays.asList(COR, ROR, COI, COD, AORU, PRVOU_REFINED);
 		Collection<String> methods = Arrays.asList("and", "or");
-		MutationRequest req = new MutationRequest("BooleanOps", ops, methods, false, false);
+		MutationRequest req = new MutationRequest("test", "BooleanOps", ops, methods, false, false);
 		Mutator mutator = new Mutator(utilBooleanOpsAST, req);
 		Collection<MutationInformation> mutations = mutator.generateMutations();
 		System.out.println("Mutations for utils.BooleanOps:\n");
