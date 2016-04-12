@@ -84,7 +84,7 @@ public class Api {
 			int lastParenthesis = methodToConsider.lastIndexOf(')');
 			if (lastParenthesis > 0) {
 				String argsRaw = methodToConsider.substring(firstParenthesis+1, lastParenthesis);
-				String[] args = argsRaw.split(",");
+				String[] args = argsRaw.split(";");
 				Api.arguments = new String[args.length];
 				int a = 0;
 				for (String argRaw : args) {

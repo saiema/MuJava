@@ -2234,7 +2234,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					OJClass typeToComply = getType(complyWith);
 					OJClass litType = getType(lit);
 					boolean ignoreTypeCheckOnNumbers = this.allowNumberLiteralsVariations() && this.isNumber(lit) && this.isNumericExpression(complyWith);
-					if (!ignoreTypeCheckOnNumbers && !compatibleAssignType(typeToComply, litType, false)) {
+					if (!ignoreTypeCheckOnNumbers && !compatibleAssignType(typeToComply, litType, usePrimitiveWrapping() || allowPrimitiveToObjectMutants())) {
 						continue;
 					}
 				}

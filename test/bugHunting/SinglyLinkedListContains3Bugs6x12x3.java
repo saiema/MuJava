@@ -44,10 +44,10 @@ public class SinglyLinkedListContains3Bugs6x12x3 {
     public boolean contains( /*@nullable@*/java.lang.Object valueParam ) {
         SinglyLinkedListNode current;
         boolean result;
-        current = this.header.next; //mutGenLimit 1
+        current = this.header.next; //mutGenLimit 0
         result = false; //mutGenLimit 0
         //@decreasing \reach(current, SinglyLinkedListNode, next).int_size();
-        while (result == false && current.next != null) { //mutGenLimit 1
+        while (result == false && current.next != null) { //mutGenLimit 0
             boolean equalVal;
             if (valueParam == null && current.value == null) { //mutGenLimit 0
                 equalVal = true; //mutGenLimit 0
