@@ -187,6 +187,10 @@ public class Core {
 		int mutants = 0;
 		int timedOut = 0;
 		for (MutantInfo mut : this.lastGeneration) {
+			System.out.println("Testing mutant : "+mut.getPath()+'\n');
+			if (MutationScore.outputMutationsInfo) {
+				System.out.println(mut.toString());
+			}
 			mutants++;
 			String pathToFile = mut.getPath();
 			if (!ms.compile(pathToFile)){

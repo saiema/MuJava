@@ -92,10 +92,10 @@ public class MutationScore {
 		}
 		List<TestResult> testResults = new LinkedList<TestResult>();
 		//System.out.println("Testing mutant : "+pathToMutant+className+'\n');
-		System.out.println("Testing mutant : "+mut.getPath()+'\n');
-		if (MutationScore.outputMutationsInfo) {
-			System.out.println(mut.toString());
-		}
+//		System.out.println("Testing mutant : "+mut.getPath()+'\n');
+//		if (MutationScore.outputMutationsInfo) {
+//			System.out.println(mut.toString());
+//		}
 		for (String test : testClasses) {
 			Class<?> testToRun;
 			try {

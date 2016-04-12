@@ -780,7 +780,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					}
 					if (retType.isPrimitive() && next != null) continue;
 					if (lor && prev==null && !getType(current).isPrimitive() && retType.isPrimitive()) continue;
-					if ((next == null) && (lor?compatibleAssignType(retType, rtype):compatibleAssignType(ltype, retType, !refined))) {
+					if ((next == null) && (lor?compatibleAssignType(retType, rtype):compatibleAssignType(ltype, retType, usePrimitiveWrapping() || allowPrimitiveToObjectMutants()))) { //!refined))) {
 						Expression prevCopy = prev==null?null:((Expression) prev.makeRecursiveCopy_keepOriginalID());
 						ParseTreeObject mutantNode = null;
 						if (m instanceof OJField) {
