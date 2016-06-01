@@ -33,6 +33,7 @@ public class MutationScore {
 	public static Set<String> allowedPackages = null;
 	public static boolean quickDeath;
 	public static boolean outputMutationsInfo = true;
+	public static String msLibs = "";
 	
 	public static MutationScore newInstance(String mutantsSourceFolder, String originalBinFolder, String testsBinFolder) {
 		if (instance == null) {
@@ -67,7 +68,11 @@ public class MutationScore {
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 		Iterable<? extends JavaFileObject> compilationUnit = fileManager.getJavaFileObjectsFromFiles(Arrays.asList(files));
-		boolean compileResult = compiler.getTask(null, fileManager, null, Arrays.asList(new String[] {"-classpath", originalBinFolder}), null, compilationUnit).call();
+		String paths = originalBinFolder;
+		if (!MutationScore.msLibs.isEmpty()) {
+			paths += File.pathSeparator + MutationScore.msLibs;
+		}
+		boolean compileResult = compiler.getTask(null, fileManager, null, Arrays.asList(new String[] {"-classpath", paths}), null, compilationUnit).call();
 		return compileResult;
 	}
 	
@@ -82,13 +87,36 @@ public class MutationScore {
 		return testResults;
 	}
 	
+	private ClassLoader getBaseClassLoader() throws MalformedURLException {
+		ClassLoader threadCL = Thread.currentThread().getContextClassLoader();
+		if (!MutationScore.msLibs.isEmpty()) {
+			String[] libs = MutationScore.msLibs.split(File.pathSeparator);
+			URL[] urls = new URL[libs.length];
+			int i = 0;
+			for (String l : libs) {
+				urls[i] = new URL(l);
+				i++;
+			}
+			URLClassLoader urlClassLoader = new URLClassLoader(urls, threadCL);
+			return urlClassLoader;
+		} 
+		return threadCL;
+	}
+	
 	public List<TestResult> runTestsWithMutants(List<String> testClasses, MutantInfo mut) {//String pathToMutant, String className) {
 		this.lastError = null;
 		if (MutationScore.reloader == null) {
 			List<String> classpath = Arrays.asList(new String[]{MutationScore.originalBinFolder, MutationScore.testsBinFolder});
-			MutationScore.reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
-			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.originalBinFolder, MutationScore.allowedPackages);
-			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.testsBinFolder, MutationScore.allowedPackages);
+			try {
+				ClassLoader baseClassLoader = getBaseClassLoader();
+				MutationScore.reloader = new Reloader(classpath, baseClassLoader);//(classpath,Thread.currentThread().getContextClassLoader());
+				MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.originalBinFolder, MutationScore.allowedPackages);
+				MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.testsBinFolder, MutationScore.allowedPackages);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+				this.lastError = e;
+				return null;
+			}
 		}
 		List<TestResult> testResults = new LinkedList<TestResult>();
 		//System.out.println("Testing mutant : "+pathToMutant+className+'\n');
