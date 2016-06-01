@@ -213,6 +213,14 @@ public class ConfigReader {
 				return NO_FLAG;
 			}
 		},
+		TEST_LIBRARIES {
+			public String getKey() {
+				return "mutation.advanced.testLibraries";
+			}
+			public String getFlag() {
+				return "-l";
+			}
+		},
 		//MUTATION ADVANCED
 		//MUTATION ADVANCED PRVO
 		ALLOW_NUMERIC_LITERAL_VARIATIONS {
@@ -627,6 +635,11 @@ public class ConfigReader {
 		if (conf.runMutationScore()) conf.showSurvivingMutants(getBooleanArgument(Config_key.SHOW_SURVIVING_MUTANTS));
 		if (conf.runMutationScore()) conf.toughnessAnalysis(getBooleanArgument(Config_key.MUTATION_SCORE_TOUGHNESS_ANALYSIS));
 		if (conf.runMutationScore()) conf.outputMutationsInfo(getBooleanArgument(Config_key.OUPUT_MUTANT_MUTATIONS));	
+		if (isDefined(Config_key.TEST_LIBRARIES)) {
+			for (String testLib : stringArgumentsAsArray(getStringArgument(Config_key.TEST_LIBRARIES))) {
+				conf.addTestLib(testLib);
+			}
+		}
 		String validationError = conf.validate();
 		if (validationError != null) throw new IllegalStateException("Bad configuration : " + validationError);
 		return conf;

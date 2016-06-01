@@ -176,9 +176,27 @@ public class Main {
 			}
 			testClasses = tclasses.toArray(new String[tclasses.size()]);
 			System.out.println("Tests classes: "+stringArrayToString(testClasses));
+			
+			Set<String> testLibs = config.testLibs();
+			String testLibraries = "";
+			if (!testLibs.isEmpty()) {
+				System.out.print("Test libraries: ");
+				Iterator<String> it = testLibs.iterator();
+				while (it.hasNext()) {
+					String l = it.next();
+					System.out.print(l);
+					testLibraries += l;
+					if (it.hasNext()) {
+						System.out.print(", ");
+						testLibraries += File.pathSeparator;
+					}
+				}
+				System.out.println();
+			}
+			MutationScore.msLibs = testLibraries;
 		}
 		
-		//so far so good, need to instanciate the core to verify methods
+		//so far so good, need to instantiate the core to verify methods
 		core = Core.newInstance(originalSourceDir, mutantsSourceDir);
 		core.setInputBinDir(originalBinDir);
 		

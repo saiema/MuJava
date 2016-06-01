@@ -85,6 +85,7 @@ public class Config {
 	private boolean runMutationScore;
 	private String testsBinDir;
 	private Set<String> testClasses;
+	private Set<String> testLibs;
 	private boolean showSurvivingMutants;
 	private boolean toughnessAnalysis;
 	private boolean outputMutationsInfo;
@@ -130,6 +131,7 @@ public class Config {
 		clearPackagesToReload();
 		clearTestClassesInTestsBinDir();
 		clearTestClasses();
+		clearTestLibs();
 	}
 	
 	private void initializeCOROptions() {
@@ -381,6 +383,26 @@ public class Config {
 	
 	public Set<String> testClasses() {
 		return this.testClasses;
+	}
+	
+	public void addTestLib(String l) {
+		this.testLibs.add(l);
+	}
+	
+	public void delTestLib(String l) {
+		this.testLibs.remove(l);
+	}
+	
+	public void clearTestLibs() {
+		if (this.testLibs == null) {
+			this.testLibs = new TreeSet<String>();
+		} else {
+			this.testLibs.clear();
+		}
+	}
+	
+	public Set<String> testLibs() {
+		return this.testLibs;
 	}
 	
 	public void quickDeath(boolean enable) {
