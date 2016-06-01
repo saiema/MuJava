@@ -20,6 +20,10 @@ where **ARGS** can be one of the following:
 **Suggested VM Arguments**
 
     -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled
+    
+**IMPORTANT**
+
+For the best performance please use `-XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled` as VM arguments and run muJava++ using java 8. A Java 8 VM improves memory usage since permGen is now a part of the heap, getting more allowed memory and can be garbage collected.
 
 **Usage example**
 
