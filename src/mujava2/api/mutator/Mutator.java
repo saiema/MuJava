@@ -21,7 +21,6 @@ import mujava.op.util.OLMO;
 import mujava.security.ApiCaller;
 import mujava2.api.program.JavaAST;
 import openjava.ptree.ParseTreeException;
-import openjava.ptree.ParseTreeObject;
 
 /**
  * A very simple mutation generator.
@@ -77,12 +76,12 @@ public class Mutator extends ApiCaller {
 		//|--------------------Generation loop--------------------|
 		for (String currentMethod : req.getMethods()) {
 			//|--------------------Mutants Generation--------------------|
-			ParseTreeObject.resetObjectID();
-			Api.hijackApi(this, req.getClassToMutate(), currentMethod, mutOps);
+			//ParseTreeObject.resetObjectID();
+			Api.hijackApi(this, req.getClassToMutateSimpleName(), currentMethod, mutOps);
 			
 			this.generator.generateMutants(originalAST, mutOps);
 			MutantsInformationHolder mih = MutantsInformationHolder.mainHolder();
-			MutantsInformationHolder.resetMainHolder();
+			MutantsInformationHolder.resetMainHolder(true);
 			//|--------------------Mutants Generation--------------------|
 
 			mutants.put(currentMethod, mih);

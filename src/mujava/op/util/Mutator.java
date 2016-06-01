@@ -76,6 +76,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		if (result == null) {
 			System.err.println("cannot resolve the type of expression");
 			System.err.println(p.getClass() + " : " + p);
+			System.err.println("From statement: " + getStatement((ParseTreeObject)p).toFlattenString());
 			System.err.println(getEnvironment());
 			/***** DebugOut.println(getEnvironment().toString()); */
 			if (p instanceof ArrayAccess) {

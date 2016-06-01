@@ -32,7 +32,9 @@ public class COD extends MethodLevelMutator {
 		if (!(getMutationsLeft(p)>0)) return;
 		int op = p.getOperator();
 		if ( op == UnaryExpression.NOT) {
-			outputToFile(p, p.getExpression());
+			Expression mutant = (Expression) p.getExpression().makeRecursiveCopy_keepOriginalID();
+			((ParseTreeObject)mutant).setParent(p.getParent());
+			outputToFile(p, mutant);
 		}
 		super.visit(p.getExpression());
 	}

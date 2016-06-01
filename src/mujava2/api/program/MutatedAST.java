@@ -62,9 +62,19 @@ public class MutatedAST {
 	}
 	
 	private void initializeMutationsApplied() {
-		for (Entry<String, Map<Integer, Boolean>> appliedPerMethod : this.mutationsAppliedPerLinePerMethod.entrySet()) {
-			for (Entry<Integer, Boolean> appliedPerLine : appliedPerMethod.getValue().entrySet()) {
-				appliedPerLine.setValue(Boolean.FALSE);
+		if (this.mutationsAppliedPerLinePerMethod == null) {
+			this.mutationsAppliedPerLinePerMethod = new TreeMap<String, Map<Integer, Boolean>>();
+		}
+		for (Entry<String, Map<Integer, List<MutationInformation>>> mpm : this.mutationsPerLinePerMethod.entrySet()) {
+			Map<Integer, Boolean> mapl = null;
+			if (!this.mutationsAppliedPerLinePerMethod.containsKey(mpm.getKey())) {
+				mapl = new TreeMap<Integer, Boolean>();
+				this.mutationsAppliedPerLinePerMethod.put(mpm.getKey(), mapl);
+			} else {
+				mapl = this.mutationsAppliedPerLinePerMethod.get(mpm.getKey());
+			}
+			for (Entry<Integer, List<MutationInformation>> mpl : mpm.getValue().entrySet()) {
+				mapl.put(mpl.getKey(), Boolean.FALSE);
 			}
 		}
 	}
@@ -439,6 +449,34 @@ public class MutatedAST {
 			}
 		}
 		return mutationsAsList;
+	}
+	
+	@Override
+	public String toString() {
+		String res = "";
+		res += "Class		: " + this.original.getClassName() + "\n";
+		res += "File		: " + this.original.getJavaFile().getPath().toString() + "\n";
+		res += "Root folder	: " + this.original.getRootFolder() + "\n";
+		res += "======================================================\n";
+		res += "Mutations\n";
+		res += mutationsToString();
+		res += "======================================================\n";
+		return res;
+	}
+	
+	private String mutationsToString() {
+		String res = "Generation	: " + this.getGeneration() + "\n";
+		for (Entry<String, Map<Integer, List<MutationInformation>>> mpm : this.mutationsPerLinePerMethod.entrySet()) {
+			for (Entry<Integer, List<MutationInformation>> mpl : mpm.getValue().entrySet()) {
+				for (MutationInformation minfo : mpl.getValue()) {
+					res += minfo.toString() + "\n";
+				}
+			}
+		}
+		if (this.parent != null) {
+			res += this.parent.mutationsToString();
+		}
+		return res;
 	}
 
 }

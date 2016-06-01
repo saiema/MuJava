@@ -35,6 +35,10 @@ public class MutationRequest {
 	 */
 	private final String fullyQualifiedClassName;
 	/**
+	 * The simple name of the class to mutate, e.g.: List
+	 */
+	private final String simpleClassName;
+	/**
 	 * The mutation operators to use
 	 */
 	private Collection<MutationOperator> operators;
@@ -90,6 +94,8 @@ public class MutationRequest {
 		}
 		this.location = location;
 		this.fullyQualifiedClassName = classToMutate;
+		String[] terms = this.fullyQualifiedClassName.split("\\.");
+		this.simpleClassName = terms[terms.length - 1];
 		this.operators = new LinkedList<MutationOperator>(ops);
 		this.methods = new LinkedList<String>(methods);
 		this.generations = generations;
@@ -121,6 +127,13 @@ public class MutationRequest {
 	 */
 	public String getClassToMutate() {
 		return this.fullyQualifiedClassName;
+	}
+	
+	/**
+	 * @return The simple class name of the class to mutate
+	 */
+	public String getClassToMutateSimpleName() {
+		return this.simpleClassName;
 	}
 	
 	/**

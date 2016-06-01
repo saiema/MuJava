@@ -39,7 +39,7 @@ public class Api {
 	}
 	
 	private static void generateMutants(MutatedAST mast, MutationRequest request, int currGen, List<MutatedAST> result) throws ParseTreeException, OpenJavaException {
-		if (currGen < request.getGenerations()) {
+		if (currGen <= request.getGenerations()) {
 			
 			//APPLY MUTATIONS TO mast
 			JavaAST ast = mast.applyMutations();
@@ -73,7 +73,7 @@ public class Api {
 	}
 	
 	private static void generateLastGenerationMutants(MutatedAST mast, MutationRequest request, int currGen, List<MutatedAST> result) throws ParseTreeException, OpenJavaException {
-		if (currGen < request.getGenerations()) {
+		if (currGen <= request.getGenerations()) {
 			
 			//APPLY MUTATIONS TO mast
 			JavaAST ast = mast.applyMutations();
@@ -83,7 +83,7 @@ public class Api {
 			mast.undoMutations();
 			for (MutationInformation minfo : mutations) {
 				MutatedAST newMast = new MutatedAST(mast, minfo);
-				generateMutants(newMast, request, currGen+1, result);
+				generateLastGenerationMutants(newMast, request, currGen+1, result);
 			}	
 		} else {
 			result.add(mast);

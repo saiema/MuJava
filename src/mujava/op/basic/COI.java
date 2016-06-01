@@ -47,7 +47,8 @@ public class COI extends MethodLevelMutator {
 		if (getType(p) == OJSystem.BOOLEAN) {
 			UnaryExpression originalCopy = (UnaryExpression) p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
-			outputToFile(p, mutant);
+			mutant.setParent(p.getParent()); //added 24-05-16
+			outputToFile(p, mutant);  
 			this.ignoreBinary = true;
 		}
 		if (p.getExpression() instanceof BinaryExpression) p.getExpression().accept(this);
@@ -59,6 +60,7 @@ public class COI extends MethodLevelMutator {
 		if (getType(p) == OJSystem.BOOLEAN) {
 			Variable originalCopy = (Variable) p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
+			mutant.setParent(p.getParent()); //added 24-05-16
 			outputToFile(p, mutant);
 		}
 	}
@@ -68,6 +70,7 @@ public class COI extends MethodLevelMutator {
 		if (getType(p) == OJSystem.BOOLEAN) {
 			Literal originalCopy = (Literal) p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
+			mutant.setParent(p.getParent()); //added 24-05-16
 			outputToFile(p, mutant);
 		}
 	}
@@ -77,6 +80,7 @@ public class COI extends MethodLevelMutator {
 		if (getType(p) == OJSystem.BOOLEAN) {
 			FieldAccess originalCopy = (FieldAccess) p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
+			mutant.setParent(p.getParent()); //added 24-05-16
 			outputToFile(p, mutant);
 		}
 	}
@@ -87,6 +91,7 @@ public class COI extends MethodLevelMutator {
 			if (!this.ignoreBinary) {
 				BinaryExpression originalCopy = (BinaryExpression) p.makeRecursiveCopy_keepOriginalID();
 				UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
+				mutant.setParent(originalCopy.getParent()); //added 24-05-16
 				outputToFile(p, mutant);
 			}
 			p.getLeft().accept(this);
