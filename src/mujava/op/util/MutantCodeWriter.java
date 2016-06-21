@@ -779,7 +779,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		String identifier = p.getName();
 		TypeName[] tn = p.getImplementsList();
 		EnumConstantList enumConstants = p.getEnumConstantList();
-		MemberDeclarationList mdl = p.getClassBodayDeclaration();
+		MemberDeclarationList mdl = p.getClassBodyDeclaration();
 
 		ModifierList modifs = p.getModifiers();
 		if (modifs != null) {

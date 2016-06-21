@@ -123,7 +123,7 @@ public abstract class ScopeHandler extends EvaluationShuttle {
 		/* creates a new class environment */
 		ClassEnvironment env =
 			new ClassEnvironment(getEnvironment(), ptree.getName());
-		MemberDeclarationList mdecls = ptree.getClassBodayDeclaration();
+		MemberDeclarationList mdecls = ptree.getClassBodyDeclaration();
 		if(mdecls != null){
 			for (int i = 0; i < mdecls.size(); ++i) {
 				MemberDeclaration m = mdecls.get(i);

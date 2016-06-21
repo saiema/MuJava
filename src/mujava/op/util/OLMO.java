@@ -891,7 +891,7 @@ public class OLMO extends ParseTreeVisitor {
 		acceptPTO(p.getEnumConstantList());
 		
 		//enum body (optional)
-		MemberDeclarationList body = p.getClassBodayDeclaration();
+		MemberDeclarationList body = p.getClassBodyDeclaration();
 		if (body != null) {
 			acceptPTO(body);
 		}
