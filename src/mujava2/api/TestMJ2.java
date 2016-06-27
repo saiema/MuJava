@@ -16,7 +16,17 @@ import mujava2.api.mutator.MutationRequest;
 import mujava2.api.mutator.Mutator;
 import mujava2.api.program.JavaAST;
 import mujava2.api.program.MutatedAST;
+import openjava.ptree.BinaryExpression;
+import openjava.ptree.IfStatement;
+import openjava.ptree.MemberDeclarationList;
+import openjava.ptree.MethodDeclaration;
+import openjava.ptree.ParseTree;
 import openjava.ptree.ParseTreeException;
+import openjava.ptree.StatementList;
+import openjava.ptree.UnaryExpression;
+import openjava.ptree.Variable;
+import openjava.ptree.ParseTree.COPY_SCOPE;
+
 import static mujava.api.MutationOperator.*;
 
 public class TestMJ2 {
@@ -26,6 +36,19 @@ public class TestMJ2 {
 		
 		
 		JavaAST utilBooleanOpsAST = JavaAST.fromFile("test", "utils.BooleanOps");
+		MemberDeclarationList decls = utilBooleanOpsAST.getCompUnit().getPublicClass().getBody();
+		MethodDeclaration andMethod = (MethodDeclaration) decls.get(1);
+		StatementList andMethodBody = andMethod.getBody();
+		IfStatement ifStatement = (IfStatement) andMethodBody.get(2);
+		BinaryExpression ifCond = (BinaryExpression) ifStatement.getExpression();
+		UnaryExpression rightExpression = (UnaryExpression) ifCond.getRight();
+		Variable auxBVar = (Variable) rightExpression.getExpression();
+		ParseTree auxBVarNodeCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.NODE);
+		ParseTree auxBVarStatementCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.STATEMENT);
+		ParseTree auxBVarStatementListCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.STATEMENT_LIST);
+		ParseTree auxBVarMemberDeclarationCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.MEMBER_DECLARATION);
+		ParseTree auxBVarCompilationUnitCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.COMPILATION_UNIT);
+		ParseTree auxBVarRecCopy = auxBVar.makeRecursiveCopy_keepOriginalID();
 //		byte[] hash = utilBooleanOpsAST.writeInFolder(new File("/home/stein/Desktop/TEST/original/"), true);
 //		System.out.println("utils.BooleanOps AST written with hash : " + Arrays.toString(hash));
 //		
