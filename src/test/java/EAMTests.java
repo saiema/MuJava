@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -31,9 +30,8 @@ public class EAMTests {
 		this.mutantsInfo = mutantsInfo;
 	}
 	
-	@BeforeClass
-	public static void setTestingToolsVerbose() {
-		TestingTools.setVerbose(false);
+	static void setTestingToolsVerbose() {
+		TestingTools.setVerbose(true);
 	}
 	
 	@Parameters

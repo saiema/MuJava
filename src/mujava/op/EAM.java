@@ -44,11 +44,25 @@ public class EAM extends mujava.op.util.Mutator {
 			return;
 		if (!isGetter(p))
 			return;
-		List<OJMethod> getters = getAllGetters(getSelfType());
+		Expression prev = getPreviousExpression(p);
+		int options = ALLOW_NON_STATIC;
+		OJClass t = null;
+		if (prev == null) {
+			t = getSelfType();
+			options += ALLOW_PRIVATE;
+			options += TARGET_IS_NULL;
+		} else {
+			t = getType(prev);
+			if (isSelfClass(t)) {
+				options += ALLOW_PRIVATE;
+				options += TARGET_IS_MUTATED_CLASS_OBJECT;
+			}
+		}
+		List<OJMethod> getters = getAllGetters(t, options);
 		OJMethod original = getOriginalMethod(p, getters);
 		for (OJMethod g : getters) {
 			if (!isSameMethod(p, g) && compatibleMethods(original, g)) {
-				MethodCall mutant = (MethodCall) p.makeRecursiveCopy_keepOriginalID();
+				MethodCall mutant = (MethodCall) nodeCopyOf(p);
 				mutant.setName(g.getName());
 				outputToFile(p, mutant);
 			}
@@ -83,9 +97,9 @@ public class EAM extends mujava.op.util.Mutator {
 		return true;
 	}
 
-	private List<OJMethod> getAllGetters(OJClass t) {
+	private List<OJMethod> getAllGetters(OJClass t, int options) {
 		List<OJMethod> result = new LinkedList<OJMethod>();
-		OJMethod[] allMethods = getAllMethods(t);
+		OJMethod[] allMethods = getAllMethods(t, options);
 		for (OJMethod m : allMethods) {
 			if (isGetter(m)) {
 				result.add(m);

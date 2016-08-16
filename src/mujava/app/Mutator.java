@@ -530,7 +530,7 @@ public class Mutator implements Runnable{
 			olmo = new OLMO(mut);
 			boolean canBeAppliedToOriginal = olmo.findOriginalNodeIn(mi.getOriginal());
 			boolean canBeAppliedToMutant = olmo.findOriginalNodeIn(mi.getMutant());
-			res = (canBeAppliedToOriginal == canBeAppliedToMutant);
+			res &= (canBeAppliedToOriginal == canBeAppliedToMutant);
 		}
 		return res;
 	}

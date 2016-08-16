@@ -45,7 +45,7 @@ public class COI extends MethodLevelMutator {
 	public void visit(UnaryExpression p) throws ParseTreeException {
 		if (!(getMutationsLeft(p)>0)) return;
 		if (getType(p) == OJSystem.BOOLEAN) {
-			UnaryExpression originalCopy = (UnaryExpression) p.makeRecursiveCopy_keepOriginalID();
+			UnaryExpression originalCopy = (UnaryExpression) nodeCopyOf(p); //p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
 			mutant.setParent(p.getParent()); //added 24-05-16
 			outputToFile(p, mutant);  
@@ -58,7 +58,7 @@ public class COI extends MethodLevelMutator {
 	public void visit( Variable p ) throws ParseTreeException {
 		if (!(getMutationsLeft(p)>0)) return;
 		if (getType(p) == OJSystem.BOOLEAN) {
-			Variable originalCopy = (Variable) p.makeRecursiveCopy_keepOriginalID();
+			Variable originalCopy = (Variable) nodeCopyOf(p); //p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
 			mutant.setParent(p.getParent()); //added 24-05-16
 			outputToFile(p, mutant);
@@ -68,7 +68,7 @@ public class COI extends MethodLevelMutator {
 	public void visit(Literal p) throws ParseTreeException {
 		if (!(getMutationsLeft(p)>0)) return;
 		if (getType(p) == OJSystem.BOOLEAN) {
-			Literal originalCopy = (Literal) p.makeRecursiveCopy_keepOriginalID();
+			Literal originalCopy = (Literal) nodeCopyOf(p); //p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
 			mutant.setParent(p.getParent()); //added 24-05-16
 			outputToFile(p, mutant);
@@ -78,7 +78,7 @@ public class COI extends MethodLevelMutator {
 	public void visit( FieldAccess p ) throws ParseTreeException {
 		if (!(getMutationsLeft(p)>0)) return;
 		if (getType(p) == OJSystem.BOOLEAN) {
-			FieldAccess originalCopy = (FieldAccess) p.makeRecursiveCopy_keepOriginalID();
+			FieldAccess originalCopy = (FieldAccess) nodeCopyOf(p); //p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
 			mutant.setParent(p.getParent()); //added 24-05-16
 			outputToFile(p, mutant);
@@ -89,9 +89,9 @@ public class COI extends MethodLevelMutator {
 		if (!(getMutationsLeft(p)>0)) return; 
 		if (getType(p) == OJSystem.BOOLEAN) {
 			if (!this.ignoreBinary) {
-				BinaryExpression originalCopy = (BinaryExpression) p.makeRecursiveCopy_keepOriginalID();
+				BinaryExpression originalCopy = (BinaryExpression) nodeCopyOf(p); //p.makeRecursiveCopy_keepOriginalID();
 				UnaryExpression mutant = new UnaryExpression(UnaryExpression.NOT, originalCopy);
-				mutant.setParent(originalCopy.getParent()); //added 24-05-16
+				mutant.setParent(p.getParent()); //added 24-05-16
 				outputToFile(p, mutant);
 			}
 			p.getLeft().accept(this);

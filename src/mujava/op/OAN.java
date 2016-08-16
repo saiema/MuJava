@@ -44,7 +44,7 @@ public class OAN extends Mutator {
 		if (!(getMutationsLeft(p) > 0))
 			return;
 		for (ExpressionList mutArgs : getCompatibleOverloadingCalls(p)) {
-			MethodCall mutant = (MethodCall) p.makeRecursiveCopy_keepOriginalID();
+			MethodCall mutant = (MethodCall) nodeCopyOf(p);
 			mutant.setArguments(mutArgs);
 			outputToFile(p, mutant);
 		}

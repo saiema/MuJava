@@ -8,10 +8,12 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 import javax.tools.JavaCompiler;
@@ -30,7 +32,7 @@ import mujava.util.JustCodeDigest;
 
 public class TestingTools {
 
-	private static boolean verbose = true;
+	private static boolean verbose = false;
 	public final static int NO_MUTANTS_EXPECTED = -1;
 	public final static List<Pattern> NO_PATTERN_EXPECTED = null;
 	public final static List<MutationExpected> NO_MUTATIONS_EXPECTED = null;
@@ -277,28 +279,46 @@ public class TestingTools {
 		if (prop.mutationsExpected.isEmpty()) {
 			return mutations.isEmpty();
 		}
-		boolean[] mutantsFound = new boolean[prop.mutationsExpected.size()];
-		List<Integer> mutationsIndexes = new LinkedList<Integer>();
-		for (int ci = 0; ci < prop.mutationsExpected.size(); ci++) {
-			mutationsIndexes.add(ci);
-		}
-		Arrays.fill(mutantsFound, false);
-		for (int i = 0; i < mutantsFound.length; i++) {
-			MutationExpected me = prop.mutationsExpected.get(i);
-			int current = 0;
-			while (current < mutationsIndexes.size()) {
-				Integer currentIdx = mutationsIndexes.get(current);
-				Mutation mi = mutations.get(currentIdx);
+//		boolean[] mutantsFound = new boolean[prop.mutationsExpected.size()];
+//		Arrays.fill(mutantsFound, false);
+		boolean allFound = true;
+		Iterator<MutationExpected> mutExpectedIt = prop.mutationsExpected.iterator();
+		while (mutExpectedIt.hasNext()) {
+			MutationExpected me = mutExpectedIt.next();
+			boolean found = false;
+			for (Mutation mi : mutations) {
 				if (me.compareExpectedWithObtained(mi.getOriginal().toFlattenString(), mi.getMutant().toFlattenString(), mi.getAffectedLine())) {
-					mutationsIndexes.remove(current);
-					mutantsFound[i] = true;
 					if (verbose) System.out.println("mutation " + me.toString() + " found");
+					found = true;
 					break;
 				}
-				current++;
+			}
+			if (!found) {
+				if (verbose) System.out.println("mutation " + me.toString() + " not found");
+				allFound = false;
 			}
 		}
-		return arrayAnd(mutantsFound);
+//		List<Integer> mutationsIndexes = new LinkedList<Integer>(); //contains the indexes of the mutations expected, when one is found the corresponding index is removed
+//		for (int ci = 0; ci < prop.mutationsExpected.size(); ci++) {
+//			mutationsIndexes.add(ci);
+//		}
+//		for (int i = 0; i < mutantsFound.length; i++) {
+//			MutationExpected me = prop.mutationsExpected.get(i);
+//			int current = 0;
+//			while (current < mutationsIndexes.size()) {
+//				Integer currentIdx = mutationsIndexes.get(current);
+//				Mutation mi = mutations.get(currentIdx);
+//				if (me.compareExpectedWithObtained(mi.getOriginal().toFlattenString(), mi.getMutant().toFlattenString(), mi.getAffectedLine())) {
+//					mutationsIndexes.remove(current);
+//					mutantsFound[i] = true;
+//					if (verbose) System.out.println("mutation " + me.toString() + " found");
+//					break;
+//				}
+//				current++;
+//			}
+//		}
+//		return arrayAnd(mutantsFound);
+		return allFound;
 	}
 	
 	static public boolean testMutationsShouldBeMerged(Property prop, List<Mutation> mutations) {
@@ -371,14 +391,17 @@ public class TestingTools {
 		if (prop.mutantsExpected == NO_MUTANTS_EXPECTED) {
 			return true;
 		}
-		List<String> checksums = new LinkedList<String>();
+		Map<String, Integer> checksums = new TreeMap<String, Integer>();
 		for (MutantInfo mi : mutantsInfo) {
 			File mutant = new File(mi.getPath());
 			if (mutant.exists() && mutant.isFile()) {
 				String md5cs = checksum(mutant);
 				if (verbose) System.out.println("File : "+mutant.getName()+" | md5 : "+md5cs+'\n');
-				if (!checksums.contains(md5cs)) {
-					checksums.add(md5cs);
+				if (!checksums.containsKey(md5cs)) {
+					checksums.put(md5cs, 1);
+				} else {
+					int currValue = checksums.get(md5cs);
+					checksums.put(md5cs, currValue+1);
 				}
 			} else {
 				if (verbose)  System.out.println("testCorrectNumberOfMutants\nmutant: " + mutant.getPath() + " doesn't exist\n");
@@ -387,6 +410,11 @@ public class TestingTools {
 			if (prop.writeAllToSameFile) break;
 		}
 		if (verbose) System.out.println("testCorrectNumberOfMutants: expected : " + prop.mutantsExpected + " | obtained : " + checksums.size());
+		if (verbose) {
+			for (Entry<String, Integer> cs : checksums.entrySet()) {
+				System.out.println("hash : " + cs.getKey() + " | repeats : " + cs.getValue());
+			}
+		}
 		return checksums.size() == prop.mutantsExpected;
 	}
 	

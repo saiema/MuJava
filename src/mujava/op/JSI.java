@@ -52,7 +52,7 @@ public class JSI extends mujava.op.util.Mutator {
 
 	private void mutate(FieldDeclaration original) {
 		if (!original.getModifiers().contains(ModifierList.STATIC)) {
-			FieldDeclaration mutant = (FieldDeclaration) original.makeRecursiveCopy_keepOriginalID();
+			FieldDeclaration mutant = (FieldDeclaration) nodeCopyOf(original);
 			ModifierList newModifiers = mutant.getModifiers();
 			newModifiers.add(ModifierList.STATIC);
 			outputToFile(original, mutant);
@@ -77,7 +77,7 @@ public class JSI extends mujava.op.util.Mutator {
 
 	private void mutate_dumb(MethodDeclaration original) {
 		if (!original.getModifiers().contains(ModifierList.STATIC)) {
-			MethodDeclaration mutant = (MethodDeclaration) original.makeRecursiveCopy_keepOriginalID();
+			MethodDeclaration mutant = (MethodDeclaration) nodeCopyOf(original);
 			ModifierList newModifiers = mutant.getModifiers();
 			newModifiers.add(ModifierList.STATIC);
 			outputToFile(original, mutant);
@@ -86,7 +86,7 @@ public class JSI extends mujava.op.util.Mutator {
 
 	private void mutate_smart(MethodDeclaration original) {
 		if ((!original.getModifiers().contains(ModifierList.STATIC)) && willCompile(original)) {
-			MethodDeclaration mutant = (MethodDeclaration) original.makeRecursiveCopy_keepOriginalID();
+			MethodDeclaration mutant = (MethodDeclaration) nodeCopyOf(original);
 			ModifierList newModifiers = mutant.getModifiers();
 			newModifiers.add(ModifierList.STATIC);
 			outputToFile(original, mutant);

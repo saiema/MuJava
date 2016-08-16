@@ -118,10 +118,6 @@ import mujava.op.util.Mutator;
  */
 public class NPER extends Mutator {
 	
-	private final Parameter nullPointerExceptionCatchParam = new Parameter(new TypeName("java.lang.NullPointerException"), "npe");
-	private final TypeName systemType = new TypeName("System");
-	private final FieldAccess systemOut = new FieldAccess(systemType, "out");
-	private final MethodCall systemOutPrintln = new MethodCall(systemOut, "println", null);
 	private final String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	private Random rng = new Random();
 	
@@ -129,10 +125,26 @@ public class NPER extends Mutator {
 		super(file_env, comp_unit);
 	}
 	
+	private MethodCall newPrintLn() {
+		return new MethodCall(newSystemOut(), "println", null);
+	}
+	
+	private Parameter newNullPointerExceptionCatchParam() {
+		return new Parameter(new TypeName("java.lang.NullPointerException"), "npe");
+	}
+	
+	private TypeName newSystemType() {
+		return new TypeName("System");
+	}
+	
+	private FieldAccess newSystemOut() {
+		return new FieldAccess(newSystemType(), "out");
+	}
+	
 	public void visit(ForStatement p) throws ParseTreeException {
 		if (getMutationsLeft(p) > 0) {
 			StatementList mutant = new StatementList();
-			ForStatement pCopy = (ForStatement) p.makeRecursiveCopy_keepOriginalID();
+			ForStatement pCopy = (ForStatement) nodeCopyOf(p);
 			
 			VariableDeclarator initBoolVarDecl = createRandomBooleanVar("initOk_", true);
 			VariableDeclaration initBoolVarDeclaration = new VariableDeclaration(new TypeName("boolean"), initBoolVarDecl);
@@ -182,10 +194,10 @@ public class NPER extends Mutator {
 			//expression tryCatch+++
 			TryStatement expressionTry = createNullPointerExceptionTryStatement(expressionEvaluationStatements, new StatementList(), "NPE detected before for condition evaluation");
 			//expression tryCatch---
-			StatementList forStatements = (StatementList) pCopy.getStatements().makeRecursiveCopy_keepOriginalID();
+			StatementList forStatements = (StatementList) pCopy.getStatements();
 			forStatements.add(incrementTry);
-			TryStatement insideForExpressionTry = (TryStatement) expressionTry.makeRecursiveCopy(); 
-			insideForExpressionTry.getCatchList().get(0).getBody().add(new ExpressionStatement((Expression) incrementFailed.makeRecursiveCopy()));
+			TryStatement insideForExpressionTry = (TryStatement) expressionTry; 
+			insideForExpressionTry.getCatchList().get(0).getBody().add(new ExpressionStatement((Expression) incrementFailed));
 			forStatements.add(insideForExpressionTry);
 			WhileStatement whileStatement = createWhileStatement(forStatements, new Variable(condBoolVarDecl.getVariable()));
 			StatementList ifStatements = new StatementList();
@@ -204,7 +216,7 @@ public class NPER extends Mutator {
 	public void visit(WhileStatement p) throws ParseTreeException {
 		if (getMutationsLeft(p) > 0) {
 			StatementList mutant = new StatementList();
-			WhileStatement pCopy = (WhileStatement) p.makeRecursiveCopy_keepOriginalID();
+			WhileStatement pCopy = (WhileStatement) nodeCopyOf(p);
 			VariableDeclarator condBoolVarDecl = createRandomBooleanVar("cond_", false);
 			VariableDeclaration condBoolVarDeclaration = new VariableDeclaration(new TypeName("boolean"), condBoolVarDecl);
 			AssignmentExpression failureAssignment = new AssignmentExpression(new Variable(condBoolVarDecl.getVariable()), AssignmentExpression.EQUALS, Literal.makeLiteral(false));
@@ -212,12 +224,12 @@ public class NPER extends Mutator {
 			StatementList conditionTryStatements = new StatementList();
 			conditionTryStatements.add(new ExpressionStatement(conditionAssignment));
 			TryStatement conditionTryBefore = createNullPointerExceptionTryStatement(conditionTryStatements, new StatementList(), "NPE detected evaluating expression before while");
-			TryStatement conditionTryInside = createNullPointerExceptionTryStatement((StatementList) conditionTryStatements.makeRecursiveCopy_keepOriginalID(), new StatementList(), "NPE detected evaluating expression inside while");
+			TryStatement conditionTryInside = createNullPointerExceptionTryStatement((StatementList) conditionTryStatements, new StatementList(), "NPE detected evaluating expression inside while");
 			conditionTryInside.getCatchList().get(0).getBody().add(new ExpressionStatement(failureAssignment));
 			mutant.add(condBoolVarDeclaration);
 			mutant.add(conditionTryBefore);
 			StatementList whileStatements = new StatementList();
-			whileStatements.addAll((StatementList) pCopy.getStatements().makeCopy_keepOriginalID());
+			whileStatements.addAll((StatementList) pCopy.getStatements());
 			whileStatements.add(conditionTryInside);
 			WhileStatement newWhile = new WhileStatement(new Variable(condBoolVarDecl.getVariable()), whileStatements);
 			mutant.add(newWhile);
@@ -230,7 +242,7 @@ public class NPER extends Mutator {
 
 	public void visit(AssignmentExpression p) throws ParseTreeException {
 		if (getMutationsLeft(p) > 0 && p.getParent() instanceof ExpressionStatement) {
-			AssignmentExpression pCopy = (AssignmentExpression) p.makeRecursiveCopy_keepOriginalID();
+			AssignmentExpression pCopy = (AssignmentExpression) nodeCopyOf(p);
 			TryStatement catchedExpressionStatement = createNullPointerExceptionTryStatement(new StatementList(new ExpressionStatement(pCopy)), new StatementList(), "NPE detected");
 			catchedExpressionStatement.setParent(p.getParent());
 			outputToFile(p, catchedExpressionStatement);
@@ -245,7 +257,7 @@ public class NPER extends Mutator {
 				try {
 					OJClass methodReturnType = OJClass.forName(md.getReturnType().getName());
 					Expression defaultValue = generateDefaultValue(methodReturnType);
-					ReturnStatement originalReturn = (ReturnStatement) p.makeRecursiveCopy_keepOriginalID();
+					ReturnStatement originalReturn = (ReturnStatement) nodeCopyOf(p);
 					StatementList tryStatements = new StatementList(originalReturn);
 					ReturnStatement defaultReturn = new ReturnStatement(defaultValue);
 					StatementList catchStatements = new StatementList(defaultReturn);
@@ -279,12 +291,13 @@ public class NPER extends Mutator {
 	public void visit(IfStatement p) throws ParseTreeException {
 		if (getMutationsLeft(p) > 0) {
 			StatementList mutant = new StatementList();
-			Expression conditionCopy = (Expression) p.getExpression().makeRecursiveCopy_keepOriginalID();
+			IfStatement pCopy = (IfStatement) nodeCopyOf(p);
+			Expression conditionCopy = (Expression) pCopy.getExpression();
 			VariableDeclarator condBoolVarDecl = createRandomBooleanVar("cond_", false);
 			VariableDeclaration condBoolVarDeclaration = new VariableDeclaration(new TypeName("boolean"), condBoolVarDecl);
 			AssignmentExpression failureAssignment = new AssignmentExpression(new Variable(condBoolVarDecl.getVariable()), AssignmentExpression.EQUALS, Literal.makeLiteral(false));
 			AssignmentExpression conditionAssignment = new AssignmentExpression(new Variable(condBoolVarDecl.getVariable()), AssignmentExpression.EQUALS, conditionCopy);
-			IfStatement modifiedIfStatement = (IfStatement) p.makeRecursiveCopy_keepOriginalID();
+			IfStatement modifiedIfStatement = (IfStatement) pCopy;
 			modifiedIfStatement.setExpression(new Variable(condBoolVarDecl.getVariable()));
 			StatementList tryStatements = new StatementList(new ExpressionStatement(conditionAssignment));
 			StatementList catchStatements = new StatementList(new ExpressionStatement(failureAssignment));
@@ -299,10 +312,10 @@ public class NPER extends Mutator {
 	}
 	
 	private TryStatement createNullPointerExceptionTryStatement(StatementList tryPart, StatementList catchPart, String message) {
-		MethodCall customSOPLN = (MethodCall) systemOutPrintln.makeRecursiveCopy();
+		MethodCall customSOPLN = newPrintLn();
 		customSOPLN.setArguments(new ExpressionList(Literal.makeLiteral(message)));
 		catchPart.insertElementAt(new ExpressionStatement(customSOPLN), 0);
-		CatchBlock catchBlock = new CatchBlock(this.nullPointerExceptionCatchParam, catchPart);
+		CatchBlock catchBlock = new CatchBlock(newNullPointerExceptionCatchParam(), catchPart);
 		CatchList catchList = new CatchList(catchBlock);
 		TryStatement createdTryStatement = new TryStatement(tryPart, catchList);
 		return createdTryStatement;

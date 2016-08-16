@@ -61,7 +61,7 @@ public class PCC extends Mutator {
 	}
 
 	private void generateMutants(CastExpression original, OJClass superType, List<String> generics) {
-		CastExpression mutant = (CastExpression) original.makeRecursiveCopy_keepOriginalID();
+		CastExpression mutant = (CastExpression) nodeCopyOf(original);
 		TypeName newCast = TypeName.forOJClass(superType);
 		String genericsString = "";
 		int i = 0;

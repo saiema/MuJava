@@ -35,6 +35,7 @@ public class MutantsInformationHolder {
 		String objectParentAsString = "null";
 		ParseTreeObject parent = object.getParent();
 		while (parent != null) {
+			//System.out.println("getParentAsString : " + (parent==null?"null":parent.toFlattenString()));
 			objectParentAsString = parent.toFlattenString();
 			if (objectParentAsString.compareTo(objectAsString) != 0) {
 				objectParentAsString += " " + parent.getObjectID();
@@ -198,6 +199,7 @@ public class MutantsInformationHolder {
 				StatementList stList = (StatementList) curr.getParent();
 				int s = 0;
 				while (s < stList.size()) {
+					//System.out.println(s);
 					if (isSameObject(stList.get(s), st)) {
 						break;
 					} else {

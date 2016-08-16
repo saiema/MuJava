@@ -125,11 +125,13 @@ public class EOC extends mujava.op.util.Mutator {
 				OJMethod equals = findEquals(getType(left), getType(right));
 				if (equals != null && ((isInNormalMode())||(isInSmartMode() && isNotNull(right)))) {
 					if (compatibleAssignType(equals.getParameterTypes()[0], getType(right))) {
-						Expression leftCopy = (Expression) left.makeRecursiveCopy_keepOriginalID();
-						Expression rightCopy = (Expression) right.makeRecursiveCopy_keepOriginalID();
+						BinaryExpression origCopy = (BinaryExpression) nodeCopyOf(p);
+						Expression leftCopy = origCopy.getLeft();
+						Expression rightCopy = origCopy.getRight();
 						ExpressionList args = new ExpressionList();
 						args.add(rightCopy);
 						MethodCall mutant = new MethodCall(leftCopy, "equals", args);
+						mutant.setParent(p.getParent());//origCopy.replace(mutant);
 						outputToFile(p, mutant);
 					}
 				}

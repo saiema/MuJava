@@ -90,7 +90,7 @@ public class EOA extends mujava.op.util.Mutator {
 			if (cloneType != null) {
 				OJClass cast = getCast(leftType, cloneType);
 				if (!validateClone(leftType, cloneType)) return;
-				Expression originalRight = (Expression) right.makeRecursiveCopy_keepOriginalID();
+				Expression originalRight = (Expression) nodeCopyOf((ParseTreeObject) right);
 				MethodCall mutatedRight = new MethodCall(originalRight, "clone", null);
 				Expression mutatedRightCasted;
 				if (cast != null) {
@@ -124,7 +124,7 @@ public class EOA extends mujava.op.util.Mutator {
 			if (cloneType != null) {
 				OJClass cast = getCast(leftType, cloneType);
 				if (!validateClone(leftType, cloneType)) return;
-				Expression originalRight = (Expression) right.makeRecursiveCopy_keepOriginalID();
+				Expression originalRight = (Expression) nodeCopyOf((ParseTreeObject) right);
 				MethodCall mutatedRight = new MethodCall(originalRight, "clone", null);
 				Expression mutatedRightCasted;
 				if (cast != null) {

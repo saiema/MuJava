@@ -115,10 +115,10 @@ public class ObtainingMutationsTest {
 		emgTAL_3.add(new MutationExpected("true","!true", 5));
 		emgTAL_3.add(new MutationExpected("found","!found", 10));
 		emgTAL_3.add(new MutationExpected("true","found", 5));
-		emgTAL_3.add(new MutationExpected("false","found", 1));
+		//emgTAL_3.add(new MutationExpected("false","found", 1)); //INVALID MUTANTS
 		emgTAL_3.add(new MutationExpected("0","super.hashCode()", 2));
 		emgTAL_3.add(new MutationExpected("0","value", 2));
-		emgTAL_3.add(new MutationExpected("0","i", 2));
+		//emgTAL_3.add(new MutationExpected("0","i", 2)); //INVALID MUTANT
 		Property propTAL_3 = 	new Property(
 									opsTAL_3,
 									"multiMutations/TAL_3",

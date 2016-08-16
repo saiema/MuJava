@@ -23,6 +23,7 @@ import openjava.ptree.FieldAccess;
 import openjava.ptree.MethodCall;
 import openjava.ptree.MethodDeclaration;
 import openjava.ptree.ParseTreeException;
+import openjava.ptree.ParseTreeObject;
 import openjava.ptree.StatementList;
 import openjava.ptree.TypeName;
 import openjava.ptree.Variable;
@@ -96,7 +97,7 @@ public class PCI extends Mutator {
 			}
 		}
 		if (!genericsString.isEmpty()) castType.setGenerics("<"+genericsString+">");
-		Expression originalCopy = (Expression)exp.makeRecursiveCopy_keepOriginalID();
+		Expression originalCopy = (Expression)nodeCopyOf((ParseTreeObject) exp);
 		CastExpression mutant = new CastExpression(castType, originalCopy);
 		if (exp instanceof Variable) {
 			outputToFile((Variable)exp, mutant);

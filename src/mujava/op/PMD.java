@@ -41,7 +41,7 @@ public class PMD extends Mutator {
 			OJClass varType = OJClass.forName(vd.getTypeSpecifier().getName());
 			OJClass parentsType = varType.getSuperclass();
 			if (parentsType == null) return;
-			VariableDeclaration copy = (VariableDeclaration) vd.makeRecursiveCopy_keepOriginalID();
+			VariableDeclaration copy = (VariableDeclaration) nodeCopyOf(vd);
 			copy.setTypeSpecifier(TypeName.forOJClass(parentsType));
 			outputToFile(vd, copy);
 		} catch (OJClassNotFoundException e) {
@@ -60,7 +60,7 @@ public class PMD extends Mutator {
 			OJClass varType = OJClass.forName(fd.getTypeSpecifier().getName());
 			OJClass parentsType = varType.getSuperclass();
 			if (parentsType == null) return;
-			FieldDeclaration copy = (FieldDeclaration) fd.makeRecursiveCopy_keepOriginalID();
+			FieldDeclaration copy = (FieldDeclaration) nodeCopyOf(fd);
 			copy.setTypeSpecifier(TypeName.forOJClass(parentsType));
 			outputToFile(fd, copy);
 		} catch (OJClassNotFoundException e) {
@@ -84,7 +84,7 @@ public class PMD extends Mutator {
 				OJClass varType = OJClass.forName(param.getTypeSpecifier().getName());
 				OJClass parentsType = varType.getSuperclass();
 				if (parentsType == null) return;
-				MethodDeclaration copy = (MethodDeclaration) md.makeRecursiveCopy_keepOriginalID();
+				MethodDeclaration copy = (MethodDeclaration) nodeCopyOf(md);
 				copy.getParameters().get(p).setTypeSpecifier(TypeName.forOJClass(parentsType));
 				outputToFile(md, copy);
 			} catch (OJClassNotFoundException e) {
@@ -109,7 +109,7 @@ public class PMD extends Mutator {
 				OJClass varType = OJClass.forName(param.getTypeSpecifier().getName());
 				OJClass parentsType = varType.getSuperclass();
 				if (parentsType == null) return;
-				ConstructorDeclaration copy = (ConstructorDeclaration) cd.makeRecursiveCopy_keepOriginalID();
+				ConstructorDeclaration copy = (ConstructorDeclaration) nodeCopyOf(cd);
 				copy.getParameters().get(p).setTypeSpecifier(TypeName.forOJClass(parentsType));
 				outputToFile(cd, copy);
 			} catch (OJClassNotFoundException e) {

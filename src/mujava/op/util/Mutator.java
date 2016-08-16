@@ -8,6 +8,8 @@ package mujava.op.util;
 
 import mujava.*;
 import mujava.api.Api;
+import mujava.api.Mutation;
+import mujava.api.MutationOperator;
 
 import java.io.*;
 import java.util.Arrays;
@@ -20,6 +22,7 @@ import java.util.Map;
 
 import openjava.mop.*;
 import openjava.ptree.*;
+import openjava.ptree.ParseTree.COPY_SCOPE;;
 
 /**
  * <p>
@@ -44,6 +47,12 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	protected static final int ALLOW_VOID = 64;
 	protected static final int ALLOW_PARAMS = 128;
 	protected static final int VARIABLES = 256;
+	protected static final int TARGET_IS_NULL = 512;
+	protected static final int TARGET_IS_MUTATED_CLASS_OBJECT = 1024;
+	protected static final int IGNORE_PROTECTED = 2048;
+//	protected static final int ALLOW_PROTECTED_INHERITED = 512;
+//	protected static final int ALLOW_PACKAGED = 1024;
+//	protected static final int ALLOW_PROTECTED = 2048;
 	private static boolean verbose = false;
 	
 	protected Map<String, List<String>> prohibitedMethodsPerClass = null;
@@ -143,7 +152,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * @param b : the class that could be contained in {@code a} : {@code OJClass}
 	 * @param options : options used by this method, the options used by this method are:
 	 * <p><li>ALLOW_PRIVATE: will include private inner classes while checking</li><p> : {@code int}
-	 * @return {@code true} if {@code b} is declared inside {@code a} :
+	 * @return {@code true} iff {@code b} is declared inside {@code a} :
 	 *         {@code boolean}
 	 */
 	protected boolean isInnerClassOf(OJClass a, OJClass b, int options) {
@@ -652,11 +661,27 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 */
 	public OJMethod[] getInheritedMethods(OJClass clazz, int options) {
 		boolean filterFinal = (options & ALLOW_FINAL) == 0;
+//		boolean allowPackaged = (options & ALLOW_PACKAGED) != 0;
+//		boolean allowProtected = (options & ALLOW_PROTECTED_INHERITED) != 0;
+		boolean target_is_null = (options & TARGET_IS_NULL) != 0;
+		boolean target_is_class_to_mutate = (options & TARGET_IS_MUTATED_CLASS_OBJECT) != 0;
+		boolean allowProtected = target_is_null || target_is_class_to_mutate || ((options & IGNORE_PROTECTED) != 0);
+		OJClass self = null;
+		try {
+			self = getSelfType();
+		} catch (ParseTreeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		OJClass base = clazz.getSuperclass();
 		Map<Signature, OJMethod> table = new HashMap<Signature, OJMethod>();
 		while (base != null) {
 			OJMethod[] declaredMethods = filterPrivate(base.getDeclaredMethods(), filterFinal);
 			for (int m = 0; m < declaredMethods.length; m++) {
+				if (declaredMethods[m].getModifiers().isProtected() && !allowProtected) continue;
+				if (declaredMethods[m].getModifiers().isPackaged() && (!base.isInSamePackage(self) && !isInnerClassOf(clazz, base, 0))) {
+					continue;
+				}
 				if (!table.containsKey(declaredMethods[m].signature()))
 					table.put(declaredMethods[m].signature(), declaredMethods[m]);
 			}
@@ -730,9 +755,23 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	public OJField[] getInheritedFields(OJClass clazz, int options) {
 		OJClass base = clazz.getSuperclass();
 		Map<Signature, OJField> table = new HashMap<Signature, OJField>();
+		boolean target_is_null = (options & TARGET_IS_NULL) != 0;
+		boolean target_is_class_to_mutate = (options & TARGET_IS_MUTATED_CLASS_OBJECT) != 0;
+		boolean allowProtected = target_is_null || target_is_class_to_mutate || ((options & IGNORE_PROTECTED) != 0);
+		OJClass self = null;
+		try {
+			self = getSelfType();
+		} catch (ParseTreeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		while (base != null) {
 			OJField[] declaredFields = filterPrivate(base.getDeclaredFields(), options);
 			for (int f = 0; f < declaredFields.length; f++) {
+				if (declaredFields[f].getModifiers().isProtected() && !allowProtected) continue;
+				if (declaredFields[f].getModifiers().isPackaged() && (!base.isInSamePackage(self) && !isInnerClassOf(clazz, base, 0))) {
+					continue;
+				}
 				if (!table.containsKey(declaredFields[f].signature()))
 					table.put(declaredFields[f].signature(), declaredFields[f]);
 			}
@@ -762,9 +801,25 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 */
 	public OJField[] getAllFields(OJClass clazz, int options) {
 		boolean allowNonStatic = (options & ALLOW_NON_STATIC) > 0;
+		boolean allowPrivate = (options & ALLOW_PRIVATE) > 0;
+		boolean target_is_null = (options & TARGET_IS_NULL) != 0;
+		boolean target_is_class_to_mutate = (options & TARGET_IS_MUTATED_CLASS_OBJECT) != 0;
+		boolean allowProtected = target_is_null || target_is_class_to_mutate;
+		OJClass self = null;
+		try {
+			self = getSelfType();
+		} catch (ParseTreeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		boolean isInnerClass = self==null?false:isInnerClassOf(self, clazz, 0);
+		boolean sameClass = self==null?false:self.getName().compareTo(clazz.getName()) == 0;
 		OJField[] declaredFields = clazz.getDeclaredFields();
 		Map<Signature, OJField> table = new HashMap<Signature, OJField>();
 		for (OJField f : declaredFields) {
+			if (f.getModifiers().isPrivate() && !allowPrivate) {
+				continue;
+			}
 			if (!isFieldAllowed(f)) {
 				continue;
 			}
@@ -772,9 +827,13 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			if (!allowNonStatic && isNonStatic) {
 				continue;
 			}
+			if (f.getModifiers().isProtected() && !allowProtected) continue;
+			if (f.getModifiers().isPackaged()) {
+				if ((!sameClass && !isInnerClass) || (isInnerClass && target_is_null)) continue;
+			}
 			table.put(f.signature(), f);
 		}
-		OJField[] inheritedFields = getInheritedFields(clazz);
+		OJField[] inheritedFields = getInheritedFields(clazz, options);
 		for (OJField f : inheritedFields) {
 			if (!isFieldAllowed(f)) {
 				continue;
@@ -807,16 +866,36 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 */
 	public OJMethod[] getAllMethods(OJClass clazz, int options) {
 		boolean allowNonStatic = (options & ALLOW_NON_STATIC) > 0;
+		boolean allowPrivate = (options & ALLOW_PRIVATE) > 0;
+		boolean target_is_null = (options & TARGET_IS_NULL) != 0;
+		boolean target_is_class_to_mutate = (options & TARGET_IS_MUTATED_CLASS_OBJECT) != 0;
+		boolean allowProtected = target_is_null || target_is_class_to_mutate;
+		OJClass self = null;
+		try {
+			self = getSelfType();
+		} catch (ParseTreeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		boolean isInnerClass = self==null?false:isInnerClassOf(self, clazz, 0);
+		boolean sameClass = self==null?false:self.getName().compareTo(clazz.getName()) == 0;
 		OJMethod[] declaredMethods = clazz.getDeclaredMethods();
 		Map<Signature, OJMethod> table = new HashMap<Signature, OJMethod>();
 		for (OJMethod m : declaredMethods) {
 			boolean isNonStatic = !m.getModifiers().isStatic();
+			if (m.getModifiers().isPrivate() && !allowPrivate) {
+				continue;
+			}
 			if (!allowNonStatic && isNonStatic) {
 				continue;
 			}
+			if (m.getModifiers().isProtected() && !allowProtected) continue;
+			if (m.getModifiers().isPackaged()) {
+				if ((!sameClass && !isInnerClass) || (isInnerClass && target_is_null)) continue;
+			}
 			table.put(m.signature(), m);
 		}
-		OJMethod[] inheritedMethods = getInheritedMethods(clazz);
+		OJMethod[] inheritedMethods = getInheritedMethods(clazz, options);
 		for (OJMethod m : inheritedMethods) {
 			boolean isNonStatic = !m.getModifiers().isStatic();
 			if (!allowNonStatic && isNonStatic) {
@@ -906,8 +985,26 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 				result.addAll(vars);
 			}
 		}
+		//checkPrivate(result);
 		return result;
 	}
+	
+//	private void checkPrivate(List<Object> elems) {
+//		for (Object o : elems) {
+//			if (o instanceof OJMethod) {
+//				OJMethod om = (OJMethod) o;
+//				if (om.getModifiers().isPrivate()) System.out.println("Found private method " + om.toString());
+//			} else if (o instanceof OJField) {
+//				OJField of = (OJField) o;
+//				if (of.getModifiers().isPrivate()) System.out.println("Found private field " + of.toString());
+//			} else if (o instanceof Variable) {
+//				Variable ov = (Variable) o;
+//				System.out.println("Found variable " + ov.toString());
+//			} else {
+//				System.out.println("Failed to check " + o.toString());
+//			}
+//		}
+//	}
 	
 	protected boolean isMethodAllowed(OJMethod m) {
 		if (this.prohibitedMethodsPerClass != null) {
@@ -1323,7 +1420,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	public static void setParentOf(ParseTreeObject o, ParseTreeObject o2, boolean useOnlySetParent) {
 		ParseTreeObject newParent = o2.getParent();
 		if (newParent instanceof ExpressionList && !useOnlySetParent) {
-			ExpressionList newParentAsList = (ExpressionList) newParent.makeRecursiveCopy_keepOriginalID();
+			ExpressionList newParentAsList = (ExpressionList) boundedRecursiveCopyOf(newParent, COPY_SCOPE.NODE, true);
 			int indexOfo2 = getArgumentIndex(newParentAsList, (Expression) o2);
 			newParentAsList.remove(indexOfo2);
 			newParentAsList.insertElementAt((Expression)o, indexOfo2);
@@ -1409,6 +1506,42 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 
 	public static boolean checkConstructorNodeAgainstMethodToMutate(String methodToMutate, String[] expectedArgs, ConstructorDeclaration c) {
 		return checkMethodToMutateAgainstNameAndParamList(methodToMutate, expectedArgs, c.getName(), c.getParameters());
+	}
+	
+	public final static ParseTreeObject boundedRecursiveCopyOf(ParseTreeObject o, COPY_SCOPE scope, boolean returnSameNode) {
+		ParseTreeObject boundedCopy = ParseTreeObject.boundedRecursiveCopyOf(o, scope);
+		if (returnSameNode) {
+			Mutation dummyMut = new Mutation(MutationOperator.MULTI, o, o);
+			OLMO olmo = new OLMO(dummyMut);
+			try {
+				return olmo.retrieveOriginalNodeIn(boundedCopy);
+			} catch (ParseTreeException e) {
+				e.printStackTrace();
+				return null;
+			}
+		} else {
+			return boundedCopy;
+		}
+	}
+	
+	public final static ParseTreeObject nodeCopyOf(ParseTreeObject o) {
+		return boundedRecursiveCopyOf(o, COPY_SCOPE.NODE, false);
+	}
+	
+	public final static boolean inSamePackage(OJClass a, OJClass b) {
+		String pa = a.getPackage();
+		String pb = b.getPackage();
+		if (pa == null) {
+			if (pb == null) return true;
+			else return false;
+		} else {
+			if (pb == null) return false;
+			else return pa.compareTo(pb) == 0;
+		}
+	}
+	
+	public final boolean isSelfClass(OJClass a) throws ParseTreeException {
+		return getSelfType().getName().compareTo(a.getName()) == 0;
 	}
 	
 }

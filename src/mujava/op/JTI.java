@@ -67,7 +67,10 @@ public class JTI extends mujava.op.util.Mutator {
 	}
 	
 	private Expression insertThis_smart(Variable var) throws ParseTreeException {
-		OJField[] allFields = getAllFields(getSelfType());
+		int options = TARGET_IS_NULL;
+		options += ALLOW_PRIVATE;
+		options += ALLOW_NON_STATIC;
+		OJField[] allFields = getAllFields(getSelfType(), options);
 		for (OJField f : allFields) {
 			String nameVar = var.toString();
 			String fieldName = f.getName();

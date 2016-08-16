@@ -73,7 +73,7 @@ public class AOIS extends Arithmetic_OP {
 		
 		if (!(getMutationsLeft(p) > 0)) return;
 		if (isArithmeticType(p)) {
-			Variable originalCopy = (Variable) p.makeRecursiveCopy_keepOriginalID();
+			Variable originalCopy = (Variable) nodeCopyOf(p); //p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutantPD = new UnaryExpression(UnaryExpression.POST_DECREMENT, originalCopy);
 			UnaryExpression mutantPI = new UnaryExpression(UnaryExpression.POST_INCREMENT, originalCopy);
 			UnaryExpression mutantPreD = new UnaryExpression(UnaryExpression.PRE_DECREMENT, originalCopy);
@@ -89,7 +89,7 @@ public class AOIS extends Arithmetic_OP {
 
 		if (!(getMutationsLeft(p) > 0)) return;
 		if (isArithmeticType(p)) {
-			FieldAccess originalCopy = (FieldAccess) p.makeRecursiveCopy_keepOriginalID();
+			FieldAccess originalCopy = (FieldAccess) nodeCopyOf(p); //p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutantPD = new UnaryExpression(UnaryExpression.POST_DECREMENT, originalCopy);
 			UnaryExpression mutantPI = new UnaryExpression(UnaryExpression.POST_INCREMENT, originalCopy);
 			UnaryExpression mutantPreD = new UnaryExpression(UnaryExpression.PRE_DECREMENT, originalCopy);

@@ -93,7 +93,7 @@ public class EMM extends mujava.op.util.Mutator {
 				if (set_num > 0) {
 					for (i = 0; i < m.length; i++) {
 						if (find_flag[i]) {
-							mutant = (MethodCall) p.makeRecursiveCopy_keepOriginalID();
+							mutant = (MethodCall) nodeCopyOf(p);
 							mutant.setName(m[i].getName());
 							outputToFile(p, mutant);
 						}

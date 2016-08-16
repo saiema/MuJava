@@ -63,7 +63,7 @@ public class ISD extends Mutator {
 	}
 	
 	private Expression deleteSuper_dumb(Expression p) throws ParseTreeException {
-		Expression copy = (Expression) p.makeRecursiveCopy_keepOriginalID();
+		Expression copy = (Expression) nodeCopyOf((ParseTreeObject) p);
 		Expression prev;
 		Expression current = copy;
 		prev = getPreviousExpression(current);
@@ -89,7 +89,7 @@ public class ISD extends Mutator {
 	}
 
 	private Expression deleteSuper(Expression exp) throws ParseTreeException {
-		Expression copy = (Expression) exp.makeRecursiveCopy_keepOriginalID();
+		Expression copy = (Expression) nodeCopyOf((ParseTreeObject) exp);
 		Expression prev;
 		Expression current = copy;
 		prev = getPreviousExpression(current);

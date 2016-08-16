@@ -175,12 +175,19 @@ public final class Configuration {
 	public static final String ENABLE_REFINEMENT_IN_METHOD_CALL_STATEMENTS = PRVO.ENABLE_REFINEMENT_IN_METHOD_CALL_STATEMENTS;
 	
 	/**
+	 * {@link mujava.op.PRVO#ALLOW_FINAL_MEMBERS}
+	 */
+	public static final String ALLOW_FINAL_MEMBERS = PRVO.ALLOW_FINAL_MEMBERS;
+	
+	/**
 	 * {@link mujava.op.util.OLMO#DEBUG}
 	 */
 	public static final String ENABLE_OLMO_DEBUG_MODE = OLMO.DEBUG;
 	
+	/**
+	 * {@link mujava.app.Core#ENABLE_TOUGHNESS}
+	 */
 	public static final String ENABLE_TOUGHNESS = Core.ENABLE_TOUGHNESS;
-	
 	
 	/**
 	 * Adds an argument an its corresponding value to the configuration

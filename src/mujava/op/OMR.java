@@ -73,8 +73,8 @@ public class OMR extends Mutator {
 		if (!(getMutationsLeft(md) > 0)) return;
 		for (MethodDeclaration amd : this.methods) {
 			if (sameMethods(md, amd)) continue;
-			MethodDeclaration copy = (MethodDeclaration) md.makeRecursiveCopy_keepOriginalID();
-			StatementList newBody = (StatementList) amd.getBody().makeRecursiveCopy_keepOriginalID();
+			MethodDeclaration copy = (MethodDeclaration) nodeCopyOf(md);
+			StatementList newBody = (StatementList) nodeCopyOf(amd.getBody());
 			if (this.smartMode) {
 				adjustBody(newBody, amd.getParameters(), md.getParameters());
 			}

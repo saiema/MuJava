@@ -38,7 +38,7 @@ public class Core {
 	 * <p>
 	 * this option is disabled by default
 	 */
-	public static String ENABLE_TOUGHNESS = "Core_toughness";
+	public static final String ENABLE_TOUGHNESS = "Core_toughness";
 	
 	public static String SEPARATOR = fixBackslash(FileSystems.getDefault().getSeparator());
 	private static Core instance = null;

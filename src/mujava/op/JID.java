@@ -41,7 +41,7 @@ public class JID extends mujava.op.util.Mutator {
 			return;
 
 		if (initializer != null) {
-			FieldDeclaration mutant = (FieldDeclaration) p.makeRecursiveCopy_keepOriginalID();
+			FieldDeclaration mutant = (FieldDeclaration) nodeCopyOf(p);
 			mutant.setInitializer(null);
 			outputToFile(p, mutant);
 		}

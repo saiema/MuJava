@@ -20,6 +20,7 @@ import openjava.ptree.ReturnStatement;
 import openjava.ptree.SelfAccess;
 import openjava.ptree.Variable;
 import openjava.ptree.VariableDeclarator;
+import openjava.ptree.ParseTree.COPY_SCOPE;
 
 /**
  * <p>
@@ -89,7 +90,7 @@ public class ISI extends mujava.op.util.Mutator {
 	}
 	
 	private Expression insertSuper_dumb(Expression exp) throws ParseTreeException {
-		Expression copy = (Expression) exp.makeRecursiveCopy_keepOriginalID();
+		Expression copy = (Expression) nodeCopyOf((ParseTreeObject) exp);
 		Expression prev;
 		Expression current = copy;
 		prev = getPreviousExpression(current);
@@ -117,26 +118,26 @@ public class ISI extends mujava.op.util.Mutator {
 		return null;
 	}
 
-	private Expression insertSuper_smart(Variable var) throws ParseTreeException {
-		OJField[] inheritedFields = getInheritedFields(getSelfType());
-		for (OJField f : inheritedFields) {
-			String nameVar = var.toString();
-			String fieldName = f.getName();
-			if (compareNamesWithoutPackage(nameVar, fieldName)) {
-				OJClass varType = getType(var);
-				OJClass fieldType = f.getType();
-				if (varType.getName().equals(fieldType.getName())) {
-					SelfAccess sa = SelfAccess.makeSuper();
-					FieldAccess fa = new FieldAccess(sa, f.getName());
-					return fa;
-				}
-			}
-		}
-		return null;
-	}
+//	private Expression insertSuper_smart(Variable var) throws ParseTreeException {
+//		OJField[] inheritedFields = getInheritedFields(getSelfType());
+//		for (OJField f : inheritedFields) {
+//			String nameVar = var.toString();
+//			String fieldName = f.getName();
+//			if (compareNamesWithoutPackage(nameVar, fieldName)) {
+//				OJClass varType = getType(var);
+//				OJClass fieldType = f.getType();
+//				if (varType.getName().equals(fieldType.getName())) {
+//					SelfAccess sa = SelfAccess.makeSuper();
+//					FieldAccess fa = new FieldAccess(sa, f.getName());
+//					return fa;
+//				}
+//			}
+//		}
+//		return null;
+//	}
 
 	private Expression insertSuper_smart(Expression field) throws ParseTreeException {
-		Expression copy = (Expression) field.makeRecursiveCopy_keepOriginalID();
+		Expression copy = (Expression) boundedRecursiveCopyOf((ParseTreeObject)field, COPY_SCOPE.STATEMENT, true); //nodeCopyOf((ParseTreeObject) field);
 		Expression prev;
 		Expression current = copy;
 		prev = getPreviousExpression(current);
@@ -150,8 +151,10 @@ public class ISI extends mujava.op.util.Mutator {
 			prev = getPreviousExpression(current);
 		}
 		OJClass currentType = getType(current);
+		int options = IGNORE_PROTECTED;
+		options += ALLOW_NON_STATIC;
 		if (current instanceof Variable) {
-			OJField[] inheritedFields = getInheritedFields(getSelfType());
+			OJField[] inheritedFields = getInheritedFields(getSelfType(), options);
 			for (OJField f : inheritedFields) {
 				String currentName = ((Variable) current).toString();
 				String fieldName = f.getName();
@@ -161,12 +164,12 @@ public class ISI extends mujava.op.util.Mutator {
 						SelfAccess sa = SelfAccess.makeSuper();
 						FieldAccess fa = new FieldAccess(sa, f.getName());
 						current.replace(fa);
-						return copy;
+						return fa;
 					}
 				}
 			}
 		} else if (current instanceof FieldAccess) {
-			OJField[] inheritedFields = getInheritedFields(getSelfType());
+			OJField[] inheritedFields = getInheritedFields(getSelfType(), options);
 			for (OJField f : inheritedFields) {
 				String currentName = ((FieldAccess) current).getName();
 				String fieldName = f.getName();
@@ -179,7 +182,7 @@ public class ISI extends mujava.op.util.Mutator {
 				}
 			}
 		} else if (current instanceof MethodCall) {
-			OJMethod[] inheritedMethods = getInheritedMethods(getSelfType());
+			OJMethod[] inheritedMethods = getInheritedMethods(getSelfType(), options);
 			for (OJMethod m : inheritedMethods) {
 				if (compatibleSignatures((MethodCall) current, m)) {
 					((MethodCall) current).setReferenceExpr(SelfAccess.makeSuper());
@@ -187,7 +190,7 @@ public class ISI extends mujava.op.util.Mutator {
 				}
 			}
 		} else {
-			// it should never reach this
+			throw new IllegalStateException("it should never reach this");
 		}
 		return null;
 	}

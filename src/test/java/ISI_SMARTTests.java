@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import mujava.api.MutantsInformationHolder;
 import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
@@ -29,7 +30,6 @@ public class ISI_SMARTTests {
 		this.prop = prop;
 		this.mutantsInfo = mutantsInfo;
 	}
-	
 	
 	@Parameters
 	public static Collection<Object[]> firstValues() {
