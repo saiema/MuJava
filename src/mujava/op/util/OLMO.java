@@ -8,6 +8,7 @@ import java.util.Map;
 import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.MutationOperator;
+import mujava.app.MutationInformation;
 import mujava.api.Mutation;
 import openjava.ptree.AllocationExpression;
 import openjava.ptree.Annotation;
@@ -109,6 +110,7 @@ public class OLMO extends ParseTreeVisitor {
 	private boolean guardMutation_mutGenLimitLineFound;
 	
 	private boolean searchingNode = false;
+	private boolean searchMutantNode = false;
 	
 	private boolean decreaseMutGenLimit;
 	
@@ -156,7 +158,7 @@ public class OLMO extends ParseTreeVisitor {
 	 */
 	public OLMO(java.util.List<Mutation> mis) {
 		super();
-		this.mis = orderMutants(mis);
+		this.mis = OLMO.orderMutants(mis);
 		ParseTreeObject lastNode = this.mis.get(this.mis.size()-1).getOriginal();
 		ParseTreeObject statementToMutate = (ParseTreeObject) getNodeStatement(lastNode);
 		Mutation statementMutation = new Mutation(MutationOperator.MULTI, statementToMutate, Mutator.nodeCopyOf(statementToMutate));
@@ -176,6 +178,16 @@ public class OLMO extends ParseTreeVisitor {
 		this.nodeFound = false;
 		this.nodeSearched = null;
 		this.searchingNode = true;
+		this.searchMutantNode = false;
+		acceptPTO(pto);
+		return this.nodeFound;
+	}
+	
+	public boolean findMutantNodeIn(ParseTreeObject pto) throws ParseTreeException {
+		this.nodeFound = false;
+		this.nodeSearched = null;
+		this.searchingNode = true;
+		this.searchMutantNode = true;
 		acceptPTO(pto);
 		return this.nodeFound;
 	}
@@ -232,7 +244,7 @@ public class OLMO extends ParseTreeVisitor {
 		acceptPTO(toMutate.getMutant());
 	}
 
-	private java.util.List<Mutation> orderMutants(java.util.List<Mutation> originalList) {
+	public static java.util.List<Mutation> orderMutants(java.util.List<Mutation> originalList) {
 		java.util.List<Mutation> orderedList = new LinkedList<Mutation>();
 		Map<Integer, java.util.List<Mutation>> orderingMap = new HashMap<Integer, java.util.List<Mutation>>();
 		for (Mutation mi : originalList) {
@@ -254,10 +266,32 @@ public class OLMO extends ParseTreeVisitor {
 		return orderedList;
 	}
 	
+	public static java.util.List<MutationInformation> orderMutationsInformation(java.util.List<MutationInformation> originalList) {
+		java.util.List<MutationInformation> orderedList = new LinkedList<MutationInformation>();
+		Map<Integer, java.util.List<MutationInformation>> orderingMap = new HashMap<Integer, java.util.List<MutationInformation>>();
+		for (MutationInformation mi : originalList) {
+			Integer value = nodeValue(mi.getMutation().getOriginal());
+			if (orderingMap.containsKey(value)) {
+				orderingMap.get(value).add(mi);
+			} else {
+				java.util.List<MutationInformation> mutantIdentifiers = new LinkedList<MutationInformation>();
+				mutantIdentifiers.add(mi);
+				orderingMap.put(value, mutantIdentifiers);
+			}
+		}
+		java.util.List<Integer> keys = new LinkedList<Integer>();
+		keys.addAll(orderingMap.keySet());
+		Collections.sort(keys);
+		for (Integer key : keys) {
+			orderedList.addAll(orderingMap.get(key));
+		}
+		return orderedList;
+	}
+	
 	/*
 	 * The bigger the value, the "smaller" the node
 	 */
-	private int nodeValue(ParseTreeObject obj) {
+	public static int nodeValue(ParseTreeObject obj) {
 		int value = 0;
 		ParseTreeObject current = obj;
 		while (current != null && !(current instanceof Statement)) {
@@ -268,7 +302,7 @@ public class OLMO extends ParseTreeVisitor {
 	}
 	
 	private ParseTreeObject getNodeStatement(ParseTreeObject obj) {
-		ParseTreeObject current = Mutator.boundedRecursiveCopyOf(obj, COPY_SCOPE.STATEMENT, true);
+		ParseTreeObject current = Mutator.boundedRecursiveCopyOf(obj, COPY_SCOPE.STATEMENT, false);
 		while (current != null && !(current instanceof Statement)) {
 			current = current.getParent();
 		}
@@ -320,7 +354,11 @@ public class OLMO extends ParseTreeVisitor {
 						e.printStackTrace();
 					}
 				}
-				if (isSameObject(this.mi.getOriginal(), pto)) {
+				ParseTreeObject searchedNode = this.mi.getOriginal();
+				if (this.searchingNode && this.searchMutantNode) {
+					searchedNode = this.mi.getMutant();
+				}
+				if (isSameObject(searchedNode, pto)) {
 					if (this.decreaseMutGenLimit) {
 						ParseTreeObject parent = null;
 						parent = mujava.op.util.Mutator.getMutationsLimitParent((pto));
@@ -334,7 +372,7 @@ public class OLMO extends ParseTreeVisitor {
 						return;
 					} else {
 						//pto.replace(this.mi.getMutant());
-						pto = replace(pto, this.mi.getMutant());
+						pto = replace(pto, Mutator.nodeCopyOf(this.mi.getMutant()));
 						if (!this.modifyAST) return;
 					}
 				}

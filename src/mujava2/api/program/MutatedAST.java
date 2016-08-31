@@ -378,6 +378,16 @@ public class MutatedAST {
 			}
 			muts.add(minfo);
 		}
+		Map<String, Map<Integer, List<MutationInformation>>> orderedMutationsPerLinePerMethod = new TreeMap<String, Map<Integer, List<MutationInformation>>>();
+		for (Entry<String, Map<Integer, List<MutationInformation>>> mutationsPerMethod : this.mutationsPerLinePerMethod.entrySet()) {
+			Map<Integer, List<MutationInformation>> orderedMutationsPerLine = new TreeMap<Integer, List<MutationInformation>>();
+			for (Entry<Integer, List<MutationInformation>> mpl : mutationsPerMethod.getValue().entrySet()) {
+				List<MutationInformation> orderedMutations = OLMO.orderMutationsInformation(mpl.getValue());
+				orderedMutationsPerLine.put(mpl.getKey(), orderedMutations);
+			}
+			orderedMutationsPerLinePerMethod.put(mutationsPerMethod.getKey(), orderedMutationsPerLine);
+		}
+		this.mutationsPerLinePerMethod = orderedMutationsPerLinePerMethod;
 		//CHECK MUTATIONS FOR MERGING COMPATIBILITY
 		boolean compatible = true;
 		for (Entry<String, Map<Integer, List<MutationInformation>>> mutationsPerMethod : this.mutationsPerLinePerMethod.entrySet()) {
@@ -392,9 +402,12 @@ public class MutatedAST {
 					List<Mutation> mutationsList = new LinkedList<>();
 					for (MutationInformation minfo : muts) mutationsList.add(minfo.getMutation());
 					try {
-						compatible = mujava.app.Mutator.checkMergingCompatibility(mutationsList);
+						//compatible = mujava.app.Mutator.checkMergingCompatibility(mutationsList, true);
+						compatible = mujava.app.Mutator.verifyApplicationOfMutations(mutationsList);
 						if (!compatible) {
 							error = "Incompatibilty found in mutations for method " + method + " line " + line;
+						} else {
+							reorder(muts, mutationsList);
 						}
 					} catch (ParseTreeException e) {
 						compatible = false;
@@ -404,6 +417,23 @@ public class MutatedAST {
 			}
 		}
 		return error;
+	}
+	
+	private void reorder(List<MutationInformation> unordered, List<Mutation> ordered) {
+		List<MutationInformation> res = new LinkedList<MutationInformation>();
+		for (Mutation m : ordered) {
+			int id = m.mutationID();
+			for (int i = 0; i < unordered.size(); i++) {
+				MutationInformation minf = unordered.get(i);
+				if (minf.getMutation().mutationID() == id) {
+					res.add(minf);
+					unordered.remove(i);
+					break;
+				}
+			}
+		}
+		unordered.clear();
+		unordered.addAll(res);
 	}
 	
 	private String mergePaths(String p1, String p2) {

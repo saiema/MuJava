@@ -35,7 +35,7 @@ public class COD extends MethodLevelMutator {
 		if ( op == UnaryExpression.NOT) {
 			UnaryExpression mutant = (UnaryExpression) boundedRecursiveCopyOf(p, COPY_SCOPE.STATEMENT, true);//nodeCopyOf(p);
 			Expression expr = mutant.getExpression();
-//			mutant.replace(expr);
+			mutant.replace(expr);
 //			Expression mutant = (Expression) p.getExpression().makeRecursiveCopy_keepOriginalID();
 //			((ParseTreeObject)mutant).setParent(p.getParent());
 			outputToFile(p, expr);

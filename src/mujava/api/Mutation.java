@@ -577,6 +577,10 @@ public class Mutation {
 
 	@Override
 	public String toString() {
-		return "(" + mutOp + ", " + original + ", " + mutant + ")";
+		return "(" + mutOp + ", " + original + ", " + mutant + ", ID[" + mutationID() + "]" + ")";
+	}
+	
+	public int mutationID() {
+		return (original.getObjectID() * 10000) + mutant.getObjectID();
 	}
 }

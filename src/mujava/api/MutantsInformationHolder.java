@@ -214,11 +214,12 @@ public class MutantsInformationHolder {
 		return distance;
 	}
 	
-	private String nodeRepresentation(ParseTreeObject o) {
-		ParseTreeObject statement = getClosestNodeToStatement(o);
-		ParseTreeObject declaration = getEnclosingDeclaration(o);
+	private String nodeRepresentation(ParseTreeObject o, ParseTreeObject m, boolean original) {
+		ParseTreeObject obj = original?o:m;
+		ParseTreeObject statement = getClosestNodeToStatement(obj);
+		ParseTreeObject declaration = getEnclosingDeclaration(obj);
 		String declarationProfile = declaration.toFlattenString().split("\\{")[0];
-		String statementAsString = statement.toFlattenString();
+		String statementAsString = original?statement.toString():statement.toString(o, m);
 		return statementAsString + "(distance to statement " + distanceToEnclosingDeclaration(o) + ")" + " from " + declarationProfile;
 	}
 
@@ -226,8 +227,8 @@ public class MutantsInformationHolder {
 		if (!MutantsInformationHolder.usePrototypeChecking && isEqualToOriginal(original, (ParseTreeObject)mutant)) return;
 		
 		if (MutantsInformationHolder.usePrototypeChecking) {
-			String mutRep = nodeRepresentation(mutant);
-			String origRep = nodeRepresentation(original);
+			String mutRep = nodeRepresentation(original, mutant, false);
+			String origRep = nodeRepresentation(original, mutant, true);
 			if (verbose) {
 				System.out.println("Prototype checking");
 				System.out.println("orig: " + origRep);
@@ -237,8 +238,14 @@ public class MutantsInformationHolder {
 				return;
 			}
 			if (MutantsInformationHolder.generatedMutations.contains(mutRep)) {
+				if (verbose) {
+					System.out.println("mutant " + mutRep + " already generated");
+				}
 				return;
 			} else if (!MutantsInformationHolder.generatedMutations.contains(origRep)) {
+				if (verbose) {
+					System.out.println(original.toFlattenString() + " ==(" + mutOp.toString() + ")==> " + mutant.toFlattenString());
+				}
 				MutantsInformationHolder.generatedMutations.add(origRep);
 			}
 			MutantsInformationHolder.generatedMutations.add(mutRep);

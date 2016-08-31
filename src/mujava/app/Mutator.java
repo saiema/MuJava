@@ -93,6 +93,7 @@ public class Mutator implements Runnable{
 	private OpenJavaException ojerror = null;
 	private ClassNotFoundException cnferror = null;
 	private static Integer index = 0;
+	private static boolean verbose = false;
 	
 	private List<List<Mutation>> Mutationss = null;
 	/**
@@ -144,6 +145,10 @@ public class Mutator implements Runnable{
 	 */
 	public void setRequest(MutationRequest req) {
 		this.request = req;
+	}
+	
+	public static void setVerbose(boolean v) {
+		Mutator.verbose = v;
 	}
 	
 	/**
@@ -491,10 +496,11 @@ public class Mutator implements Runnable{
 	 * <li> given two mutations m1 (ori1, mut1) and m2 (ori2, mut2) if m1 affects ori2 then it must affect mut2 </li>
 	 *
 	 * @param mutations : the mutations : {@code List<Mutation>}
+	 * @param checkInOrder : mutations on the same line will be checked in order and not everyone against everyone 
 	 * @return true if mutations can be merged : {@code boolean}
 	 * @throws ParseTreeException
 	 */
-	public static boolean checkMergingCompatibility(List<Mutation> mutations) throws ParseTreeException {
+	public static boolean checkMergingCompatibility(List<Mutation> mutations, boolean checkInOrder) throws ParseTreeException {
 		boolean canBeMerged = !mutations.isEmpty() && mutationsAreMethodLevel(mutations);
 		if (!canBeMerged) return false;
 		int affectedLine = 0;
@@ -505,12 +511,16 @@ public class Mutator implements Runnable{
 				canBeMerged = false;
 				break;
 			}
-			if (!mutationCanBeApplied(mi, mutations)) {
+			if (!mutationCanBeApplied(mi, mutations, checkInOrder)) {
 				canBeMerged = false;
 				break;
 			}
 		}
 		return canBeMerged;
+	}
+	
+	public static boolean checkMergingCompatibility(List<Mutation> mutations) throws ParseTreeException {
+		return checkMergingCompatibility(mutations, false);
 	}
 	
 	private static boolean mutationsAreMethodLevel(List<Mutation> mutations) {
@@ -522,17 +532,75 @@ public class Mutator implements Runnable{
 		return true;
 	}
 	
-	private static boolean mutationCanBeApplied(Mutation mut, List<Mutation> mutations) throws ParseTreeException {
+	private static boolean mutationCanBeApplied(Mutation mut, List<Mutation> mutations, boolean checkInOrder) throws ParseTreeException {
 		OLMO olmo;
 		boolean res = true;
+		boolean mutReached = false;
 		for (Mutation mi : mutations) {
-			if (mut == mi) continue;
+			if (checkInOrder && !mutReached) {
+				if (mut != mi) {
+					continue;
+				} else {
+					mutReached = true;
+					continue;
+				}
+			} else if (mut == mi) continue;
 			olmo = new OLMO(mut);
 			boolean canBeAppliedToOriginal = olmo.findOriginalNodeIn(mi.getOriginal());
 			boolean canBeAppliedToMutant = olmo.findOriginalNodeIn(mi.getMutant());
 			res &= (canBeAppliedToOriginal == canBeAppliedToMutant);
+			if (!res && verbose) {
+				System.out.println(mut.toString() + " is not compatible with " + mi.toString());
+			}
+			if (!res) break;
 		}
 		return res;
+	}
+	
+	public static boolean verifyApplicationOfMutations(List<Mutation> mutations) throws ParseTreeException {
+		Mutation[] mutationsArray = mutations.toArray(new Mutation[mutations.size()]);
+		boolean swapOcurred = false;
+		boolean incompatible = false;
+		int j, muts = mutations.size(), i = 0;
+		while (i < muts - 1) {
+			swapOcurred = false;
+			incompatible = false;
+			Mutation aMut = mutationsArray[i];
+			j = i + 1;
+			while (j < muts) {
+				Mutation bMut = mutationsArray[j];
+				OLMO olmo = new OLMO(aMut);
+				boolean aOrigInbOrig = olmo.findOriginalNodeIn(bMut.getOriginal());
+				boolean aOrigInbMut = olmo.findOriginalNodeIn(bMut.getMutant());
+				if ((aOrigInbOrig && aOrigInbMut) || (!aOrigInbOrig && aOrigInbMut)) {
+					break;
+				} //keep order
+				else if (aOrigInbOrig && !aOrigInbMut) {
+					//check inversion
+					olmo = new OLMO(bMut);
+					boolean bOrigInaOrig = olmo.findOriginalNodeIn(aMut.getOriginal());
+					boolean bOrigInaMut = olmo.findOriginalNodeIn(aMut.getMutant());
+					if (bOrigInaOrig && bOrigInaMut) {
+						//invert
+						mutationsArray[i] = bMut;
+						mutationsArray[j] = aMut;
+						incompatible = false;
+						swapOcurred = true;
+						break;
+					} else {
+						incompatible = true;
+					}
+				} else if (!aOrigInbOrig && !aOrigInbMut) {
+					//Mutations are not related (affects different nodes)
+				}
+				j++;
+			}
+			if (incompatible && !swapOcurred) return false;
+			if (swapOcurred) i = 0; else i++;
+		}
+		mutations.clear();
+		for (Mutation m : mutationsArray) mutations.add(m);
+		return true;
 	}
 	
 	/**

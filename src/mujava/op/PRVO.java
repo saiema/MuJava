@@ -56,6 +56,7 @@ import openjava.ptree.Variable;
 import openjava.ptree.VariableDeclaration;
 import openjava.ptree.VariableDeclarator;
 import openjava.ptree.WhileStatement;
+import openjava.ptree.ParseTree.COPY_SCOPE;
 
 import java.util.List;
 
@@ -2449,6 +2450,8 @@ public class PRVO extends mujava.op.util.Mutator {
 				} else {
 					mutantNode = (ParseTreeObject) lit;
 				}
+				ParseTreeObject origCopy = boundedRecursiveCopyOf((ParseTreeObject) orig, COPY_SCOPE.STATEMENT, true);
+				origCopy.replace(mutantNode);
 				outputToFile((ParseTreeObject) orig/*.makeCopy_keepOriginalID()*/, mutantNode);
 			}
 		}

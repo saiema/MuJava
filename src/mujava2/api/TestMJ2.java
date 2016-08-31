@@ -32,23 +32,23 @@ import static mujava.api.MutationOperator.*;
 public class TestMJ2 {
 
 	public static void main(String[] args) throws OpenJavaException, IOException, ParseTreeException {
-		Configuration.add(Configuration.USE_MUTGENLIMIT, Boolean.FALSE);
+		Configuration.add(Configuration.USE_MUTGENLIMIT, Boolean.TRUE);
 		
 		
 		JavaAST utilBooleanOpsAST = JavaAST.fromFile("test", "utils.BooleanOps");
-		MemberDeclarationList decls = utilBooleanOpsAST.getCompUnit().getPublicClass().getBody();
-		MethodDeclaration andMethod = (MethodDeclaration) decls.get(1);
-		StatementList andMethodBody = andMethod.getBody();
-		IfStatement ifStatement = (IfStatement) andMethodBody.get(2);
-		BinaryExpression ifCond = (BinaryExpression) ifStatement.getExpression();
-		UnaryExpression rightExpression = (UnaryExpression) ifCond.getRight();
-		Variable auxBVar = (Variable) rightExpression.getExpression();
-		ParseTree auxBVarNodeCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.NODE);
-		ParseTree auxBVarStatementCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.STATEMENT);
-		ParseTree auxBVarStatementListCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.STATEMENT_LIST);
-		ParseTree auxBVarMemberDeclarationCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.MEMBER_DECLARATION);
-		ParseTree auxBVarCompilationUnitCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.COMPILATION_UNIT);
-		ParseTree auxBVarRecCopy = auxBVar.makeRecursiveCopy_keepOriginalID();
+//		MemberDeclarationList decls = utilBooleanOpsAST.getCompUnit().getPublicClass().getBody();
+//		MethodDeclaration andMethod = (MethodDeclaration) decls.get(1);
+//		StatementList andMethodBody = andMethod.getBody();
+//		IfStatement ifStatement = (IfStatement) andMethodBody.get(2);
+//		BinaryExpression ifCond = (BinaryExpression) ifStatement.getExpression();
+//		UnaryExpression rightExpression = (UnaryExpression) ifCond.getRight();
+//		Variable auxBVar = (Variable) rightExpression.getExpression();
+//		ParseTree auxBVarNodeCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.NODE);
+//		ParseTree auxBVarStatementCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.STATEMENT);
+//		ParseTree auxBVarStatementListCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.STATEMENT_LIST);
+//		ParseTree auxBVarMemberDeclarationCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.MEMBER_DECLARATION);
+//		ParseTree auxBVarCompilationUnitCopy = auxBVar.makeRecursiveCopy_keepOriginalID(COPY_SCOPE.COMPILATION_UNIT);
+//		ParseTree auxBVarRecCopy = auxBVar.makeRecursiveCopy_keepOriginalID();
 //		byte[] hash = utilBooleanOpsAST.writeInFolder(new File("/home/stein/Desktop/TEST/original/"), true);
 //		System.out.println("utils.BooleanOps AST written with hash : " + Arrays.toString(hash));
 //		
@@ -86,22 +86,28 @@ public class TestMJ2 {
 //		}
 		
 		MutantsInformationHolder.usePrototypeChecking(true);
-		MutantsInformationHolder.setVerbose(true);
+		MutantsInformationHolder.setVerbose(false);
 		
 		Collection<MutationOperator> ops = Arrays.asList(/*COR, ROR, */COI, COD, AORU, PRVOU_REFINED);
-		Collection<String> methods = Arrays.asList("and", "or");
+		Collection<String> methods = Arrays.asList("xnor");
 		MutationRequest req = new MutationRequest("test", "utils.BooleanOps", ops, methods, false, false, 3);
-		List<MutatedAST> mutants = Api.generateLastGeneration(req);
+		Api.setVerbose(true);
+		List<MutatedAST> mutants = Api.generateMutants(req);
+//		List<MutatedAST> mutants = Api.generateLastGeneration(req);
 		for (MutatedAST m : mutants) {
 			System.out.println(m.toString());
+//			m.writeInFolder(new File("/home/stein/Desktop/TEST/nonASTalteringMutants/"));
 		}
-		Mutator mutator = new Mutator(utilBooleanOpsAST, req);
-		Collection<MutationInformation> mutations = mutator.generateMutations();
-		System.out.println("Mutations for utils.BooleanOps:\n");
-		for (MutationInformation minfo : mutations) {
-			System.out.println(minfo.toString()+"\n");
-		}
-//		//0, 4, 5, 6, 18, 40, 44, 45, 46, 47
+//		Mutator mutator = new Mutator(utilBooleanOpsAST, req);
+//		long initTime = System.currentTimeMillis();
+//		Collection<MutationInformation> mutations = mutator.generateMutations();
+//		long finishTime = System.currentTimeMillis();
+//		System.out.println("Time used: " + (finishTime-initTime) + "ms");
+//		System.out.println("Mutations for utils.BooleanOps (" + mutations.size() + "):\n");
+//		for (MutationInformation minfo : mutations) {
+//			System.out.println(minfo.toString()+"\n");
+//		}
+////		//0, 4, 5, 6, 18, 40, 44, 45, 46, 47
 //		List<MutationInformation> mutationsAsList = new LinkedList<>(mutations);
 //		List<MutationInformation> multiMutantMutations = new LinkedList<>();
 //		multiMutantMutations.add(mutationsAsList.get(0));
@@ -111,9 +117,10 @@ public class TestMJ2 {
 //		multiMutantMutations.add(mutationsAsList.get(18));
 //		multiMutantMutations.add(mutationsAsList.get(40));
 //		multiMutantMutations.add(mutationsAsList.get(44));
-//		multiMutantMutations.add(mutationsAsList.get(45));
-//		multiMutantMutations.add(mutationsAsList.get(46));
+////		multiMutantMutations.add(mutationsAsList.get(45));
+////		multiMutantMutations.add(mutationsAsList.get(46));
 //		multiMutantMutations.add(mutationsAsList.get(47));
+//		mujava.app.Mutator.setVerbose(true);
 //		MutatedAST mutatedAST = new MutatedAST(utilBooleanOpsAST, multiMutantMutations);
 //		mutatedAST.writeInFolder(new File("/home/stein/Desktop/TEST/nonASTalteringMutants/"));
 //		mutatedAST.applyMutations().writeInFolder(new File("/home/stein/Desktop/TEST/ASTalteringMutants/"), true);

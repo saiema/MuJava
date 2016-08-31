@@ -15,6 +15,12 @@ import openjava.ptree.ParseTreeException;
 
 public class Api {
 	
+	private static boolean verbose = false;
+	
+	public static void setVerbose(boolean v) {
+		Api.verbose = v;
+	}
+	
 	public static List<MutatedAST> generateMutants(MutationRequest request) throws OpenJavaException, ParseTreeException {
 		
 		//GENERATE ORIGINAL AST
@@ -26,8 +32,20 @@ public class Api {
 		
 		JavaAST ast = JavaAST.fromFile(request.getLocation(), request.getClassToMutate());
 		
+		if (Api.verbose) {
+			System.out.println("Mutating " + ast.toString() + "\n");
+		}
+		
 		Mutator mutator = new Mutator(ast, request);
 		Collection<MutationInformation> mutations = mutator.generateMutations();
+		
+		if (Api.verbose) {
+			System.out.println("First generation mutations\n");
+			for (MutationInformation minfo : mutations) {
+				System.out.println(minfo.toString());
+			}
+			System.out.println();
+		}
 		
 		for (MutationInformation minfo : mutations) {
 			MutatedAST mast = new MutatedAST(ast, minfo);
@@ -43,13 +61,27 @@ public class Api {
 			
 			//APPLY MUTATIONS TO mast
 			JavaAST ast = mast.applyMutations();
+			if (Api.verbose) {
+				System.out.println("Generating " + currGen + " generation mutations for \n" + mast.toString() + "\n");
+			}
 			Mutator mutator = new Mutator(ast, request);
 			Collection<MutationInformation> mutations = mutator.generateMutations();
+			if (Api.verbose) {
+				for (MutationInformation minfo : mutations) {
+					System.out.println(minfo.toString());
+				}
+				System.out.println();
+			}
 			//UNDO MUTATIONS TO mast
 			mast.undoMutations();
+			if (Api.verbose) {
+				System.out.println("Undo applied mutations\n" + mast.toString() + "\n");
+				System.out.println(currGen + " generation mutants\n");
+			}
 			for (MutationInformation minfo : mutations) {
 				MutatedAST newMast = new MutatedAST(mast, minfo);
-				result.add(mast);
+				if (Api.verbose) System.out.println(newMast.toString());
+				result.add(newMast);
 				generateMutants(newMast, request, currGen+1, result);
 			}
 			
