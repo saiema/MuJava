@@ -29,6 +29,7 @@ public class MutatedAST {
 	private List<MutationInformation> mutations;
 	private Map<String, Map<Integer, List<MutationInformation>>> mutationsPerLinePerMethod;
 	private Map<String, Map<Integer, Boolean>> mutationsAppliedPerLinePerMethod;
+	private File lastOutputFile = null;
 //	private boolean mutationsApplied;
 	
 	public MutatedAST(JavaAST original, List<MutationInformation> mutations) {
@@ -277,6 +278,7 @@ public class MutatedAST {
 		this.original.getCompUnit().accept(writer);
 		pw.flush();  
 		pw.close();
+		this.lastOutputFile = file;
 		return JustCodeDigest.digest(file);
 	}
 	
@@ -507,6 +509,13 @@ public class MutatedAST {
 			res += this.parent.mutationsToString();
 		}
 		return res;
+	}
+	
+	/**
+	 * @return the last file in which this {@code MutatedAST} was written
+	 */
+	public File lastOutputFile() {
+		return this.lastOutputFile;
 	}
 
 }

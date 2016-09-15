@@ -44,7 +44,7 @@ public class LogItem {
 	
 	@Override
 	public String toString() {
-		return indent() + "Origin: " + this.origin.getName() + "\n" + indent() + "Message: " + this.logMsg + "\n" + (this.exc!=null?(indent() + printException() + "\n" + indent() + printTrace()):"");
+		return indent() + "Origin: " + this.origin.getName() + "\n" + indent() + "Message: " + indentText(this.logMsg) + "\n" + (this.exc!=null?(indent() + printException() + "\n" + indent() + printTrace()):"");
 	}
 	
 	private String printException() {
@@ -69,6 +69,15 @@ public class LogItem {
 		String indent = "";
 		for (int i = 0; i < this.lvl; i++) indent += this.INDENT;
 		return indent;
+	}
+	
+	private String indentText(String text) {
+		String[] lines = text.split("\n");
+		String res = "";
+		for (String l : lines) {
+			res += indent() + l + "\n";
+		}
+		return res;
 	}
 
 }

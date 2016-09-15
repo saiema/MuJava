@@ -16,13 +16,23 @@ import java.util.regex.Pattern;
  * Utility class to obtain a md5 digest of a java file prior to strip all coments and whitespace
  *
  * @author Simón Emmanuel Gutiérrez Brida
- * @version 0.3
+ * @version 0.4
  */
 public class JustCodeDigest {
 	private static final Pattern COMMENT_JAVADOC = Pattern.compile("/\\*\\*(.*)\\*/");
 	private static final Pattern COMMENT_MULTILINE = Pattern.compile("/\\*((?<!\\*).*)\\*/");
 	private static final Pattern COMMENT_SINGLE = Pattern.compile("//.*");
 	private static final Pattern WHITESPACE = Pattern.compile("\\s");
+	private static boolean printExceptions = false;
+	private static Exception lastException = null;
+	
+	public static void printExceptions(boolean b) {
+		JustCodeDigest.printExceptions = b;
+	}
+	
+	public static Exception getLastException() {
+		return JustCodeDigest.lastException;
+	}
 
 	private static String getJustCode(String original) {
 		Matcher javadoc = COMMENT_JAVADOC.matcher(original);
@@ -40,23 +50,30 @@ public class JustCodeDigest {
 		String code = justCode?getJustCode(original):original;
 		InputStream is = new ByteArrayInputStream(code.getBytes());
 		DigestInputStream dis = null;
+		JustCodeDigest.lastException = null;
 		try {
 			dis = new DigestInputStream(is, MessageDigest.getInstance("MD5"));
 			while (dis.read() != -1) {}
 			return dis.getMessageDigest().digest();
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			if (JustCodeDigest.printExceptions) e.printStackTrace();
+			JustCodeDigest.lastException = e;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			if (JustCodeDigest.printExceptions) e.printStackTrace();
+			JustCodeDigest.lastException = e;
 		} finally {
 			if (dis != null) {
 				try {
 					dis.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					if (JustCodeDigest.printExceptions) e.printStackTrace();
+					if (JustCodeDigest.lastException != null) {
+						Exception exc = new Exception(e);
+						exc.initCause(JustCodeDigest.lastException);
+						JustCodeDigest.lastException = exc;
+					} else {
+						JustCodeDigest.lastException = e;
+					}
 				}
 			}
 		}
@@ -69,13 +86,14 @@ public class JustCodeDigest {
 	
 	public static byte[] digest(File file, boolean justCode) {
 		byte[] bytes;
+		JustCodeDigest.lastException = null;
 		try {
 			bytes = Files.readAllBytes(file.toPath());
 			String text = new String(bytes, StandardCharsets.UTF_8);
 			return digest(text, justCode);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			if (JustCodeDigest.printExceptions) e.printStackTrace();
+			JustCodeDigest.lastException = e;
 		}
 		return null;
 	}
