@@ -133,7 +133,7 @@ public class Api {
 		return mutations;
 	}
 	
-	private static List<List<MutationInformation>> generateMutationGenerations(JavaAST ast, MutationRequest request) throws OpenJavaException, ParseTreeException {
+	public static List<List<MutationInformation>> generateMutationGenerations(JavaAST ast, MutationRequest request) throws OpenJavaException, ParseTreeException {
 		/*
 		 * 
 		 * Gen 1 

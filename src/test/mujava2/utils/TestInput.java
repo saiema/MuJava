@@ -1,14 +1,16 @@
 package test.mujava2.utils;
 
+import java.io.File;
+
 import mujava2.api.mutator.MutationRequest;
 
 public class TestInput {
 	
 	private final MutationRequest req;
-	private final String dirOldApi;
-	private final String dirNewApi;
+	private final File dirOldApi;
+	private final File dirNewApi;
 	
-	public TestInput(MutationRequest req, String dirOldApi, String dirNewApi) {
+	public TestInput(MutationRequest req, File dirOldApi, File dirNewApi) {
 		this.req = req;
 		this.dirOldApi = dirOldApi;
 		this.dirNewApi = dirNewApi;
@@ -18,11 +20,11 @@ public class TestInput {
 		return req;
 	}
 
-	public String getDirOldApi() {
+	public File getDirOldApi() {
 		return dirOldApi;
 	}
 
-	public String getDirNewApi() {
+	public File getDirNewApi() {
 		return dirNewApi;
 	}
 	
