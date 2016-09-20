@@ -35,6 +35,8 @@ public class OldAndNewApisTests {
 	@Parameters
 	public static Collection<Object[]> firstValues() {
 		
+		TestingTools.setPrototypeMutationsChecking(false, true);
+		
 		Collection<MutationOperator> operators1 = Arrays.asList(COI, COD, AORU, PRVOU_REFINED);
 		Collection<String> methods1 = Arrays.asList("xnor");
 		MutationRequest request1 = new MutationRequest("test", "utils.BooleanOps", operators1, methods1, false, false, 1);
@@ -42,9 +44,17 @@ public class OldAndNewApisTests {
 		File dirNewApi1 = new File("test/NewApiMutants/test1/");
 		TestInput test1 = new TestInput(request1, dirOldApi1, dirNewApi1);
 		
+		Collection<MutationOperator> operators2 = Arrays.asList(COI, COD, AORU, PRVOU_REFINED);
+		Collection<String> methods2 = Arrays.asList("xnor");
+		MutationRequest request2 = new MutationRequest("test", "utils.BooleanOps", operators2, methods2, false, false, 2);
+		File dirOldApi2 = new File("test/OldApiMutants/test2/");
+		File dirNewApi2 = new File("test/NewApiMutants/test2/");
+		TestInput test2 = new TestInput(request2, dirOldApi2, dirNewApi2);
+		
 		//PARAMETERS
 		return Arrays.asList(new Object[][] {
-			{test1}
+			{test1},
+			{test2}
 		});
 	}
 	
@@ -69,6 +79,18 @@ public class OldAndNewApisTests {
 		Log.getLog().decLevel();
 		if (!result) Log.getLog().publish("oldApiMurantsVsNewApiMutations failed", this.getClass());
 		else Log.getLog().publish("oldApiMurantsVsNewApiMutations passed", this.getClass());
+		assertTrue(result);
+	}
+	
+	@Test
+	public void oldApiLastGenerationVsNewApiLastGeneration() {
+		Log.getLog().publish("oldApiLastGenerationVsNewApiLastGeneration started", this.getClass());
+		Log.getLog().incLevel();
+		TestingTools tt = new TestingTools(this.req, this.dirOldApi.toPath().resolve("oldApiLastGenerationVsNewApiLastGeneration").toAbsolutePath().toString(), this.dirNewApi.toPath().resolve("oldApiLastGenerationVsNewApiLastGeneration").toAbsolutePath().toString());
+		boolean result = tt.compareApisLastMutantGeneration();
+		Log.getLog().decLevel();
+		if (!result) Log.getLog().publish("oldApiLastGenerationVsNewApiLastGeneration failed", this.getClass());
+		else Log.getLog().publish("oldApiLastGenerationVsNewApiLastGeneration passed", this.getClass());
 		assertTrue(result);
 	}
 	

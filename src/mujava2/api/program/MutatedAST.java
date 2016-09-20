@@ -486,6 +486,7 @@ public class MutatedAST {
 	@Override
 	public String toString() {
 		String res = "";
+		res += "ID			: [" + this.getID() + "]\n";
 		res += "Class		: " + this.original.getClassName() + "\n";
 		res += "File		: " + this.original.getJavaFile().getPath().toString() + "\n";
 		res += "Root folder	: " + this.original.getRootFolder() + "\n";
@@ -509,6 +510,21 @@ public class MutatedAST {
 			res += this.parent.mutationsToString();
 		}
 		return res;
+	}
+	
+	private int getID() {
+		int id = 0;
+		for (Entry<String, Map<Integer, List<MutationInformation>>> mpm : this.mutationsPerLinePerMethod.entrySet()) {
+			for (Entry<Integer, List<MutationInformation>> mpl : mpm.getValue().entrySet()) {
+				for (MutationInformation minfo : mpl.getValue()) {
+					id += minfo.getMutation().mutationID();
+				}
+			}
+		}
+		if (this.parent != null) {
+			id += this.parent.getID();
+		}
+		return id;
 	}
 	
 	/**

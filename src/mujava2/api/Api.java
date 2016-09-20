@@ -182,14 +182,14 @@ public class Api {
 	 * @param that
 	 */
 	private static void merge(List<List<MutationInformation>> thiz, List<List<MutationInformation>> that, int offset) {
-		for (int i = 0; i < that.size(); i++) {
-			if (thiz.size() < i + offset) {
-				thiz.add(that.get(i));
+		for (int t = 0; t < that.size(); t++) {
+			List<MutationInformation> thatList = that.get(t);
+			if (thiz.size() <= t + offset) {
+				thiz.add(thatList);
 			} else {
-				thiz.get(i+offset).addAll(that.get(i));
+				thiz.get(t+offset).addAll(thatList);
 			}
 		}
-		
 	}
 
 }
