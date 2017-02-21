@@ -61,7 +61,7 @@ public class EOA_DUMBTests {
 		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_3 var1 = param1\\.clone\\(\\); //mutGenLimit 0"));
 		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_3 var2 = auxMethod1\\( var1\\, param1 \\)\\.clone\\(\\); //mutGenLimit 0"));
 		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_1 var3 = param1\\.clone\\(\\); //mutGenLimit 0"));
-		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_2 var4 = \\(\\((.+\\.)?EOA\\_Base\\_2\\) auxMethod2\\( auxMethod1\\( var1\\, param1 \\)\\, \\((.+\\.)?EOA\\_Base\\_2\\) var3\\, param1 \\)\\)\\.clone\\(\\); //mutGenLimit 0"));
+		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_2 var4 = \\(\\((.+\\.)?EOA\\_Base\\_2\\) auxMethod2\\( auxMethod1\\( var1\\, param1 \\)\\, new (.+\\.)?EOA\\_Base\\_2\\(\\)\\, param1 \\)\\)\\.clone\\(\\); //mutGenLimit 0"));
 		Property propEOA_3 = new Property(MutationOperator.EOA_DUMB,
 										"test/EOA_3",
 										"radiatedMethod",
