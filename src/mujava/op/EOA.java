@@ -160,11 +160,20 @@ public class EOA extends mujava.op.util.Mutator {
 	private OJClass cloneMethodReturnType(OJClass clazz) {
 		OJMethod[] declared = clazz.getDeclaredMethods();
 		OJMethod[] inherited = getInheritedMethods(clazz);
+		OJMethod cloneMethod = null;
 		for (int i = 0; i < declared.length; i++) {
 			if (declared[i].getName().equals("clone")
 					&& declared[i].getParameterTypes().length == 0
 					&& declared[i].getModifiers().isPublic()) {
-				return declared[i].getReturnType();
+				if (cloneMethod == null) {
+					cloneMethod = declared[i];
+				} else {
+					OJClass cloneMethodType = cloneMethod.getReturnType();
+					OJClass currentCloneMethodType = declared[i].getReturnType();
+					if (max(cloneMethodType, currentCloneMethodType) == cloneMethodType) {
+						cloneMethod = declared[i];
+					}
+				}
 			}
 		}
 		for (int i = 0; i < inherited.length; i++) {
@@ -172,10 +181,18 @@ public class EOA extends mujava.op.util.Mutator {
 					&& inherited[i].getParameterTypes().length == 0
 					&& ((isInDumbMode()) || !inherited[i].getDeclaringClass().getName().equals("java.lang.Object"))
 					&& inherited[i].getModifiers().isPublic()) {
-				return inherited[i].getReturnType();
+				if (cloneMethod == null) {
+					cloneMethod = inherited[i];
+				} else {
+					OJClass cloneMethodType = cloneMethod.getReturnType();
+					OJClass currentCloneMethodType = inherited[i].getReturnType();
+					if (max(cloneMethodType, currentCloneMethodType) == cloneMethodType) {
+						cloneMethod = inherited[i];
+					}
+				}
 			}
 		}
-		return null;
+		return cloneMethod==null?null:cloneMethod.getReturnType();
 	}
 	
 
