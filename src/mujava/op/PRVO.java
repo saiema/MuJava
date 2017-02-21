@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 import java.util.Comparator;
 
 import mujava.api.Api;
@@ -266,7 +267,7 @@ public class PRVO extends mujava.op.util.Mutator {
 				this.prohibitedMethodsPerClass = (Map<String, List<String>>) configValue;
 			} catch (ClassCastException e) {
 				try {
-					this.prohibitedMethods = (List<String>) configValue;
+					this.prohibitedMethods = (List<Pattern>)configValue;
 				} catch (ClassCastException ex) {
 					throw new IllegalStateException("The value for PROHIBITED_METHODS it's not a Map<String, List<String>> nor a List<String>");
 				}
@@ -278,21 +279,13 @@ public class PRVO extends mujava.op.util.Mutator {
 				this.prohibitedFieldsPerClass = (Map<String, List<String>>) configValue;
 			} catch (ClassCastException e) {
 				try {
-					this.prohibitedFields = (List<String>) configValue;
+					this.prohibitedFields = (List<Pattern>)configValue;
 				} catch (ClassCastException ex) {
 					throw new IllegalStateException("The value for PROHIBITED_FIELDS it's not a Map<String, List<String>> nor a List<String>");
 				}
 			}
 		}
 	}
-
-//	public void smartMode() {
-//		this.smartMode = true;
-//	}
-//
-//	public void dumbMode() {
-//		this.smartMode = false;
-//	}
 
 	public void useLiterals(boolean l) {
 		this.useLiterals = l;
@@ -301,9 +294,6 @@ public class PRVO extends mujava.op.util.Mutator {
 	public void setRefinedMode(boolean r) {
 		this.refinedMode = r;
 		useLiterals(r);
-//		if (r) {
-//			smartMode();
-//		}
 	}
 
 	public void setOP(MutationOperator op) {
