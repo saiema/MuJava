@@ -220,7 +220,28 @@ public class PRVO_TwoByOne_OneByTwo_Disabled_Options_Tests {
 		
 		Configuration.add(PRVO.ENABLE_ONE_BY_TWO_MUTANTS, Boolean.FALSE);
 		Configuration.add(PRVO.ENABLE_TWO_BY_ONE_MUTANTS, Boolean.FALSE);
-		List<String> bannedMethods = Arrays.asList(new String[]{"hashCode", "getClass", "toString", "toLowerCase", "intern", "toCharArray", "getBytes", "toUpperCase", "trim", "toLowerCase", "clone", "hash32", "serialPersistentFields", "serialVersionUID", "hash", "HASHING_SEED", "length", "isEmpty", "serialPersistentFields", "CASE_INSENSITIVE_ORDER"});
+		List<Pattern> bannedMethods = Arrays.asList(new Pattern[]{
+				Pattern.compile("[^\\#]*\\#hashCode"),
+				Pattern.compile("[^\\#]*\\#getClass"),
+				Pattern.compile("[^\\#]*\\#toString"),
+				Pattern.compile("[^\\#]*\\#toLowerCase"),
+				Pattern.compile("[^\\#]*\\#intern"),
+				Pattern.compile("[^\\#]*\\#toCharArray"),
+				Pattern.compile("[^\\#]*\\#getBytes"),
+				Pattern.compile("[^\\#]*\\#toUpperCase"),
+				Pattern.compile("[^\\#]*\\#trim"),
+				Pattern.compile("[^\\#]*\\#toLowerCase"),
+				Pattern.compile("[^\\#]*\\#clone"),
+				Pattern.compile("[^\\#]*\\#hash32"),
+				Pattern.compile("[^\\#]*\\#serialPersistentFields"),
+				Pattern.compile("[^\\#]*\\#serialVersionUID"),
+				Pattern.compile("[^\\#]*\\#hash"),
+				Pattern.compile("[^\\#]*\\#HASHING_SEED"),
+				Pattern.compile("[^\\#]*\\#length"),
+				Pattern.compile("[^\\#]*\\#isEmpty"),
+				Pattern.compile("[^\\#]*\\#serialPersistentFields"),
+				Pattern.compile("[^\\#]*\\#CASE_INSENSITIVE_ORDER")
+		});
         Configuration.add(PRVO.PROHIBITED_METHODS, bannedMethods);
 		
 		mf_ncll_addFirst_PRVOR = TestingTools.generateMutants(prop_ncll_addFirst_PRVOR);
