@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import openjava.ptree.*;
+import mujava.api.Configuration;
 import mujava.api.Mutation;
 import openjava.ptree.util.ParseTreeVisitor;
 
@@ -1042,7 +1043,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 				out.print(" //mutGenLimit " + p.getMutGenLimit());	//added (11/09/14) [simon]
 			}														//added (11/09/14) [simon]
 		} else {
-			writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1);	//modified (11/09/14) [simon]
+			writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1, prettyPrint());	//modified (11/09/14) [simon]
 		}
 
 		out.println();
@@ -1050,8 +1051,12 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	}
 
 	public void visit(IfStatement p) throws ParseTreeException {
+		visit(p, false);
+	}
+	
+	private void visit(IfStatement p, boolean isElseIf) throws ParseTreeException {
 		outputCommentIfApplicable(p.getComment()); //added (11/09/14)
-		writeTab();
+		if (!isElseIf) writeTab();
 
 		out.print("if ");
 
@@ -1062,17 +1067,23 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 		/* then part */
 		StatementList stmts = p.getStatements();
-		writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1); //modified (11/09/14) [simon]
+		writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1, prettyPrint()); //modified (11/09/14) [simon]
 
 		/* else part */
 		StatementList elsestmts = p.getElseStatements();
 		if (!elsestmts.isEmpty()) {
-			out.print(" else ");
-			writeStatementsBlock(elsestmts);
+			if (stmts.size() > 1 || !prettyPrint())
+				out.print(" ");
+			out.print("else ");
+			
+			if (prettyPrint() && elsestmts.size() == 1 && (elsestmts.get(0) instanceof IfStatement)) {
+				visit((IfStatement) elsestmts.get(0), true);
+			} else
+				writeStatementsBlock(elsestmts, prettyPrint());
 		}
 
-		out.println();
-		line_num++;
+		if (!isElseIf) out.println();
+		if (!isElseIf) line_num++;
 	}
 
 	public void visit(InstanceofExpression p) throws ParseTreeException {
@@ -1519,7 +1530,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			}														//added (12/09/14) [simon]
 		} else {
 			out.print(" ");					//added (07/10/14) [simon] {added a space}
-			writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1);	//modified (12/09/14) [simon]
+			writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1, prettyPrint());	//modified (12/09/14) [simon]
 		}
 
 		out.println();
@@ -1644,9 +1655,14 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		out.print(")");
 	}
 
-	protected void writeStatementsBlock(StatementList stmts)
-			throws ParseTreeException {
-		out.println("{");
+	protected void writeStatementsBlock(StatementList stmts) throws ParseTreeException {
+		writeStatementsBlock(stmts, false);
+	}
+	
+	protected void writeStatementsBlock(StatementList stmts, boolean noBracesWithOneStatement) throws ParseTreeException {
+		boolean printBraces = !(stmts.size() == 1 && noBracesWithOneStatement);
+		if (printBraces) out.println("{");
+		else out.println();
 		line_num++;
 		pushNest();
 
@@ -1655,14 +1671,22 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		outputCommentIfApplicable(stmts.getAfterComment());
 
 		popNest();
-		writeTab();
-		out.print("}");
+		if (printBraces) {
+			writeTab();
+			out.print("}");
+		}
 	}
 	
 	//++++++++++++++++++++++++++++++++++++++++++++++++++
 	//+++++++++++++++++++++++++++added (11/09/14) [simon]
 	protected void writeStatementsBlockWithMGL(StatementList stmts, int mgl) throws ParseTreeException {
-		out.print("{");	//modified (12/09/14) [simon]
+		writeStatementsBlockWithMGL(stmts, mgl, false);
+	}
+	//-----------------------------------------------------
+	
+	protected void writeStatementsBlockWithMGL(StatementList stmts, int mgl, boolean noBracesWithOneStatement) throws ParseTreeException {
+		boolean printBraces = !(stmts.size() == 1 && noBracesWithOneStatement);
+		if (printBraces) out.print("{");	//modified (12/09/14) [simon]
 		
 		if (mgl >= 0) {
 			out.print(" //mutGenLimit " + mgl);
@@ -1677,9 +1701,10 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		
 		popNest();
 		writeTab();
-		out.print("}");
+		if (printBraces) {
+			out.print("}");
+		}
 	}
-	//-----------------------------------------------------
 
 	protected static final boolean isOperatorNeededLeftPar(int operator,
 			Expression leftexpr) {
@@ -1838,6 +1863,12 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		outputCommentIfApplicable(ad.getDeclaration());
 		out.println();
 		this.line_num++;
+	}
+	
+	private boolean prettyPrint() {
+		if (Configuration.argumentExist(Configuration.PRETTY_PRINT))
+			return (Boolean) Configuration.getValue(Configuration.PRETTY_PRINT);
+		return false;
 	}
 	
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++
