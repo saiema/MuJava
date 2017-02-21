@@ -4,7 +4,7 @@ import java.lang.System;
 
 class Digits{
 
-	public static char[] digits(char [] digit){
+	public char[] digits(char [] digit){
 		int c, i,flag2 =0;
 		int flag1=0;
 
@@ -36,7 +36,7 @@ class Digits{
 		}
 
 		System.out.print("That's all, have a nice day!");
-		return res;
+		return res; //mutGenLimit 1
 
 	}  
 }
