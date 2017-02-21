@@ -27,13 +27,15 @@ import openjava.ptree.WhileStatement;
  * <li> <b>Original node</b>, the AST node this mutation affects </li>
  * <li> <b>Mutated node</b>, the AST node this mutation produced </li>
  * <p>
- * It also offert some additional information
+ * It also offers some additional information
  * <p>
  * <li> <b> Is one line in method op? </b>, if the mutation affects only one line inside a method declaration
  * <li> <b> Affected line </b>, only if this is a one line in method op, shows which line was affected inside a method
  * <li> <b> Is a guard mutation? </b>, if the mutation affects a guard expression
  * <li> <b> Is a variable declaration mutation? </b>, if the mutation affects a variable declaration statement
  * <li> <b> Is an assignment mutation? </b>, if the mutation affects an assignment statement
+ * <li> <b> Is a low priority mutation? </b>, if the mutation has side effects but may not change the semantics of a method
+ * <li> <b> Is a neutral mutation? </b>, if the mutation doesn't have any semantic change
  * <ol>
  * <li> <b> Mutation affects left side of the assignment </b>, if the mutations affects the left side of an assignment statement
  * <ol>
@@ -51,13 +53,35 @@ import openjava.ptree.WhileStatement;
  * <hr>
  * <p><b>note:</b> <i>the affected line refers to a line inside the method declaration of the mutated method, the first line of the method declaration is the line 1</i></p>
  * <p><b>note:</b> <i>when refering to an expression of the form {@code x.y} {@code x} can also be an expression of this form</i></p>
- * @version 2.7.3
+ * @version 2.7.5
  */
 public class Mutation {
 	public static enum TARGET {ORIGINAL, MUTANT};
+	/**
+	 * Represents a mutations priority based on semantic modification
+	 * 
+	 * @author Simon Emmanuel Gutierrez Brida
+	 * @version 0.1
+	 */
+	public static enum PRIORITY {
+									/**
+									 * The mutation affects the semantic
+									 */
+									NORMAL,
+									/**
+									 * The mutation may not affect the semantic
+									 */
+									LOW,
+									/**
+									 * The mutation does not affect the semantic
+									 */
+									NEUTRAL
+								};
 
 	// The mutant operator
 	private MutationOperator mutOp;
+	
+	private PRIORITY priority;
 	
 	public static final int SINGLE_LINE_OUTSIDE_METHOD_DECLARATION = Integer.MIN_VALUE;
 	
@@ -93,9 +117,14 @@ public class Mutation {
 	 * @param mutant	: the mutated AST node : {@code ParseTreeObject}
 	 */
 	public Mutation(MutationOperator mutOp, ParseTreeObject original, ParseTreeObject mutant) {
+		this(mutOp, original, mutant, PRIORITY.NORMAL);
+	}
+	
+	public Mutation(MutationOperator mutOp, ParseTreeObject original, ParseTreeObject mutant, PRIORITY p) {
 		this.mutOp = mutOp;
 		this.original = original;
 		this.mutant = mutant;
+		this.priority = p;
 		this.oneLineInMethodOp = checkOp(mutOp);
 		this.isGuardMutation = mutationAffectsGuardExpression(original) || mutationAffectsGuardExpression(mutant);
 		this.isAssignmentMutation = mutationAffectsAssignmentStatement(original) || mutationAffectsAssignmentStatement(mutant);
@@ -535,6 +564,13 @@ public class Mutation {
 	 */
 	public ParseTreeObject getMutant() {
 		return mutant;
+	}
+	
+	/**
+	 * @return the mutation's priority 
+	 */
+	public PRIORITY getPriority() {
+		return this.priority;
 	}
 
 	@Override
