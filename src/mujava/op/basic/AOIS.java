@@ -7,8 +7,14 @@
 package mujava.op.basic;
 
 import mujava.api.MutationOperator;
+
+import java.util.List;
+import java.util.Map;
+
+import mujava.api.Configuration;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.FileEnvironment;
+import openjava.mop.OJClass;
 import openjava.ptree.AssignmentExpression;
 import openjava.ptree.BinaryExpression;
 import openjava.ptree.ClassDeclaration;
@@ -16,8 +22,12 @@ import openjava.ptree.CompilationUnit;
 import openjava.ptree.Expression;
 import openjava.ptree.FieldAccess;
 import openjava.ptree.ParseTreeException;
+import openjava.ptree.ParseTreeObject;
+import openjava.ptree.ReturnStatement;
+import openjava.ptree.Statement;
 import openjava.ptree.UnaryExpression;
 import openjava.ptree.Variable;
+import mujava.api.Mutation.PRIORITY;
 
 /**
  * <p>Generate AOIS (Arithmetic Operator Insertion (Short-cut)) mutants --
@@ -120,7 +130,7 @@ public class AOIS extends Arithmetic_OP {
 			return;
 
 		
-		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AOIS, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AOIS, original, mutant, evaluateMutation(original, mutant));
 		
 	}
 	
@@ -129,7 +139,7 @@ public class AOIS extends Arithmetic_OP {
 			return;
 
 		
-		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AOIS, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AOIS, original, mutant, evaluateMutation(original, mutant));
 		
 	}
 
@@ -138,8 +148,55 @@ public class AOIS extends Arithmetic_OP {
 		if (comp_unit == null) 
 			return;
 
-		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AOIS, original, mutant);
+		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AOIS, original, mutant, evaluateMutation(original, mutant));
 	
+	}
+	
+	private PRIORITY evaluateMutation(Expression e, UnaryExpression mut) {
+		if (priorityEvaluation()) {
+			if (mut.isPostfix() && isReturn(e) && isLocalVariable(e)) {
+				return PRIORITY.NEUTRAL;
+			}
+		}
+		return PRIORITY.NORMAL;
+	}
+	
+	private boolean isReturn(Expression e) {
+		Statement st = (Statement) getStatement((ParseTreeObject) e);
+		if (st instanceof ReturnStatement) {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean isLocalVariable(Expression e) {
+		if (e instanceof Variable) {
+			Variable v = (Variable) e;
+			try {
+				OJClass vType = getType(v);
+				Map<OJClass, List<Variable>> localVars = getReachableVariables((ParseTreeObject) e);
+				if (localVars.containsKey(vType)) {
+					for (Variable lv : localVars.get(vType)) {
+						if (v.toFlattenString().compareTo(lv.toFlattenString()) == 0) {
+							return true;
+						}
+					}
+				} else {
+					return false;
+				}
+			} catch (ParseTreeException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		return false;
+	}
+	
+	private boolean priorityEvaluation() {
+		if (Configuration.argumentExist(Configuration.PRIORITY_EVALUATE)) {
+			return (Boolean) Configuration.getValue(Configuration.PRIORITY_EVALUATE);
+		}
+		return false;
 	}
 
 }
