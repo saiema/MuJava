@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import openjava.mop.*;
 import openjava.ptree.*;
@@ -57,11 +58,11 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	
 	protected Map<String, List<String>> prohibitedMethodsPerClass = null;
 	
-	protected List<String> prohibitedMethods = null;
+	protected List<Pattern> prohibitedMethods = null;
 	
 	protected Map<String, List<String>> prohibitedFieldsPerClass = null;
 	
-	protected List<String> prohibitedFields = null;
+	protected List<Pattern> prohibitedFields = null;
 	
 	public int num = 0;
 	public CompilationUnit comp_unit = null;
@@ -1028,8 +1029,15 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	}
 	
 	private boolean isMethodAllowed_usingList(OJMethod m) {
+		String declaringClass = m.getDeclaringClass().getName();
 		String methodName = m.getName();
-		return !this.prohibitedMethods.contains(methodName);
+		String fullName = declaringClass+"#"+methodName;
+		for (Pattern pm : this.prohibitedMethods) {
+			if (pm.matcher(fullName).find()) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	protected boolean isFieldAllowed(OJField f) {
@@ -1054,8 +1062,15 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	}
 	
 	private boolean isFieldAllowed_usingList(OJField f) {
-		String fieldName = f.getName();
-		return !this.prohibitedFields.contains(fieldName);
+		String declaringClass = f.getDeclaringClass().getName();
+		String methodName = f.getName();
+		String fullName = declaringClass+"#"+methodName;
+		for (Pattern pf : this.prohibitedFields) {
+			if (pf.matcher(fullName).find()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
