@@ -8,8 +8,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Pattern;
 
 import mujava.api.MutationOperator;
+import mujava.api.Configuration;
 import mujava.api.MutantsInformationHolder;
 
 import org.junit.Test;
@@ -38,7 +40,7 @@ public class CustomTest {
 	@Parameters
 	public static Collection<Object[]> firstValues() {
 		TestingTools.setVerbose(false);
-		MutantsInformationHolder.setVerbose(false);
+		MutantsInformationHolder.setVerbose(true);
 		
 		//TESTS DEFINITIONS
 		//MULTIMUTATIONS
@@ -215,28 +217,28 @@ public class CustomTest {
 											true);
 		
 		List<MutationOperator> operators11 = new LinkedList<>();
-		operators11.add(MutationOperator.AODS);
-		operators11.add(MutationOperator.AODU);
+//		operators11.add(MutationOperator.AODS);
+//		operators11.add(MutationOperator.AODU);
 		operators11.add(MutationOperator.AOIS);
-		operators11.add(MutationOperator.AOIU);
-		operators11.add(MutationOperator.AORB);
-		operators11.add(MutationOperator.AORS);
-		operators11.add(MutationOperator.AORU);
-		operators11.add(MutationOperator.ASRS);
-		operators11.add(MutationOperator.COD);
-		operators11.add(MutationOperator.COI);
-		operators11.add(MutationOperator.COR);
-		operators11.add(MutationOperator.LOD);
-		operators11.add(MutationOperator.LOI);
-		operators11.add(MutationOperator.LOR);
-		operators11.add(MutationOperator.ROR);
-		operators11.add(MutationOperator.SOR);
-		operators11.add(MutationOperator.PRVOL_SMART);
-		operators11.add(MutationOperator.PRVOR_REFINED);
-		operators11.add(MutationOperator.PRVOU_REFINED);
+//		operators11.add(MutationOperator.AOIU);
+//		operators11.add(MutationOperator.AORB);
+//		operators11.add(MutationOperator.AORS);
+//		operators11.add(MutationOperator.AORU);
+//		operators11.add(MutationOperator.ASRS);
+//		operators11.add(MutationOperator.COD);
+//		operators11.add(MutationOperator.COI);
+//		operators11.add(MutationOperator.COR);
+//		operators11.add(MutationOperator.LOD);
+//		operators11.add(MutationOperator.LOI);
+//		operators11.add(MutationOperator.LOR);
+//		operators11.add(MutationOperator.ROR);
+//		operators11.add(MutationOperator.SOR);
+//		operators11.add(MutationOperator.PRVOL_SMART);
+//		operators11.add(MutationOperator.PRVOR_REFINED);
+//		operators11.add(MutationOperator.PRVOU_REFINED);
 		Property propCustom11 = new Property(operators11,
-											"bugHunting/Digits",
-											"digits",
+											"arithmetic/Smallest",
+											"smallest",
 											TestingTools.NO_MUTANTS_EXPECTED,
 											TestingTools.NO_MUTANTS_EXPECTED,
 											TestingTools.NO_PATTERN_EXPECTED,
@@ -258,8 +260,13 @@ public class CustomTest {
 	
 	@Test
 	public void mutantGeneration() {
-		assertTrue(!TestingTools.generateMutants(prop, true).isEmpty());
-		//assertTrue(TestingTools.obtainMutations(prop));
+//		List<Pattern> prohibitedMethods = new LinkedList<>();
+//		prohibitedMethods.add(Pattern.compile("java\\.lang\\.Object\\#.*"));
+//		Configuration.add(Configuration.PROHIBITED_METHODS, prohibitedMethods);
+		Configuration.add(Configuration.PRIORITY_EVALUATE, Boolean.TRUE);
+		Configuration.add(Configuration.PRIORITY_NEUTRAL_DISCARD, Boolean.FALSE);
+		Configuration.add(Configuration.PRIORITY_LOW_DISCARD, Boolean.FALSE);
+		assertTrue(!TestingTools.generateMutants(prop, false).isEmpty());
 	}
 	
 
