@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import mujava.api.Mutation.PRIORITY;
 import openjava.ptree.AllocationExpression;
 import openjava.ptree.CompilationUnit;
 import openjava.ptree.ExpressionList;
@@ -136,11 +137,10 @@ public class MutantsInformationHolder {
 		verbose = enable;
 	}
 
-	private static MutantsInformationHolder mainHolder =
-			new MutantsInformationHolder();
+	private static MutantsInformationHolder mainHolder = new MutantsInformationHolder();
 	
-	private List<Mutation> mutantsIdentifiers =
-			new ArrayList<Mutation>();
+	private List<Mutation> mutantsIdentifiers = new ArrayList<Mutation>();
+	private List<Mutation> lowPriorityMutantsIndentifiers = new ArrayList<>();
 	
 	private CompilationUnit compUnit;
 	
@@ -148,7 +148,13 @@ public class MutantsInformationHolder {
 		this.compUnit = compUnit;
 	}
 
+	/**
+	 * This method will merge normal, low, and neutral priority mutations
+	 * @return all the generated mutations
+	 */
 	public List<Mutation> getMutantsIdentifiers() {
+		mutantsIdentifiers.addAll(0, lowPriorityMutantsIndentifiers);
+		lowPriorityMutantsIndentifiers.clear();
 		return mutantsIdentifiers;
 	}
 
@@ -222,8 +228,16 @@ public class MutantsInformationHolder {
 		String statementAsString = original?statement.toString():statement.toString(o, m);
 		return statementAsString + "(distance to statement " + distanceToEnclosingDeclaration(o) + ")" + " from " + declarationProfile;
 	}
-
-	public void addMutation(MutationOperator mutOp, ParseTreeObject original, ParseTreeObject mutant) {
+	
+	public void addMutation(MutationOperator mutOp, ParseTreeObject original, ParseTreeObject mutant, PRIORITY p) {
+		if (p.compareTo(PRIORITY.LOW) == 0 && discardLow()) {
+			if (verbose) System.out.println("low priority mutation discarded : (" + mutOp.toString() + " | " + original.toFlattenString() + " ==> " + mutant.toFlattenString());
+			return;
+		}
+		if (p.compareTo(PRIORITY.NEUTRAL) == 0 && discardNeutral()) {
+			if (verbose) System.out.println("neutral priority mutation discarded : (" + mutOp.toString() + " | " + original.toFlattenString() + " ==> " + mutant.toFlattenString());
+			return;
+		}
 		if (!MutantsInformationHolder.usePrototypeChecking && isEqualToOriginal(original, (ParseTreeObject)mutant)) return;
 		
 		if (MutantsInformationHolder.usePrototypeChecking) {
@@ -255,13 +269,37 @@ public class MutantsInformationHolder {
 		
 		
 		if (verbose) {
-			System.out.println("(" + mutOp.toString() + " | " + original.toFlattenString() + " ==> " + mutant.toFlattenString());
+			System.out.println("priority " + p + " (" + mutOp.toString() + " | " + original.toFlattenString() + " ==> " + mutant.toFlattenString());
 		}
-		mutantsIdentifiers.add(new Mutation(mutOp, original, mutant));
+		
+		Mutation newMutation = new Mutation(mutOp, original, mutant, p);
+		if (p.compareTo(PRIORITY.LOW) == 0 || p.compareTo(PRIORITY.NEUTRAL) == 0) {
+			lowPriorityMutantsIndentifiers.add(newMutation);
+		} else 
+			mutantsIdentifiers.add(newMutation);
+	}
+	
+	private boolean discardLow() {
+		if (Configuration.argumentExist(Configuration.PRIORITY_LOW_DISCARD)) {
+			return (Boolean) Configuration.getValue(Configuration.PRIORITY_LOW_DISCARD);
+		}
+		return false;
+	}
+	
+	private boolean discardNeutral() {
+		if (Configuration.argumentExist(Configuration.PRIORITY_NEUTRAL_DISCARD)) {
+			return (Boolean) Configuration.getValue(Configuration.PRIORITY_NEUTRAL_DISCARD);
+		}
+		return false;
+	}
+
+	public void addMutation(MutationOperator mutOp, ParseTreeObject original, ParseTreeObject mutant) {
+		addMutation(mutOp, original, mutant, PRIORITY.NORMAL);
 	}
 	
 	public void clear() {
-		this.mutantsIdentifiers = new ArrayList<Mutation>();
+		this.lowPriorityMutantsIndentifiers = new ArrayList<>();
+		this.mutantsIdentifiers = new ArrayList<>();
 		this.compUnit = null;
 	}
 	
@@ -289,7 +327,10 @@ public class MutantsInformationHolder {
 	@Override
 	public String toString() {
 		return "MutantsInformationHolder [mutantsIdentifiers="
-				+ mutantsIdentifiers + ", compUnit=" +
+				+ mutantsIdentifiers
+				+ " | low priority mutantsIdentifiers="
+				+ lowPriorityMutantsIndentifiers
+				+ ", compUnit=" +
 				((compUnit != null) ? compUnit.hashCode() : "null") + "]";
 	}
 	
