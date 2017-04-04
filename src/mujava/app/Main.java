@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -201,10 +202,10 @@ public class Main {
 		
 		//==================================add banned methods============================================//
 		
-		List<String> bannedMethods = new LinkedList<>();
-		bannedMethods.addAll(config.bannedMethods());
+		List<Pattern> bannedMethods = new LinkedList<>();
+		for (String bm : config.bannedMethods()) bannedMethods.add(Pattern.compile(bm));
 		System.out.print("banned methods: [");
-		Iterator<String> bmIt = bannedMethods.iterator();
+		Iterator<Pattern> bmIt = bannedMethods.iterator();
 		while (bmIt.hasNext()) {
 			System.out.print(bmIt.next());
 			if (bmIt.hasNext()) {
@@ -215,10 +216,10 @@ public class Main {
 		
 		Configuration.add(PRVO.PROHIBITED_METHODS, bannedMethods);
 		
-		List<String> bannedFields = new LinkedList<>();
-		bannedFields.addAll(config.bannedFields());
+		List<Pattern> bannedFields = new LinkedList<>();
+		for (String bf : config.bannedFields()) bannedFields.add(Pattern.compile(bf));
 		System.out.print("banned fields: [");
-		Iterator<String> bfIt = bannedFields.iterator();
+		Iterator<Pattern> bfIt = bannedFields.iterator();
 		while (bfIt.hasNext()) {
 			System.out.print(bfIt.next());
 			if (bfIt.hasNext()) {
