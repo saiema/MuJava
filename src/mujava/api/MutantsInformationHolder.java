@@ -28,6 +28,7 @@ import openjava.ptree.StatementList;
 public class MutantsInformationHolder {
 	private static boolean verbose = false;
 	private static Set<String> generatedMutations = new TreeSet<>();
+	private static Set<String> generatedMutants = new TreeSet<>(); //keep record of generated mutants to avoid duplicates
 	private static boolean usePrototypeChecking = false;
 	
 	private static Map<String,Set<String>> mutatedNodes = new HashMap<String, Set<String>>();
@@ -47,6 +48,7 @@ public class MutantsInformationHolder {
 		
 		return objectParentAsString;
 	}
+	
 	private static boolean alreadyGenerated(ParseTreeObject original, ParseTreeObject mutant) {
 		String originalAsString = original.toFlattenString() + " " + original.getObjectID();
 		String originalParentAsString = getParentAsString(original);
@@ -131,6 +133,8 @@ public class MutantsInformationHolder {
 	
 	private static void clean() {
 		mutatedNodes = new HashMap<String, Set<String>>();
+		generatedMutants = new TreeSet<>();
+		generatedMutations = new TreeSet<>();
 	}
 	
 	public static void setVerbose(boolean enable) {
@@ -166,11 +170,17 @@ public class MutantsInformationHolder {
 		return o instanceof Statement;
 	}
 	
+	/**
+	 * This method will return either a Statement containing the node or
+	 * the higher node that have either a null parent or is a MemberDeclaration
+	 * @param o
+	 * @return
+	 */
 	private ParseTreeObject getClosestNodeToStatement(ParseTreeObject o) {
 		if (isStatement(o)) return o;
 		ParseTreeObject res = o;
 		ParseTreeObject parent = res.getParent();
-		while (parent != null && !isStatement(parent)) {
+		while (parent != null && !isStatement(parent) && !(res instanceof MemberDeclaration)) {
 			res = parent;
 			parent = parent.getParent();
 		}
@@ -226,7 +236,16 @@ public class MutantsInformationHolder {
 		ParseTreeObject declaration = getEnclosingDeclaration(obj);
 		String declarationProfile = declaration.toFlattenString().split("\\{")[0];
 		String statementAsString = original?statement.toString():statement.toString(o, m);
-		return statementAsString + "(distance to statement " + distanceToEnclosingDeclaration(o) + ")" + " from " + declarationProfile;
+		return statementAsString + " (closest node id : " + statement.getObjectID() + ")" +  " from " + declarationProfile;
+		//return statementAsString + " (distance to statement " + distanceToEnclosingDeclaration(o) + ")" + " from " + declarationProfile;
+	}
+	
+	private String mutantRepresentation(ParseTreeObject o, ParseTreeObject m) {
+		ParseTreeObject statement = getClosestNodeToStatement(o);
+		ParseTreeObject declaration = getEnclosingDeclaration(o);
+		String declarationProfile = declaration.toFlattenString().split("\\{")[0];
+		String statementAsString = statement.toString(o, m);
+		return statementAsString + " (closest node id : " + statement.getObjectID() + ")" +  " from " + declarationProfile;
 	}
 	
 	public void addMutation(MutationOperator mutOp, ParseTreeObject original, ParseTreeObject mutant, PRIORITY p) {
@@ -265,6 +284,16 @@ public class MutantsInformationHolder {
 			MutantsInformationHolder.generatedMutations.add(mutRep);
 		} else {
 			if (alreadyGenerated(original, (ParseTreeObject)mutant)) return;
+			////++++++++++++++new check to avoid repeated mutants++++++++++++++(WIP)
+			String mutantAsString = mutantRepresentation(original, mutant);
+			if (MutantsInformationHolder.generatedMutants.contains(mutantAsString)) {
+				if (MutantsInformationHolder.verbose) System.out.println("Mutant " + mutantAsString + " was already generated");
+				return;
+			} else {
+				MutantsInformationHolder.generatedMutants.add(mutantAsString);
+				if (MutantsInformationHolder.verbose) System.out.println("Mutant " + mutantAsString + " was not already generated");
+			}
+			//----------------------------------------------------------------------
 		}
 		
 		
