@@ -70,6 +70,7 @@ public class JTI extends mujava.op.util.Mutator {
 		int options = TARGET_IS_NULL;
 		options += ALLOW_PRIVATE;
 		options += ALLOW_NON_STATIC;
+		options += ALLOW_PROTECTED_INHERITED;
 		OJField[] allFields = getAllFields(getSelfType(), options);
 		for (OJField f : allFields) {
 			String nameVar = var.toString();

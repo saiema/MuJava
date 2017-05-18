@@ -154,7 +154,7 @@ public class ISD extends Mutator {
 				ExpressionList actualArguments = methodCall.getArguments();
 				if (formalArguments.length == actualArguments.size()) {
 					for (int a = 0; a < formalArguments.length; a++) {
-						if (!compatibleAssignType(formalArguments[a], getType(actualArguments.get(a))))
+						if (!compatibleAssignTypeRelaxed(formalArguments[a], getType(actualArguments.get(a))))
 							return false;
 					}
 					return true;

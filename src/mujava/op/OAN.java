@@ -141,7 +141,7 @@ public class OAN extends Mutator {
 	
 	private boolean compatibleTypes(OJClass t1, OJClass t2) {
 		if (this.relaxed) {
-			return compatibleAssignType(t1, t2);
+			return compatibleAssignTypeRelaxed(t1, t2);
 		} else {
 			return t1.getName().compareTo(t2.getName()) == 0;
 		}

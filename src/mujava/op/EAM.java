@@ -34,8 +34,7 @@ import java.util.List;
 
 public class EAM extends mujava.op.util.Mutator {
 
-	public EAM(FileEnvironment file_env, ClassDeclaration cdecl,
-			CompilationUnit comp_unit) {
+	public EAM(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit) {
 		super(file_env, comp_unit);
 	}
 
@@ -78,7 +77,7 @@ public class EAM extends mujava.op.util.Mutator {
 		return null;
 	}
 
-	private boolean isSameMethod(MethodCall m1, OJMethod m2)throws ParseTreeException {
+	private boolean isSameMethod(MethodCall m1, OJMethod m2) throws ParseTreeException {
 		String nm1 = m1.getName();
 		String nm2 = m2.getName();
 		if (nm1.compareTo(nm2) != 0) {
@@ -121,7 +120,7 @@ public class EAM extends mujava.op.util.Mutator {
 
 		if (c1.length == c2.length) {
 			for (int i = 0; i < c1.length; i++) {
-				if (!(compatibleAssignType(c1[i], (c2[i]))))
+				if (!(compatibleAssignTypeRelaxed(c1[i], (c2[i]))))
 					return false;
 			}
 		} else {
@@ -129,18 +128,18 @@ public class EAM extends mujava.op.util.Mutator {
 		}
 		OJClass retType1 = m1.getReturnType();
 		OJClass retType2 = m2.getReturnType();
-		if (!(compatibleAssignType(retType1, retType2))) {
+		if (!(compatibleAssignTypeRelaxed(retType1, retType2))) {
 			return false;
 		}
 		return true;
 	}
 
 	private boolean isGetter(OJMethod m) {
-		return m.getName().startsWith("get") && m.getReturnType().getName().compareToIgnoreCase("void")!=0;
+		return m.getName().startsWith("get") && m.getReturnType().getName().compareToIgnoreCase("void") != 0;
 	}
 
 	private boolean isGetter(MethodCall p) throws ParseTreeException {
-		return p.getName().startsWith("get") && getType(p).getName().compareToIgnoreCase("void")!=0;
+		return p.getName().startsWith("get") && getType(p).getName().compareToIgnoreCase("void") != 0;
 	}
 
 	/**

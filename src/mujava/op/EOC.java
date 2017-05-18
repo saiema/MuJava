@@ -92,7 +92,7 @@ public class EOC extends mujava.op.util.Mutator {
 			boolean validResultType = m.getReturnType().isPrimitive() && m.getReturnType().getName().compareTo("boolean") == 0;
 			boolean validParamType = true;
 			if (isInRelaxedSmartMode()) {
-				validParamType = compatibleAssignType(m.getParameterTypes()[0], paramType);
+				validParamType = compatibleAssignTypeRelaxed(m.getParameterTypes()[0], paramType);
 			} else if (isInStrictSmartMode()) {
 				validParamType = m.getParameterTypes()[0].getName().compareTo(paramType.getName()) == 0;
 			}
@@ -124,7 +124,7 @@ public class EOC extends mujava.op.util.Mutator {
 			if (mutationIsApplicable) {
 				OJMethod equals = findEquals(getType(left), getType(right));
 				if (equals != null && ((isInNormalMode())||(isInSmartMode() && isNotNull(right)))) {
-					if (compatibleAssignType(equals.getParameterTypes()[0], getType(right))) {
+					if (compatibleAssignTypeRelaxed(equals.getParameterTypes()[0], getType(right))) {
 						BinaryExpression origCopy = (BinaryExpression) nodeCopyOf(p);
 						Expression leftCopy = origCopy.getLeft();
 						Expression rightCopy = origCopy.getRight();

@@ -86,8 +86,7 @@ public class PNC extends mujava.op.util.Mutator {
 		if (parameterTypes.length <= arguments.size()) {
 			for (int p = 0; p < parameterTypes.length; p++) {
 				OJClass argumentType = OJClass.forClass(parameterTypes[p]);
-				if (!compatibleAssignType(argumentType,
-						getType(arguments.get(p)))) {
+				if (!compatibleAssignTypeRelaxed(argumentType,getType(arguments.get(p)))) {
 					return false;
 				}
 			}

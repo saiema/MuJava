@@ -153,6 +153,7 @@ public class ISI extends mujava.op.util.Mutator {
 		OJClass currentType = getType(current);
 		int options = IGNORE_PROTECTED;
 		options += ALLOW_NON_STATIC;
+		options += ALLOW_PROTECTED_INHERITED;
 		if (current instanceof Variable) {
 			OJField[] inheritedFields = getInheritedFields(getSelfType(), options);
 			for (OJField f : inheritedFields) {
@@ -206,7 +207,7 @@ public class ISI extends mujava.op.util.Mutator {
 				ExpressionList actualArguments = methodCall.getArguments();
 				if (formalArguments.length == actualArguments.size()) {
 					for (int a = 0; a < formalArguments.length; a++) {
-						if (!compatibleAssignType(formalArguments[a], getType(actualArguments.get(a))))
+						if (!compatibleAssignTypeRelaxed(formalArguments[a], getType(actualArguments.get(a))))
 							return false;
 					}
 					return true;

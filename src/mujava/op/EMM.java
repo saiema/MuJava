@@ -132,7 +132,7 @@ public class EMM extends mujava.op.util.Mutator {
 
 		if (c1.length == c2.length) {
 			for (int i = 0; i < c1.length; i++) {
-				if (!(compatibleAssignType(c1[i], (c2[i]))))
+				if (!(compatibleAssignTypeRelaxed(c1[i], (c2[i]))))
 					return false;
 			}
 		} else {
