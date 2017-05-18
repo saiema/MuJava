@@ -32,6 +32,9 @@ import openjava.ptree.util.ParseTreeVisitor;
 
 public class MutantCodeWriter extends ParseTreeVisitor {
 	
+	
+	public static final String USE_SIMPLE_CLASS_NAMES = "mutant_code_writer_use_simple_class_names";
+	
 	/**
 	 * The mutation to write
 	 */
@@ -53,11 +56,6 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	private int nest = 0;
 	private boolean modified = false;
 	private boolean debug = false;
-	private static boolean useSimpleClassNames = false;
-	
-	public static void useSimpleClassNames(boolean b) {
-		MutantCodeWriter.useSimpleClassNames = b;
-	}
 	
 
 	public void setTab(String str) {
@@ -473,6 +471,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 	public void visit(BinaryExpression p) throws ParseTreeException {
 		outputCommentIfApplicable(p.getComment()); //added (10/09/14)
+		if (p.forceParenthesis()) out.print("(");
 		Expression lexpr = p.getLeft();
 		if (isOperatorNeededLeftPar(p.getOperator(), lexpr)) {
 			writeParenthesis(lexpr);
@@ -489,6 +488,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		} else {
 			rexpr.accept(this);
 		}
+		if (p.forceParenthesis()) out.print(")");
 	}
 
 	public void visit(Block p) throws ParseTreeException {
@@ -1409,7 +1409,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			useLineSeparator = false;
 		}
 		outputCommentIfApplicable(p.getComment(), useTabs, useLineSeparator); //added (12/09/14)
-		String typename = (MutantCodeWriter.useSimpleClassNames?p.getSimpleName():p.getName()).replace('$', '.');
+		String typename = (useSimpleClassName()?p.getSimpleName():p.getName()).replace('$', '.');
 		out.print(typename);
 
 		int dims = p.getDimension();
@@ -1474,7 +1474,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 		TypeName typespec = p.getTypeSpecifier();
 //		typespec.accept(this);
-		String typename = typespec.getName().replace('$', '.');
+		String typename = (useSimpleClassName()?typespec.getSimpleName():typespec.getName()).replace('$', '.');//typespec.getName().replace('$', '.');
 		out.print(typename);
 
 		int dims = typespec.getDimension();
@@ -1884,5 +1884,12 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 //	}
 	
 	//-----------------------------------------------------
+	
+	private boolean useSimpleClassName() {
+		if (Configuration.argumentExist(USE_SIMPLE_CLASS_NAMES)) {
+			return (Boolean) Configuration.getValue(USE_SIMPLE_CLASS_NAMES);
+		}
+		return false;
+	}
 
 }
