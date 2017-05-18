@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:noNamespaceSchemaLocation="file:mutantsInfo.xsd" date="2014-06-18">
+ xsi:noNamespaceSchemaLocation="file:mutantsInfo.xsd" date="2017-04-12">
     <mutant name="AODS" 
             type="MethodLevel"
             isBasic="true"
@@ -411,4 +411,9 @@
     	fullDescription="Adds try catch to code that produce NullPointerException (this operator was produces as a task in an ECI course)"
     	affectsOneLine="false">
 </mutant>
+	<mutant name="BEE" type="MethodLevel" isBasic="false"
+		shortDescription="Boolean Expression Extender"
+		fullDescription="recursively adds op E to any boolean expression (Variable, FieldAccess, MethodCall, UnaryExpression, BinaryExpression)"
+		affectsOneLine="true">
+	</mutant>
 </info>
