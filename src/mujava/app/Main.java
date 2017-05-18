@@ -24,7 +24,6 @@ import mujava.api.Configuration;
 import mujava.api.MutationOperator;
 import mujava.loader.Reloader;
 import mujava.op.PRVO;
-import mujava.op.util.MutantCodeWriter;
 import mujava.util.Config;
 import mujava.util.ConfigReader;
 
@@ -295,9 +294,9 @@ public class Main {
 		
 		if (config.useSimpleClassNames()) {
 			System.out.println("Using simple class names when writing mutants");
-			MutantCodeWriter.useSimpleClassNames(true);
+			Configuration.add(Configuration.USE_SIMPLE_CLASS_NAMES, Boolean.TRUE);
 		} else {
-			MutantCodeWriter.useSimpleClassNames(false);
+			Configuration.add(Configuration.USE_SIMPLE_CLASS_NAMES, Boolean.FALSE);
 		}
 		
 		if (config.allowPrimitiveToObjectAssignments()) {
