@@ -6,6 +6,7 @@ import java.util.Set;
 import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.AMC;
+import mujava.op.BEE;
 import mujava.op.EAM;
 import mujava.op.EMM;
 import mujava.op.EOA;
@@ -478,6 +479,12 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 					if (mutOps.contains(MutationOperator.NPER)) {
 						Debug.println("  Applying NPER ... ... ");
 						mutant_op = new NPER(file_env, cdecl, comp_unit);
+						comp_unit.accept(mutant_op);
+					}
+					
+					if (mutOps.contains(MutationOperator.BEE)) {
+						Debug.println("  Applying BEE ... ... ");
+						mutant_op = new BEE(file_env, cdecl, comp_unit);
 						comp_unit.accept(mutant_op);
 					}
 					
