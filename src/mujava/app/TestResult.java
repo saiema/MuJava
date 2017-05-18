@@ -25,7 +25,7 @@ public class TestResult {
 		this.totalTests = this.result.getRunCount();// + this.ignoredTests;
 		List<Failure> failures = this.result.getFailures();
 		for (Failure f : failures) {
-			if (f.getException().getClass().getCanonicalName().compareTo("java.lang.Exception") == 0 && f.getException().getMessage().startsWith("test timed out")) {
+			if (f.getException() != null && f.getException().getClass().getCanonicalName().compareTo("java.lang.Exception") == 0 && (f.getException().getMessage() != null && f.getException().getMessage().startsWith("test timed out"))) {
 				this.timeoutFailures++;
 			} else if (f.getException() != null && f.getException() instanceof AssertionError) {
 				this.assertFailingTests++;
