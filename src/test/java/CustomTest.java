@@ -8,8 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
-
 import mujava.api.MutationOperator;
 import mujava.api.Configuration;
 import mujava.api.MutantsInformationHolder;
@@ -20,8 +18,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import test.java.utils.LineMutationsFilter;
-import test.java.utils.ManualMutationsFilter;
-import test.java.utils.MultiMutationsFilter;
 import test.java.utils.MutationExpected;
 import test.java.utils.Property;
 import test.java.utils.SpecificMutationsFilter;
@@ -41,15 +37,19 @@ public class CustomTest {
 	public static Collection<Object[]> firstValues() {
 		TestingTools.setVerbose(false);
 		MutantsInformationHolder.setVerbose(true);
+		Configuration.add(Configuration.USE_MUTGENLIMIT, Boolean.FALSE);
+		Configuration.add(Configuration.PRETTY_PRINT, Boolean.FALSE);
+		Configuration.add(Configuration.USE_SIMPLE_CLASS_NAMES, Boolean.TRUE);
 		
 		//TESTS DEFINITIONS
 		//MULTIMUTATIONS
 		List<MutationOperator> operators = new LinkedList<MutationOperator>();
-		operators.add(MutationOperator.PRVOR);
-		operators.add(MutationOperator.AORB);
-		operators.add(MutationOperator.COR);
-		operators.add(MutationOperator.ROR);
-		operators.add(MutationOperator.EOC);
+//		operators.add(MutationOperator.PRVOR);
+//		operators.add(MutationOperator.AORB);
+//		operators.add(MutationOperator.COR);
+//		operators.add(MutationOperator.ROR);
+//		operators.add(MutationOperator.EOC);
+		operators.add(MutationOperator.BEE);
 		Property propCustom0 = new Property(operators,
 											"test/MultiMutations",
 											"contains",
@@ -246,7 +246,8 @@ public class CustomTest {
 											null,
 											false);
 		
-		
+		//Configuration.clear();
+		//MutantCodeWriter.useSimpleClassNames(false);
 		
 		//MUTANTS FOLDERS
 		
@@ -254,7 +255,7 @@ public class CustomTest {
 		
 		//PARAMETERS
 		return Arrays.asList(new Object[][] {
-				{propCustom11},
+				{propCustom0},
 		});
 	}
 	
@@ -263,9 +264,9 @@ public class CustomTest {
 //		List<Pattern> prohibitedMethods = new LinkedList<>();
 //		prohibitedMethods.add(Pattern.compile("java\\.lang\\.Object\\#.*"));
 //		Configuration.add(Configuration.PROHIBITED_METHODS, prohibitedMethods);
-		Configuration.add(Configuration.PRIORITY_EVALUATE, Boolean.TRUE);
-		Configuration.add(Configuration.PRIORITY_NEUTRAL_DISCARD, Boolean.FALSE);
-		Configuration.add(Configuration.PRIORITY_LOW_DISCARD, Boolean.FALSE);
+//		Configuration.add(Configuration.PRIORITY_EVALUATE, Boolean.TRUE);
+//		Configuration.add(Configuration.PRIORITY_NEUTRAL_DISCARD, Boolean.FALSE);
+//		Configuration.add(Configuration.PRIORITY_LOW_DISCARD, Boolean.FALSE);
 		assertTrue(!TestingTools.generateMutants(prop, false).isEmpty());
 	}
 	
