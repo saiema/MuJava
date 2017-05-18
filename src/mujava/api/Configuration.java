@@ -4,9 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import mujava.app.Core;
+import mujava.op.BEE;
 import mujava.op.PRVO;
 import mujava.op.basic.COR;
 import mujava.op.basic.ROR;
+import mujava.op.util.MutantCodeWriter;
 import mujava.op.util.OLMO;
 
 /**
@@ -180,6 +182,11 @@ public final class Configuration {
 	public static final String ALLOW_FINAL_MEMBERS = PRVO.ALLOW_FINAL_MEMBERS;
 	
 	/**
+	 * {@link mujava.op.PRVO#ENABLE_RELAXED_TYPES}
+	 */
+	public static final String ENABLE_RELAXED_TYPES = PRVO.ENABLE_RELAXED_TYPES;
+	
+	/**
 	 * Option to enable/disable priority evaluation of mutations
 	 * <p>
 	 * This option is disabled by default
@@ -225,6 +232,22 @@ public final class Configuration {
 	 * <li>else blocks containing only an If statement will be printed as else if
 	 */
 	public static final String PRETTY_PRINT = "output.print.pretty";
+	
+	/**
+	 * {@link mujava.op.util.MutantCodeWriter#USE_SIMPLE_CLASS_NAMES}
+	 */
+	public static final String USE_SIMPLE_CLASS_NAMES = MutantCodeWriter.USE_SIMPLE_CLASS_NAMES;
+	
+	
+	/**
+	 * {@link mujava.op.BEE#SCAN_FOR_EXPRESSIONS}
+	 */
+	public static final String SCAN_FOR_EXPRESSIONS = BEE.SCAN_FOR_EXPRESSIONS;
+	
+	/**
+	 * {@link mujava.op.BEE#DISABLE_NEUTRAL_TRUE_FALSE}
+	 */
+	public static final String DISABLE_NEUTRAL_TRUE_FALSE = BEE.DISABLE_NEUTRAL_TRUE_FALSE;
 	
 	/**
 	 * This options enable/disable the ability to set an argument that has already been set
