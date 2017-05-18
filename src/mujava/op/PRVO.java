@@ -225,6 +225,26 @@ public class PRVO extends mujava.op.util.Mutator {
 	 * this option is disables by default
 	 */
 	public static final String ALLOW_FINAL_MEMBERS = "prvo_allow_final_members";
+	/**
+	 * Option to enable/disable relaxation in type checking (relaxed type check accept T and T' if they are compatible, non relaxed only accept T and T)
+	 * <p>
+	 * this option is enabled by default
+	 */
+	public static final String ENABLE_RELAXED_TYPES = "prvo_enable_relaxed_types";
+	/**
+	 * Option to enable/disable type checking from accepting type autoboxing (e.g.: accepting Integer and int as compatible types)
+	 * <p>
+	 * this option is enabled by default
+	 */
+	public static final String ENABLE_AUTOBOXING = "prvo_enable_autoboxing";
+	/**
+	 * Option to enable/disable the use of inherited elements (fields and methods) when replacing an expression or a segment of an expression
+	 * <p>
+	 * this option is enabled by default
+	 */
+	public static final String ENABLE_INHERITED_ELEMENTS = "prvo_enable_inherited_elements";
+	
+	
 	ParseTreeObject parent = null;
 
 	private boolean allowNonStatic = true;
@@ -475,7 +495,7 @@ public class PRVO extends mujava.op.util.Mutator {
 
 	private boolean isInherited(OJMember m) throws ParseTreeException {
 		OJMember[] declaredMembers = (m instanceof OJMethod)?getSelfType().getDeclaredMethods():getSelfType().getDeclaredFields();
-		OJMember[] inheritedMembers = (m instanceof OJMethod)?getInheritedMethods(getSelfType(), ALLOW_FINAL + IGNORE_PROTECTED):getInheritedFields(getSelfType(), ALLOW_FINAL + IGNORE_PROTECTED);
+		OJMember[] inheritedMembers = (m instanceof OJMethod)?getInheritedMethods(getSelfType(), ALLOW_FINAL + IGNORE_PROTECTED + ALLOW_PROTECTED_INHERITED):getInheritedFields(getSelfType(), ALLOW_FINAL + IGNORE_PROTECTED + ALLOW_PROTECTED_INHERITED);
 		if (findMember(m, declaredMembers)) {
 			return false;
 		} else {
@@ -644,6 +664,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		options += ignoreVars?0:VARIABLES;
 		options += this.allowNonStatic?ALLOW_NON_STATIC:0;
 		options += this.allowFinalMembers()?ALLOW_FINAL:0;
+		options += this.allowInheritedElements()?ALLOW_PROTECTED_INHERITED:0;
 		if (elem != null && t.getName().compareTo(self.getName()) == 0) {
 			options += TARGET_IS_MUTATED_CLASS_OBJECT;
 		}
@@ -692,7 +713,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		boolean onlyPublic = !canUseProtectedAndDefault;
 		boolean isSameClassAsSelf = isSelfClass(t);
 		boolean allowPrivate = isSameClassAsSelf;
-		boolean selfClassExtendsT = compatibleAssignType(t, getSelfType());
+		boolean selfClassExtendsT = inherits(getSelfType(), t); //compatibleAssignType(t, getSelfType());
 		if (this.fieldsAndMethodsPerClass.containsKey(t.getName()+addVariables+publicCheck)) {
 			return this.fieldsAndMethodsPerClass.get(t.getName()+addVariables+publicCheck);
 		}
@@ -700,7 +721,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			boolean allowNonStatic = this.allowNonStatic; //(this.allowNonStatic && this.smartMode) || !this.smartMode;
 			boolean isNonStatic = !f.getModifiers().isStatic();
 			if (f.getModifiers().isPrivate() && !allowPrivate) continue;
-			if (f.getModifiers().isProtected() && !isSameClassAsSelf && !selfClassExtendsT && !tIsInnerClassOfThis) {
+			if (f.getModifiers().isProtected() && !isSameClassAsSelf && (!selfClassExtendsT || (selfClassExtendsT && !allowInheritedElements())) && !tIsInnerClassOfThis) {
 				continue;
 			}
 			if (f.getModifiers().isPackaged() && !tPackageSameAsThisPackage && !tIsInnerClassOfThis) {
@@ -715,7 +736,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			boolean isNonStatic = !m.getModifiers().isStatic();
 			if (m.getModifiers().isPrivate() && !allowPrivate) continue;
 			if (m.getReturnType().getName().compareToIgnoreCase("void") == 0) continue;
-			if (m.getModifiers().isProtected() && !isSameClassAsSelf && !selfClassExtendsT && !tIsInnerClassOfThis) {
+			if (m.getModifiers().isProtected() && !isSameClassAsSelf && (!selfClassExtendsT || (selfClassExtendsT && !allowInheritedElements())) && !tIsInnerClassOfThis) {
 				continue;
 			}
 			if (m.getModifiers().isPackaged() && !tPackageSameAsThisPackage && !tIsInnerClassOfThis) {
@@ -729,7 +750,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			boolean allowNonStatic = this.allowNonStatic; //(this.allowNonStatic && this.smartMode) || !this.smartMode;
 			boolean isNonStatic = !inheritedField.getModifiers().isStatic();
 			if (inheritedField.getModifiers().isPrivate()) continue;
-			if (inheritedField.getModifiers().isProtected() && !isSameClassAsSelf && !selfClassExtendsT && !tIsInnerClassOfThis) {
+			if (inheritedField.getModifiers().isProtected() && !isSameClassAsSelf && (!selfClassExtendsT || (selfClassExtendsT && !allowInheritedElements())) && !tIsInnerClassOfThis) {
 				continue;
 			}
 			if (inheritedField.getModifiers().isPackaged() && !tPackageSameAsThisPackage && !tIsInnerClassOfThis) {
@@ -744,7 +765,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			boolean isNonStatic = !inheritedMethod.getModifiers().isStatic();
 			if (inheritedMethod.getModifiers().isPrivate()) continue;
 			if (inheritedMethod.getReturnType().getName().compareToIgnoreCase("void") == 0) continue;
-			if (inheritedMethod.getModifiers().isProtected() && !isSameClassAsSelf && !selfClassExtendsT && !tIsInnerClassOfThis) {
+			if (inheritedMethod.getModifiers().isProtected() && !isSameClassAsSelf && (!selfClassExtendsT || (selfClassExtendsT && !allowInheritedElements())) && !tIsInnerClassOfThis) {
 				continue;
 			}
 			if (inheritedMethod.getModifiers().isPackaged() && !tPackageSameAsThisPackage && !tIsInnerClassOfThis) {
@@ -794,6 +815,13 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		this.fieldsAndMethodsPerClass.put(t.getName()+addVariables+publicCheck, fnm);
 		return fnm;
+	}
+
+	private boolean allowInheritedElements() {
+		if (Configuration.argumentExist(ENABLE_INHERITED_ELEMENTS)) {
+			return (Boolean) Configuration.getValue(ENABLE_INHERITED_ELEMENTS);
+		}
+		return true;
 	}
 
 	private boolean isFieldMethodOf(OJMember e1, Expression e2) throws ParseTreeException {
@@ -879,7 +907,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			Expression prev = null;
 			Expression next = null;
 			Expression rightPart = null;
-			if (!lor && (e2 instanceof Variable || e2 instanceof AllocationExpression || e2 instanceof ArrayAllocationExpression) && compatibleAssignType(ltype, null) && this.allowLiteralNull() && ((refined && this.refModeAllowNullStack.peek()) || !refined)) outputToFile((ParseTreeObject)(lor?e1:e2), Literal.constantNull());
+			if (!lor && (e2 instanceof Variable || e2 instanceof AllocationExpression || e2 instanceof ArrayAllocationExpression) && compatibleAssignTypeRelaxed(ltype, null) && this.allowLiteralNull() && ((refined && this.refModeAllowNullStack.peek()) || !refined)) outputToFile((ParseTreeObject)(lor?e1:e2), Literal.constantNull());
 			do {
 				prev = getPreviousExpression(current);
 				java.util.List<Object> fnm = fieldAndMethods(orig, prev, false); //this.smartMode?fieldAndMethods(orig, prev, false):fieldAndMethods(prev, (ParseTreeObject) (lor?e1:e2));
@@ -908,7 +936,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					if (retType.isPrimitive() && next != null) continue;
 					if (lor && prev==null && !getType(current).isPrimitive() && retType.isPrimitive()) continue;
 					//m = nodeCopyOf((ParseTreeObject) m);
-					if ((next == null) && (lor?compatibleAssignType(retType, rtype):compatibleAssignType(ltype, retType, !refined))) {
+					if ((next == null) && (lor?compatibleTypes(retType, rtype):compatibleTypes(ltype, retType, !refined))) {
 						Expression prevCopy = prev==null?null:((Expression) nodeCopyOf((ParseTreeObject) prev));//prev.makeRecursiveCopy_keepOriginalID());
 						ParseTreeObject mutantNode = null;
 						if (m instanceof OJField) {
@@ -1035,7 +1063,7 @@ public class PRVO extends mujava.op.util.Mutator {
 				if (next == null) {
 					boolean leftEndCheck = (lor && !(prev instanceof MethodCall)) || !lor;
 					boolean prevIsNotNull = prev != null;
-					if (prevIsNotNull && leftEndCheck && compatibleAssignType(ltype, getType(prev)) && compatibleAssignType(getType(prev), rtype)) {
+					if (prevIsNotNull && leftEndCheck && compatibleTypes(ltype, getType(prev)) && compatibleTypes(getType(prev), rtype)) {
 						Expression prevCopy = (Expression) nodeCopyOf((ParseTreeObject) prev); //prev.makeRecursiveCopy_keepOriginalID();
 						ParseTreeObject mutantNode = null;
 						if (isPrimitiveToObjectAssignment((lor?getType(prev):ltype), (lor?rtype:getType(prev)))) {
@@ -1053,7 +1081,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					OJClass prevType = prev == null?null:getType(prev);
 					OJClass nextPrevType = expressionDeclaringClass(next);
 					if (nextPrevType != null) {
-						if (compatibleAssignType(prevType==null?getSelfType():prevType, nextPrevType)) {
+						if (compatibleTypes(prevType==null?getSelfType():prevType, nextPrevType)) {
 							if (prev == null) {
 								boolean thisCheck = true;
 								if (/*this.smartMode && */current instanceof SelfAccess && !((SelfAccess)current).isSuperAccess()) {
@@ -1278,6 +1306,20 @@ public class PRVO extends mujava.op.util.Mutator {
 		return false;
 	}
 	
+	private boolean useRelaxedTypes() {
+		if (Configuration.argumentExist(ENABLE_RELAXED_TYPES)) {
+			return (Boolean) Configuration.getValue(ENABLE_RELAXED_TYPES);
+		}
+		return true;
+	}
+	
+	private boolean allowAutoboxing() {
+		if (Configuration.argumentExist(ENABLE_AUTOBOXING)) {
+			return (Boolean) Configuration.getValue(ENABLE_AUTOBOXING);
+		}
+		return true;
+	}
+	
 	/**
 	 *	This method will check if an expression should be preceded by a {@code this} or a {@code super}
 	 *	expression. And if it should then it will add a {@code this} or a {@code super} accordingly
@@ -1386,7 +1428,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					if (next == null) {
 						nextTypeCheck = true;
 						methodCheck = !(m instanceof OJMethod) || !lor;
-						retTypeCheck = lor? compatibleAssignType(retType, rtype):compatibleAssignType(ltype, retType);
+						retTypeCheck = lor? compatibleTypes(retType, rtype):compatibleTypes(ltype, retType);
 					} else {
 						methodCheck = true;
 						nextTypeCheck = (isOJMember && isFieldMethodOf((OJMember)m,next)) || (!isOJMember && isFieldMethodOf((Variable)m, next));
@@ -1481,7 +1523,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					if (next == null) {
 						boolean ltypeCheck = true;
 						pertCheck = true;
-						typeCheck = lor?ltypeCheck&&compatibleAssignType(retType, rtype):compatibleAssignType(ltype, retType);
+						typeCheck = lor?ltypeCheck&&compatibleTypes(retType, rtype):compatibleTypes(ltype, retType);
 					} else {
 						typeCheck = true;
 						pertCheck = (m instanceof OJMember)?isFieldMethodOf((OJMember)m,next):((m instanceof Variable)?isFieldMethodOf((Variable)m, next):false);
@@ -1574,7 +1616,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					if (!lor) {
 						OJClass typeToComply = ltype;
 						OJClass litType = getType((Literal)replacement);
-						if (!compatibleAssignType(typeToComply, litType, true)) {
+						if (!compatibleTypes(typeToComply, litType)) {
 							continue;
 						} else {
 							setParentOf((ParseTreeObject)replacement, (ParseTreeObject)e2);
@@ -1597,7 +1639,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					replacement = (Variable) nodeCopyOf((ParseTreeObject) replacement);
 					OJClass varType = getType((Variable)replacement);
 					setParentOf((ParseTreeObject)replacement, (ParseTreeObject)(lor?e1:e2));
-					if (!lor && compatibleAssignType(ltype, varType, true)) {
+					if (!lor && compatibleTypes(ltype, varType)) {
 						ParseTreeObject mutantNode = null;
 						if (isPrimitiveToObjectAssignment(ltype, varType)) {
 							if (usePrimitiveWrapping()) {
@@ -1609,7 +1651,7 @@ public class PRVO extends mujava.op.util.Mutator {
 							mutantNode = (ParseTreeObject) replacement;
 						}
 						if (mutantNode != null) outputToFile((ParseTreeObject)(e2), mutantNode);
-					} else if (lor && compatibleAssignType(varType, rtype, true)) {
+					} else if (lor && compatibleTypes(varType, rtype)) {
 						if (isPrimitiveToObjectAssignment(varType, rtype) && !usePrimitiveWrapping()) {
 							continue;
 						}
@@ -1620,7 +1662,7 @@ public class PRVO extends mujava.op.util.Mutator {
 				} else if (replacement instanceof OJField) {
 					OJClass fieldType = ((OJField)replacement).getType();
 					FieldAccess mutant = new FieldAccess((Expression)null, ((OJField)replacement).getName());
-					if (!lor && compatibleAssignType(ltype, fieldType, true)) {
+					if (!lor && compatibleTypes(ltype, fieldType)) {
 						setParentOf((ParseTreeObject)mutant, (ParseTreeObject)e2);
 						ParseTreeObject mutantNode = (ParseTreeObject) addThisSuper(mutant);
 						if (isPrimitiveToObjectAssignment(ltype, fieldType)) {
@@ -1631,7 +1673,7 @@ public class PRVO extends mujava.op.util.Mutator {
 							}
 						}
 						outputToFile((ParseTreeObject)(e2), mutantNode);
-					} else if (lor && compatibleAssignType(fieldType, rtype, true)) {
+					} else if (lor && compatibleTypes(fieldType, rtype)) {
 						setParentOf((ParseTreeObject)mutant, (ParseTreeObject)e1);
 						if (isPrimitiveToObjectAssignment(fieldType, rtype) && !usePrimitiveWrapping()) {
 							continue;
@@ -1642,7 +1684,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					}
 				} else if (replacement instanceof OJMethod && !lor) {
 					OJClass methodType = ((OJMethod)replacement).getReturnType();
-					if (compatibleAssignType(ltype, methodType, true)) {
+					if (compatibleTypes(ltype, methodType)) {
 						MethodCall mutant = new MethodCall((Expression)null, ((OJMethod)replacement).getName(), new ExpressionList());
 						setParentOf((ParseTreeObject)mutant, (ParseTreeObject)e2);
 						ParseTreeObject mutantNode = (ParseTreeObject) addThisSuper(mutant);
@@ -1719,7 +1761,7 @@ public class PRVO extends mujava.op.util.Mutator {
 						setParentOf((ParseTreeObject)mutantPart1, (ParseTreeObject)(lor?e1:e2));
 						if (next == null) {
 							boolean ltypeCheck = (lor && (prev==null?(getType(current).isPrimitive()?retType.isPrimitive():!retType.isPrimitive()):true)) || !lor;
-							if ((lor && (ltypeCheck && compatibleAssignType(retType, rtype))) || (!lor && (compatibleAssignType(ltype, retType)))) {
+							if ((lor && (ltypeCheck && compatibleTypes(retType, rtype))) || (!lor && (compatibleTypes(ltype, retType)))) {
 								ParseTreeObject mutantNode = (ParseTreeObject)mutantPart2;
 								if (isPrimitiveToObjectAssignment((lor?retType:ltype), (lor?rtype:retType))) {
 									if (usePrimitiveWrapping() && !lor) {
@@ -1945,10 +1987,10 @@ public class PRVO extends mujava.op.util.Mutator {
 			} else {
 				//TODO: it should never reach this point, however there should be some code to treat to case
 			}
-			pushAllowNull(p, compatibleAssignType(getType(p.getTrueCase()), null));
+			pushAllowNull(p, compatibleAssignTypeRelaxed(getType(p.getTrueCase()), null));
 			p.getTrueCase().accept(this);
 			popAllowNull(p);
-			pushAllowNull(p, compatibleAssignType(getType(p.getFalseCase()), null));
+			pushAllowNull(p, compatibleAssignTypeRelaxed(getType(p.getFalseCase()), null));
 			p.getFalseCase().accept(this);
 			popAllowNull(p);
 			popComplyType(p);
@@ -1972,7 +2014,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			if (this.right) {
 				binaryVisit(p, lexp,rexp, false);
 				if (this.refinedMode/*this.canBeRefined(rexp)*/) {
-					pushAllowNull(p, compatibleAssignType(getType(lexp), null));
+					pushAllowNull(p, compatibleAssignTypeRelaxed(getType(lexp), null));
 					pushComplyType(p, lexp);
 					rexp.accept(this);
 					popComplyType(p);
@@ -2025,7 +2067,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			Variable returnAuxVar = Variable.generateUniqueVariable();
 			getEnvironment().bindVariable(returnAuxVar.toString(), getMethodUnderConsiderationType());
 			Expression e1 = returnAuxVar;
-			pushAllowNull(p, compatibleAssignType(getType(e1), null));
+			pushAllowNull(p, compatibleAssignTypeRelaxed(getType(e1), null));
 			pushComplyType(p, e1);
 			this.replaceByLiteral(returnAuxVar, rexp);
 			popAllowNull(p);
@@ -2036,7 +2078,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			Variable returnAuxVar = Variable.generateUniqueVariable();
 			getEnvironment().bindVariable(returnAuxVar.toString(), getMethodUnderConsiderationType());
 			Expression e1 = returnAuxVar;
-			pushAllowNull(p, compatibleAssignType(getType(e1), null));
+			pushAllowNull(p, compatibleAssignTypeRelaxed(getType(e1), null));
 			pushComplyType(p, e1);
 			rexp.accept(this);
 			popAllowNull(p);
@@ -2072,7 +2114,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (addAllocationToTypeStack) popComplyType(p);
 		ExpressionList args = p.getArguments();
 		for (int a = 0; a < args.size(); a++) {
-			pushAllowNull(p, compatibleAssignType(getType(args.get(a)), null));
+			pushAllowNull(p, compatibleAssignTypeRelaxed(getType(args.get(a)), null));
 			if (this.refinedMode) {
 				OJConstructor formalConstructor = getConstructor(p.getClassType(), args);
 				if (formalConstructor != null) {
@@ -2112,7 +2154,7 @@ public class PRVO extends mujava.op.util.Mutator {
 
 		if (this.unary && this.refinedMode && getMutationsLeft(p) > 0) {
 			OJClass varType = getEnvironment().lookupBind(p.getVariable());
-			pushAllowNull(p, varType==null?false:(compatibleAssignType(varType, null)));
+			pushAllowNull(p, varType==null?false:(compatibleAssignTypeRelaxed(varType, null)));
 			Variable var = new Variable(p.getVariable());
 			pushComplyType(p, varType==null?rexp:var);
 			rexp.accept(this);
@@ -2147,7 +2189,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (parentIsStatement && !allowRefinementInMethodCallStatements()) return;
 		ExpressionList args = p.getArguments();
 		for (int a = 0; a < args.size(); a++) {
-			pushAllowNull(p, compatibleAssignType(getType(args.get(a)), null));
+			pushAllowNull(p, compatibleAssignTypeRelaxed(getType(args.get(a)), null));
 			if (this.refinedMode) {
 				OJMethod formalMethod = getMethod(p.getName(), getSelfType(), args);
 				if (formalMethod != null) {
@@ -2424,7 +2466,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					OJClass typeToComply = getType(complyWith);
 					OJClass litType = getType(lit);
 					boolean ignoreTypeCheckOnNumbers = this.allowNumberLiteralsVariations() && this.isNumber(lit) && this.isNumericExpression(complyWith);
-					if (!ignoreTypeCheckOnNumbers && !compatibleAssignType(typeToComply, litType, false)) {
+					if (!ignoreTypeCheckOnNumbers && !compatibleTypes(typeToComply, litType, false)) {
 						continue;
 					}
 				}
@@ -2695,7 +2737,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		OJClass numberClass = OJClass.forClass(Number.class);
 		OJClass exprType = getType(expr);
-		return compatibleAssignType(numberClass, exprType, true);
+		return compatibleAssignTypeRelaxed(numberClass, exprType, true);
 	}
 	
 	private boolean isNumber(Expression expr) {
@@ -2718,6 +2760,15 @@ public class PRVO extends mujava.op.util.Mutator {
 			pte.printStackTrace();
 		}
 		MutantsInformationHolder.mainHolder().addMutation(this.op, original, (ParseTreeObject) modifiedMutant);
+	}
+	
+	private boolean compatibleTypes(OJClass c1, OJClass c2, boolean allowWrappers) {
+		boolean autoboxing = allowAutoboxing() && allowWrappers;
+		return useRelaxedTypes()?compatibleAssignTypeRelaxed(c1, c2, autoboxing):compatibleAssignTypeStrict(c1, c2, autoboxing);
+	}
+	
+	private boolean compatibleTypes(OJClass c1, OJClass c2) {
+		return compatibleTypes(c1, c2, true);
 	}
 
 
