@@ -415,6 +415,7 @@ public class Mutation {
 			case PPD			: {res = false; break;}
 			//----------------------------------
 			case MULTI			: {res = false; break;}
+			case BEE			: {res = true; break;}
 
 		}
 		return res;
