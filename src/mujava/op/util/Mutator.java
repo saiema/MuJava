@@ -10,7 +10,6 @@ import mujava.*;
 import mujava.api.Api;
 import mujava.api.Mutation;
 import mujava.api.MutationOperator;
-
 import java.io.*;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -51,7 +50,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	protected static final int TARGET_IS_NULL = 512;
 	protected static final int TARGET_IS_MUTATED_CLASS_OBJECT = 1024;
 	protected static final int IGNORE_PROTECTED = 2048;
-//	protected static final int ALLOW_PROTECTED_INHERITED = 512;
+	protected static final int ALLOW_PROTECTED_INHERITED = 4096;
 //	protected static final int ALLOW_PACKAGED = 1024;
 //	protected static final int ALLOW_PROTECTED = 2048;
 	private static boolean verbose = false;
@@ -584,8 +583,8 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 *            The type on the right side of the assignment
 	 * @return true if the types are compatible, false otherwise
 	 */
-	public boolean compatibleAssignType(OJClass p, OJClass c) {
-		return compatibleAssignType(p, c, true);
+	public boolean compatibleAssignTypeStrict(OJClass p, OJClass c) {
+		return compatibleAssignTypeStrict(p, c, true);
 	}
 
 	/**
@@ -597,7 +596,41 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 *            The type on the right side of the assignment
 	 * @return true if the types are compatible, false otherwise
 	 */
-	public boolean compatibleAssignType(OJClass p, OJClass c, boolean allowWrappers) {
+	public boolean compatibleAssignTypeStrict(OJClass p, OJClass c, boolean allowWrappers) {
+		if (p == null) {// || c == null ){
+			return false;
+		}
+
+		if (c == null || c.toString().compareTo("<type>null") == 0) {
+			return p.isPrimitive() ? false : true;
+		}
+
+		if (p.toString().compareTo("<type>null") == 0) {
+			return c == null || c.toString().compareTo("<type>null") == 0;
+		}
+
+		if ("void".equalsIgnoreCase(c.getName())) {
+			return false;
+		}
+
+		/* Supporting java auto-boxing */
+		if (!p.isArray()
+				&& !c.isArray()
+				&& ((p.isPrimitive() && c.isPrimitiveWrapper()) || (p
+						.isPrimitiveWrapper() && c.isPrimitive()))) {
+			return p.unwrappedPrimitive().getName().compareTo(c.unwrappedPrimitive().getName()) == 0;
+		}
+		if (c.isPrimitive() && !p.isPrimitive()) {
+			c = c.primitiveWrapper();
+		}
+		return p.getName().compareTo(c.getName())==0;
+	}
+	
+	public boolean compatibleAssignTypeRelaxed(OJClass p, OJClass c) {
+		return compatibleAssignTypeRelaxed(p, c, true);
+	}
+	
+	public boolean compatibleAssignTypeRelaxed(OJClass p, OJClass c, boolean allowWrappers) {
 		if (p == null) {// || c == null ){
 			return false;
 		}
@@ -625,13 +658,26 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 				&& !c.isArray()
 				&& ((p.isPrimitive() && c.isPrimitiveWrapper()) || (p
 						.isPrimitiveWrapper() && c.isPrimitive()))) {
-			return (p.unwrappedPrimitive()).isAssignableFrom(c
-					.unwrappedPrimitive());
+			return (p.unwrappedPrimitive()).isAssignableFrom(c.unwrappedPrimitive());
 		}
 		if (c.isPrimitive() && !p.isPrimitive()) {
 			c = c.primitiveWrapper();
 		}
 		return p.isAssignableFrom(c);
+	}
+	
+	/**
+	 * Determines whether a type inherits from another
+	 * 
+	 * @param a : the sub type
+	 * @param b : the super type
+	 * @return {@code true} if {@code a} inherits from {@code b}
+	 */
+	public boolean inherits(OJClass a, OJClass b) {
+		if (a == null || b == null) return false;
+		if (a.isPrimitive() || b.isPrimitive()) return false;
+		if (a.isArray() || b.isArray()) return false;
+		return b.isAssignableFrom(a);
 	}
 
 	/**
@@ -640,7 +686,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * @return all non final inherited methods in {@code clazz}
 	 */
 	public OJMethod[] getInheritedMethods(OJClass clazz) {
-		return getInheritedMethods(clazz, 0);
+		return getInheritedMethods(clazz, ALLOW_PROTECTED_INHERITED);
 	}
 	
 	/**
@@ -649,7 +695,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * @return all non final inherited constructors in {@code clazz}
 	 */
 	public OJConstructor[] getInheritedConstructors(OJClass clazz) {
-		return getInheritedConstructors(clazz, 0);
+		return getInheritedConstructors(clazz, ALLOW_PROTECTED_INHERITED);
 	}
 
 	
@@ -676,7 +722,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		}
 		OJClass base = clazz.getSuperclass();
 		Map<Signature, OJMethod> table = new HashMap<Signature, OJMethod>();
-		while (base != null) {
+		while (base != null && (options & ALLOW_PROTECTED_INHERITED) != 0) {
 			OJMethod[] declaredMethods = filterPrivate(base.getDeclaredMethods(), filterFinal);
 			for (int m = 0; m < declaredMethods.length; m++) {
 				if (declaredMethods[m].getModifiers().isProtected() && !allowProtected) continue;
@@ -702,7 +748,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		boolean filterFinal = (options & ALLOW_FINAL) == 0;
 		OJClass base = clazz.getSuperclass();
 		Map<Signature, OJConstructor> table = new HashMap<Signature, OJConstructor>();
-		while (base != null) {
+		while (base != null && (options & ALLOW_PROTECTED_INHERITED) != 0) {
 			OJConstructor[] declaredConstructors = filterPrivate(base.getDeclaredConstructors(), filterFinal);
 			for (int m = 0; m < declaredConstructors.length; m++) {
 				if (!table.containsKey(declaredConstructors[m].signature()))
@@ -743,7 +789,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * @return all non final inherited fields in {@code clazz}
 	 */
 	public OJField[] getInheritedFields(OJClass clazz) {
-		return getInheritedFields(clazz, 0);
+		return getInheritedFields(clazz, ALLOW_PROTECTED_INHERITED);
 	}
 
 	/**
@@ -766,7 +812,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		while (base != null) {
+		while (base != null && (options & ALLOW_PROTECTED_INHERITED) != 0) {
 			OJField[] declaredFields = filterPrivate(base.getDeclaredFields(), options);
 			for (int f = 0; f < declaredFields.length; f++) {
 				if (declaredFields[f].getModifiers().isProtected() && !allowProtected) continue;
@@ -855,7 +901,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * @return all fields in {@code clazz} including those with the static modifier
 	 */
 	public OJField[] getAllFields(OJClass clazz) {
-		return getAllFields(clazz, ALLOW_NON_STATIC);
+		return getAllFields(clazz, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED);
 	}
 
 	/**
@@ -941,7 +987,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * @return all methods in {@code clazz} including those with the static modifier
 	 */
 	public OJMethod[] getAllMethods(OJClass clazz) {
-		return getAllMethods(clazz, ALLOW_NON_STATIC);
+		return getAllMethods(clazz, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED);
 	}
 
 	/**
@@ -952,7 +998,8 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * <li>VARIABLES: will include declared variables in the result</li>
 	 * <li>ALLOW_VOID: will include methods with a void return value</li>
 	 * <li>ALLOW_PARAMS: will include methods with parameters</li>
-	 * <li>ALLOW_NON_STATIC: will include methods and fields without the static modifier</li><p> : {@code int}
+	 * <li>ALLOW_NON_STATIC: will include methods and fields without the static modifier</li>
+	 * <li>IGNORE_PROTECTED: will ignore methods and fields that are protected coming from a super class</li><p>
 	 * @return all methods and fields in {@code clazz}, optionally the result will include declared variables
 	 */
 	public List<Object> fieldsMethodsAndVars(ParseTreeObject limit, OJClass t, int options) throws ParseTreeException {
@@ -1215,7 +1262,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 					for (int a = 0; a < formalArgs; a++) {
 						OJClass formalType = m.getParameterTypes()[a];
 						OJClass actualType = getType(complyWith.get(a));
-						if (!compatibleAssignType(formalType, actualType)) {
+						if (!compatibleAssignTypeRelaxed(formalType, actualType)) {
 							break;
 						}
 					}
@@ -1241,7 +1288,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 				for (int a = 0; a < formalArgs; a++) {
 					OJClass formalType = c.getParameterTypes()[a];
 					OJClass actualType = getType(complyWith.get(a));
-					if (!compatibleAssignType(formalType, actualType)) {
+					if (!compatibleAssignTypeRelaxed(formalType, actualType)) {
 						break;
 					}
 				}
@@ -1282,10 +1329,10 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	}
 
 	public OJClass max(OJClass c1, OJClass c2) {
-		if (compatibleAssignType(c1, c2)) {
+		if (compatibleAssignTypeRelaxed(c1, c2)) {
 			// c2 is assignable to c1
 			return c1;
-		} else if (compatibleAssignType(c2, c1)) {
+		} else if (compatibleAssignTypeRelaxed(c2, c1)) {
 			// c1 is assignable to c2
 			return c2;
 		} else {
