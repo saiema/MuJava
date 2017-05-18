@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -30,12 +31,13 @@ import java.util.TreeSet;
  * <p>
  * 
  * @author Simon Emmanuel Gutierrez Brida
- * @version 2.5
+ * @version 2.5.1
  */
 public class Reloader extends ClassLoader {
 	protected Set<String> classpath;
 	protected String priorityPath;
 	protected Set<String> reloadableCache;
+	protected Map<String, Boolean> reloadedClasses;
 	protected List<Class<?>> reloadableClassCache;
 	protected Reloader child;
 	private int reloadersCreated = 0;
@@ -52,14 +54,32 @@ public class Reloader extends ClassLoader {
 		if (parent instanceof Reloader) {
 			this.reloadersCreated = ((Reloader)parent).reloadersCreated + 1;
 			this.byteCodeContainer = ((Reloader)parent).byteCodeContainer;
+			initReloadedClasses(((Reloader)parent).reloadedClasses);
 		} else {
 			this.byteCodeContainer = new ByteCodeContainer();
+			initReloadedClasses();
 		}
 		this.classpath = new TreeSet<String>();
 		this.classpath.addAll(classpath);
 		this.reloadableCache = new TreeSet<String>();
 		this.reloadableClassCache = new LinkedList<Class<?>>();
 		this.specificClassPaths = new TreeMap<String, String>();
+		
+	}
+	
+	private void initReloadedClasses() {
+		this.reloadedClasses = new TreeMap<>();
+		if (this.reloadableCache == null) return;
+		for (String rc : this.reloadableCache) {
+			this.reloadedClasses.put(rc, Boolean.FALSE);
+		}
+	}
+	
+	private void initReloadedClasses(Map<String, Boolean> parentsReloadedClasses) {
+		this.reloadedClasses = new TreeMap<>();
+		for (Entry<String, Boolean> rc : parentsReloadedClasses.entrySet()) {
+			this.reloadedClasses.put(rc.getKey(), Boolean.FALSE);
+		}
 	}
 	
 	private Reloader(Set<String> classpath, ClassLoader parent, Set<String> reloadableCache, Map<String, String> specificClassPaths) {
@@ -73,8 +93,10 @@ public class Reloader extends ClassLoader {
 		if (parent instanceof Reloader) {
 			this.reloadersCreated = ((Reloader)parent).reloadersCreated + 1;
 			this.byteCodeContainer = ((Reloader)parent).byteCodeContainer;
+			initReloadedClasses(((Reloader)parent).reloadedClasses);
 		} else {
 			this.byteCodeContainer = new ByteCodeContainer();
+			initReloadedClasses();
 		}
 		this.classpath = classpath;
 		this.reloadableClassCache = new LinkedList<Class<?>>();
@@ -146,12 +168,18 @@ public class Reloader extends ClassLoader {
 				clazz = findClass(s);
 			}
 		}
-		if (this.reloadableCache.contains(s)) addToCache(clazz);
+		if (this.reloadableCache.contains(s)) {
+			addToCache(clazz);
+			if (this.reloadedClasses.containsKey(s)) {
+				this.reloadedClasses.put(s, Boolean.TRUE);
+			}
+		}
 		return clazz;
 	}
 	
 	public void markClassAsReloadable(String s) {
 		this.reloadableCache.add(s);
+		this.reloadedClasses.put(s, Boolean.FALSE);
 	}
 
 	public Class<?> loadClassAsReloadable(String s) throws ClassNotFoundException {
@@ -244,8 +272,15 @@ public class Reloader extends ClassLoader {
 		Reloader r = newReloader();
 		for (String c : this.reloadableCache) {
 			if (c.compareTo(s) != 0) {
-				Class<?> newClass = r.loadAgain(c);
+				Class<?> newClass = null;
+				if (r.reloadedClasses.containsKey(c) && r.reloadedClasses.get(c).booleanValue()) {
+					newClass = r.loadClass(c);
+				} else {
+					newClass = r.loadAgain(c);
+				}
 				r.addToCache(newClass);
+				//Class<?> newClass = r.loadAgain(c);
+				//r.addToCache(newClass);
 			}
 		}
 		clazz = r.loadAgain(s);
