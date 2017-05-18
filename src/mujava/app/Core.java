@@ -52,10 +52,13 @@ public class Core {
 	private List<MutantInfo> lastGeneration = null;
 	public static boolean fullVerbose = false;
 	public static boolean showSurvivingMutants = false;
-	public static final int mujavappVersion = 20151011;
+	public static final int mujavappVersion = 20172805;
 	
 	private float totalToughness;
 	private float totalMutants;
+
+	private float totalKilledMutantsToughness;
+	private float totalKilledMutants;
 	
 	public static Core newInstance(String inputDirP, String outputDirP) {
 		if (instance == null) {
@@ -222,6 +225,9 @@ public class Core {
 				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
 				this.addToughnessValue(toughness);
 				System.out.println("Toughness: " + toughness + " [failed : " + totalFailures + " | total : " + runnedTestsCount + "]");
+				if (killed) {
+					this.addKilledMutantsToughnessValue(toughness);
+				}
 				System.out.println();
 			}
 			if (killed) mutantsKilled++;
@@ -283,6 +289,7 @@ public class Core {
 		}
 		if (toughnessAnalysis()) {
 			System.out.println("Average toughness : " + this.averageToughness());
+			System.out.println("Average killed mutants toughness : " + this.averageKilledMutantsToughness());
 		}
 		return ((mutantsKilled+failedToCompile)*(float)100.0)/mutants;
 	}
@@ -300,8 +307,17 @@ public class Core {
 		this.totalMutants++;
 	}
 	
+	private void addKilledMutantsToughnessValue(float t) {
+		this.totalKilledMutantsToughness += t;
+		this.totalKilledMutants++;
+	}
+	
 	private float averageToughness() {
 		return this.totalToughness / this.totalMutants;
+	}
+	
+	private float averageKilledMutantsToughness() {
+		return this.totalKilledMutantsToughness / this.totalKilledMutants;
 	}
 	
 	@SuppressWarnings("deprecation")
