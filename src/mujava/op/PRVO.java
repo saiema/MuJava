@@ -245,7 +245,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	public static final String ENABLE_INHERITED_ELEMENTS = "prvo_enable_inherited_elements";
 	
 	
-	ParseTreeObject parent = null;
+	//ParseTreeObject parent = null;
 
 	private boolean allowNonStatic = true;
 
