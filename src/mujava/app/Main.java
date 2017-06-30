@@ -331,6 +331,34 @@ public class Main {
 			Core.showSurvivingMutants = false;
 		}
 		
+		if (config.useExternalJUnitRunner() || config.useParallelExternalJUnitRunner()) {
+			System.out.println("Using external JUnit runner");
+			Core.useExternalJUnitRunner = true;
+		} else {
+			System.out.println("Using internal JUnit runner (uses Reloader)");
+			Core.useExternalJUnitRunner = false;
+		}
+		
+		if (config.useParallelExternalJUnitRunner()) {
+			System.out.println("Using parallel external JUnit runner");
+			Core.useParallelJUnitRunner = true;
+		} else {
+			System.out.println("Using sequential JUnit runner");
+			Core.useParallelJUnitRunner = false;
+		}
+		
+		if (config.useParallelExternalJUnitRunner()) {
+			int threads = config.parallelExternalJUnitRunnerThreads();
+			System.out.println("Parallel JUnit runner using " + threads + " threads");
+			Core.parallelJUnitRunnerThreads = threads;
+		}
+		
+		if (config.useExternalJUnitRunner() || config.useParallelExternalJUnitRunner()) {
+			MutationScore.junitPath = config.junitPath();
+			MutationScore.hamcrestPath = config.hamcrestPath();
+			System.out.println("JUnit jar path: " + config.junitPath());
+			System.out.println("hamcrest jar path: " + config.hamcrestPath());
+		}
 		
 		System.out.println("Cleaning Reloader instances after " + config.reloaderInstancesLimit() + " instances");
 		Reloader.MAX_RELOADERS_BEFORE_CLEANING = config.reloaderInstancesLimit();
@@ -470,6 +498,38 @@ public class Main {
 		} else {
 			Configuration.add(Configuration.ENABLE_LITERAL_STRINGS, Boolean.FALSE);
 			if (config.fullVerboseMode()) System.out.println("PRVO string literals use disabled");
+		}
+		
+		if (config.prvoAllowFinalMembers()) {
+			Configuration.add(Configuration.ALLOW_FINAL_MEMBERS, Boolean.TRUE);
+			if (config.fullVerboseMode()) System.out.println("PRVO final members use enabled");
+		} else {
+			Configuration.add(Configuration.ALLOW_FINAL_MEMBERS, Boolean.FALSE);
+			if (config.fullVerboseMode()) System.out.println("PRVO final members use disabled");
+		}
+		
+		if (config.prvoEnableRelaxedTypes()) {
+			Configuration.add(Configuration.ENABLE_RELAXED_TYPES, Boolean.TRUE);
+			if (config.fullVerboseMode()) System.out.println("PRVO relaxed type check enabled");
+		} else {
+			Configuration.add(Configuration.ENABLE_RELAXED_TYPES, Boolean.FALSE);
+			if (config.fullVerboseMode()) System.out.println("PRVO relaxed type check disabled");
+		}
+		
+		if (config.prvoEnableAutoboxing()) {
+			Configuration.add(Configuration.ENABLE_AUTOBOXING, Boolean.TRUE);
+			if (config.fullVerboseMode()) System.out.println("PRVO autobox in checking enabled");
+		} else {
+			Configuration.add(Configuration.ENABLE_AUTOBOXING, Boolean.FALSE);
+			if (config.fullVerboseMode()) System.out.println("PRVO autobox in checking disabled");
+		}
+		
+		if (config.prvoEnableInheritedElements()) {
+			Configuration.add(Configuration.ENABLE_INHERITED_ELEMENTS, Boolean.TRUE);
+			if (config.fullVerboseMode()) System.out.println("PRVO inherited elements use enabled");
+		} else {
+			Configuration.add(Configuration.ENABLE_INHERITED_ELEMENTS, Boolean.FALSE);
+			if (config.fullVerboseMode()) System.out.println("PRVO inherited elements use disabled");
 		}
 		
 		//ROR CONFIG
