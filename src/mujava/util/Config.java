@@ -25,10 +25,16 @@ import mujava.app.Core;
 import mujava.app.MutatorsInfo;
 
 public class Config {
+	
+	private static final int DEFAULT_JUNIT_PARALLEL_RUNNER_THREADS = 8;
+	private static final int DEFAULT_RELOADER_INSTANCES_LIMIT = 150;
+	
 	//basic folders
-	private String originalSrcDir;
-	private String originalBinDir;
-	private String mutantsOutputFolder;
+	private final String originalSrcDir;
+	private final String originalBinDir;
+	private final String mutantsOutputFolder;
+	private String junitPath; //can only be null if external junit runner is false
+	private String hamcrestPath; //can only be null if external junit runner is false
 	//basic folders
 	
 	//basic mutation values
@@ -78,7 +84,14 @@ public class Config {
 	private boolean prvoUseZeroLiteral;
 	private boolean prvoUseOneLiteral;
 	private boolean prvoUseStringLiterals;
+	private boolean prvoAllowFinalMembers;
+	private boolean prvoEnableRelaxedTypes;
+	private boolean prvoEnableAutoboxing;
+	private boolean prvoEnableInheritedElements;
 	private boolean useSimpleClassNames;
+	private boolean useExternalJUnitRunner;
+	private boolean useParallelExternalJUnitRunner;
+	private int parallelExternalJUnitRunnerThreads;
 	//advanced mutation options
 	
 	//mutation score
@@ -111,9 +124,14 @@ public class Config {
 		this.generation = 1;
 		this.showSurvivingMutants = false;
 		this.toughnessAnalysis = false;
-		this.reloaderInstancesLimit = 150;
-		this.outputMutationsInfo(false);
-		this.useSimpleClassNames(false);
+		this.reloaderInstancesLimit = DEFAULT_RELOADER_INSTANCES_LIMIT;
+		this.useExternalJUnitRunner = false;
+		this.useParallelExternalJUnitRunner = false;
+		this.parallelExternalJUnitRunnerThreads = DEFAULT_JUNIT_PARALLEL_RUNNER_THREADS;
+		this.junitPath = null;
+		this.hamcrestPath = null;
+		outputMutationsInfo(false);
+		useSimpleClassNames(false);
 		initializePRVOOptions();
 		intitializeROROptions();
 		initializeCOROptions();
@@ -133,36 +151,40 @@ public class Config {
 	}
 	
 	private void initializeCOROptions() {
-		this.corUseAndOp(true);
-		this.corUseOrOp(true);
-		this.corUseXorOp(true);
-		this.corUseBitAndOp(true);
-		this.corUseBitOrOp(true);
+		corUseAndOp(true);
+		corUseOrOp(true);
+		corUseXorOp(true);
+		corUseBitAndOp(true);
+		corUseBitOrOp(true);
 	}
 
 	private void intitializeROROptions() {
-		this.rorReplaceWithTrue(true);
-		this.rorReplaceWithFalse(true);
+		rorReplaceWithTrue(true);
+		rorReplaceWithFalse(true);
 	}
 
 	private void initializePRVOOptions() {
-		this.prvoSameLenght(true);
-		this.prvoIncreaseLength(true);
-		this.prvoDecreaseLength(true);
-		this.prvoOneByTwo(true);
-		this.prvoTwoByOne(true);
-		this.prvoAllByOneLeft(false);
-		this.prvoAllByOneRight(false);
-		this.prvoUseSuper(true);
-		this.prvoUseThis(true);
-		this.prvoReplacementWithLiterals(true);
-		this.prvoUseNullLiteral(true);
-		this.prvoUseTrueLiteral(true); 
-		this.prvoUseFalseLiteral(true);
-		this.prvoUseEmptyStringLiteral(true);
-		this.prvoUseZeroLiteral(true);
-		this.prvoUseOneLiteral(true);
-		this.prvoUseStringLiterals(true);
+		prvoSameLenght(true);
+		prvoIncreaseLength(true);
+		prvoDecreaseLength(true);
+		prvoOneByTwo(true);
+		prvoTwoByOne(true);
+		prvoAllByOneLeft(false);
+		prvoAllByOneRight(false);
+		prvoUseSuper(true);
+		prvoUseThis(true);
+		prvoReplacementWithLiterals(true);
+		prvoUseNullLiteral(true);
+		prvoUseTrueLiteral(true); 
+		prvoUseFalseLiteral(true);
+		prvoUseEmptyStringLiteral(true);
+		prvoUseZeroLiteral(true);
+		prvoUseOneLiteral(true);
+		prvoUseStringLiterals(true);
+		prvoAllowFinalMembers(false);
+		prvoEnableRelaxedTypes(true);
+		prvoEnableAutoboxing(true);
+		prvoEnableInheritedElements(true);
 	}
 
 	public void classToMutate(String classToMutate) {
@@ -185,6 +207,22 @@ public class Config {
 	
 	public String mutantsOutputFolder() {
 		return this.mutantsOutputFolder;
+	}
+	
+	public String junitPath() {
+		return this.junitPath;
+	}
+	
+	protected void junitPath(String s) {
+		this.junitPath = s;
+	}
+	
+	public String hamcrestPath() {
+		return this.hamcrestPath;
+	}
+	
+	protected void hamcrestPath(String s) {
+		this.hamcrestPath = s;
 	}
 	
 	public void addMethodToMutate(String method) {
@@ -511,6 +549,38 @@ public class Config {
 		this.prvoUseStringLiterals = b;
 	}
 	
+	public boolean prvoAllowFinalMembers() {
+		return prvoAllowFinalMembers;
+	}
+
+	public void prvoAllowFinalMembers(boolean prvoAllowFinalMembers) {
+		this.prvoAllowFinalMembers = prvoAllowFinalMembers;
+	}
+
+	public boolean prvoEnableRelaxedTypes() {
+		return prvoEnableRelaxedTypes;
+	}
+
+	public void prvoEnableRelaxedTypes(boolean prvoEnableRelaxedTypes) {
+		this.prvoEnableRelaxedTypes = prvoEnableRelaxedTypes;
+	}
+
+	public boolean prvoEnableAutoboxing() {
+		return prvoEnableAutoboxing;
+	}
+
+	public void prvoEnableAutoboxing(boolean prvoEnableAutoboxing) {
+		this.prvoEnableAutoboxing = prvoEnableAutoboxing;
+	}
+
+	public boolean prvoEnableInheritedElements() {
+		return prvoEnableInheritedElements;
+	}
+
+	public void prvoEnableInheritedElements(boolean prvoEnableInheritedElements) {
+		this.prvoEnableInheritedElements = prvoEnableInheritedElements;
+	}
+
 	public boolean rorReplaceWithTrue() {
 		return rorReplaceWithTrue;
 	}
@@ -653,6 +723,30 @@ public class Config {
 	public void useSimpleClassNames(boolean useSimpleClassNames) {
 		this.useSimpleClassNames = useSimpleClassNames;
 	}
+	
+	public  boolean useExternalJUnitRunner() {
+		return this.useExternalJUnitRunner;
+	}
+	
+	public void useExternalJUnitRunner(boolean b) {
+		this.useExternalJUnitRunner = b;
+	}
+	
+	public boolean useParallelExternalJUnitRunner() {
+		return this.useParallelExternalJUnitRunner;
+	}
+	
+	public void useParallelExternalJUnitRunner(boolean b) {
+		this.useParallelExternalJUnitRunner = b;
+	}
+	
+	public int parallelExternalJUnitRunnerThreads() {
+		return this.parallelExternalJUnitRunnerThreads;
+	}
+	
+	public void parallelExternalJUnitRunnerThreads(int v) {
+		this.parallelExternalJUnitRunnerThreads = v;
+	}
 
 	/**
 	 * @return the outputMutationsInfo
@@ -788,6 +882,17 @@ public class Config {
 		if (this.quickDeath && !this.runMutationScore) return "Quick death option is enabled but mutation score is not";
 		if (!this.runMutationScore && this.showSurvivingMutants) return "Show surviving mutants is enabled but mutation score is not";
 		if (!this.runMutationScore && this.toughnessAnalysis) return "Toughness analysis is enabled but mutation score is not";
+		if (this.useExternalJUnitRunner || this.useParallelExternalJUnitRunner) {
+			if (this.junitPath == null || this.junitPath.isEmpty()) return "Can't use external junit runner without defining the JUnit jar path";
+			if (!verifyFile(this.junitPath)) return "The defined JUnit path doesn't not point to an existing file";
+			if (!this.junitPath.endsWith(".jar")) return "The defined JUnit path doesn't point to a jar file";
+			if (this.hamcrestPath == null || this.junitPath.isEmpty()) return "Can't use external junit runner without defining the hamcrest jar path";
+			if (!verifyFile(this.hamcrestPath)) return "The defined hamcrest path doesn't not point to an existing file";
+			if (!this.hamcrestPath.endsWith(".jar")) return "The defined hamcrest path doesn't point to a jar file";
+			if (this.useParallelExternalJUnitRunner && this.parallelExternalJUnitRunnerThreads <= 0) {
+				return "Using parallel external JUnit runner with a non-positive amount of threads";
+			}
+		}
 		return null;
 	}
 	
