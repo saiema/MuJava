@@ -8,6 +8,7 @@ import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.DefaultConfigurationBuilder;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 
 /**
  * This class allows access to a configuration loaded from a properties file
@@ -17,7 +18,7 @@ import org.apache.commons.lang.SystemUtils;
  * file separator  
  * 
  * @author Simón Emmanuel Gutiérrez Brida
- * @version 2.0b
+ * @version 2.1b
  */
 public class ConfigReader {
 	
@@ -55,6 +56,22 @@ public class ConfigReader {
 			}
 			public String getFlag() {
 				return "-M";
+			}
+		},
+		JUNIT_PATH {
+			public String getKey() {
+				return "path.junit";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		HAMCREST_PATH {
+			public String getKey() {
+				return "path.hamcrest";
+			}
+			public String getFlag() {
+				return NO_FLAG;
 			}
 		},
 		//DIRECTORIES
@@ -213,6 +230,45 @@ public class ConfigReader {
 				return NO_FLAG;
 			}
 		},
+		USE_EXTERNAL_JUNIT_RUNNER {
+			public String getKey() {
+				return "mutation.advanced.useExternalJUnitRunner";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		USE_PARALLEL_JUNIT_RUNNER {
+			public String getKey() {
+				return "mutation.advanced.useParallelJUnitRunner";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		PARALLEL_JUNIT_RUNNER_THREADS {
+			public String getKey() {
+				return "mutation.advanced.parallelJUnitRunnerThreads";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		INHERITED_BASIC_CONFIG {
+			public String getKey() {
+				return "mutation.advanced.inheritedBasicConfig";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		/*
+		USE_EXTERNAL_JUNIT_RUNNER
+		USE_PARALLEL_JUNIT_RUNNER
+		INHERITED_BASIC_CONFIG
+		JUNIT_PATH
+		HAMCREST_PATH
+		*/
 		//MUTATION ADVANCED
 		//MUTATION ADVANCED PRVO
 		ALLOW_NUMERIC_LITERAL_VARIATIONS {
@@ -383,6 +439,38 @@ public class ConfigReader {
 				return "-r";
 			}
 		},
+		PRVO_ALLOW_FINAL_MEMBERS {
+			public String getKey() {
+				return "mutation.advanced.prvo.allowFinalMembers";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		PRVO_ENABLE_RELAXED_TYPES {
+			public String getKey() {
+				return "mutation.advanced.prvo.enableRelaxedTypes";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		PRVO_ENABLE_AUTOBOXING {
+			public String getKey() {
+				return "mutation.advanced.prvo.enableAutoboxing";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		PRVO_ENABLE_INHERITED_ELEMENTS {
+			public String getKey() {
+				return "mutation.advanced.prvo.enableInheritedElements";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
 		//MUTATION ADVANCED PRVO
 		//MUTATION ADVANCED ROR
 		ROR_REPLACE_WITH_TRUE {
@@ -455,6 +543,8 @@ public class ConfigReader {
 	 */
 	public static final String DEFAULT_PROPERTIES = "default.properties";
 	
+	public static final String DEFAULT_BASIC_PROPERTIES = "default_basic.properties";
+	
 	/**
 	 * The {@code StrykerConfig} instance that will be returned by {@link ConfigReader#getInstance(String)}
 	 */
@@ -465,7 +555,7 @@ public class ConfigReader {
 	 */
 	private String propertiesFile;
 	/**
-	 * The configuration loaded, especified by {@link ConfigReader#propertiesFile}
+	 * The configuration loaded, specified by {@link ConfigReader#propertiesFile}
 	 */
 	private Configuration config;
 	
@@ -603,7 +693,24 @@ public class ConfigReader {
 		if (isDefined(Config_key.PRVO_ENABLE_ZERO_LITERAL)) conf.prvoUseZeroLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_ZERO_LITERAL));
 		if (isDefined(Config_key.PRVO_ENABLE_ONE_LITERAL)) conf.prvoUseOneLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_ONE_LITERAL));
 		if (isDefined(Config_key.PRVO_ENABLE_STRING_LITERALS)) conf.prvoUseStringLiterals(getBooleanArgument(Config_key.PRVO_ENABLE_STRING_LITERALS));
+		if (isDefined(Config_key.PRVO_ALLOW_FINAL_MEMBERS)) conf.prvoAllowFinalMembers(getBooleanArgument(Config_key.PRVO_ALLOW_FINAL_MEMBERS));
+		if (isDefined(Config_key.PRVO_ENABLE_RELAXED_TYPES)) conf.prvoEnableRelaxedTypes(getBooleanArgument(Config_key.PRVO_ENABLE_RELAXED_TYPES));
+		if (isDefined(Config_key.PRVO_ENABLE_AUTOBOXING)) conf.prvoEnableAutoboxing(getBooleanArgument(Config_key.PRVO_ENABLE_AUTOBOXING));
+		if (isDefined(Config_key.PRVO_ENABLE_INHERITED_ELEMENTS)) conf.prvoEnableInheritedElements(getBooleanArgument(Config_key.PRVO_ENABLE_INHERITED_ELEMENTS));
 		if (isDefined(Config_key.USE_SIMPLE_CLASS_NAMES)) conf.useSimpleClassNames(getBooleanArgument(Config_key.USE_SIMPLE_CLASS_NAMES));
+		if (isDefined(Config_key.USE_EXTERNAL_JUNIT_RUNNER)) conf.useExternalJUnitRunner(getBooleanArgument(Config_key.USE_EXTERNAL_JUNIT_RUNNER));
+		if (isDefined(Config_key.USE_PARALLEL_JUNIT_RUNNER)) conf.useParallelExternalJUnitRunner(getBooleanArgument(Config_key.USE_PARALLEL_JUNIT_RUNNER));
+		if (isDefined(Config_key.PARALLEL_JUNIT_RUNNER_THREADS)) conf.parallelExternalJUnitRunnerThreads(getIntArgument(Config_key.PARALLEL_JUNIT_RUNNER_THREADS));
+		boolean junitPathDefined = false;
+		boolean hamcrestPathDefined = false;
+		if (isDefined(Config_key.JUNIT_PATH)) {
+			junitPathDefined = true;
+			conf.junitPath(getStringArgument(Config_key.JUNIT_PATH));
+		}
+		if (isDefined(Config_key.HAMCREST_PATH)) {
+			hamcrestPathDefined = true;
+			conf.hamcrestPath(getStringArgument(Config_key.HAMCREST_PATH));
+		}
 		for (String bannedField : stringArgumentsAsArray(getStringArgument(Config_key.BANNED_FIELDS))) {
 			conf.addBannedField(bannedField);
 		}
@@ -627,9 +734,34 @@ public class ConfigReader {
 		if (conf.runMutationScore()) conf.showSurvivingMutants(getBooleanArgument(Config_key.SHOW_SURVIVING_MUTANTS));
 		if (conf.runMutationScore()) conf.toughnessAnalysis(getBooleanArgument(Config_key.MUTATION_SCORE_TOUGHNESS_ANALYSIS));
 		if (conf.runMutationScore()) conf.outputMutationsInfo(getBooleanArgument(Config_key.OUPUT_MUTANT_MUTATIONS));	
+		String e = loadInheritedBasicConfig(junitPathDefined, hamcrestPathDefined, conf);
+		if (e != null) throw new IllegalStateException("Bad inherited configuration : " + e);
 		String validationError = conf.validate();
 		if (validationError != null) throw new IllegalStateException("Bad configuration : " + validationError);
 		return conf;
+	}
+	
+	private String loadInheritedBasicConfig(boolean junitDefined, boolean hamcrestDefined, Config conf) {
+		if (junitDefined && hamcrestDefined) return null;
+		Configuration inheritedConfig = null;
+		String configFile = null;
+		if (isDefined(Config_key.INHERITED_BASIC_CONFIG)) {
+			configFile = getStringArgument(Config_key.INHERITED_BASIC_CONFIG);
+		} else {
+			configFile = DEFAULT_BASIC_PROPERTIES;
+		}
+		try {
+			inheritedConfig = new PropertiesConfiguration(configFile);
+		} catch (ConfigurationException e) {
+			return ExceptionUtils.getFullStackTrace(e);
+		}
+		if (!junitDefined && isDefined(Config_key.JUNIT_PATH, inheritedConfig)) {
+			conf.junitPath(getStringArgument(Config_key.JUNIT_PATH, inheritedConfig));
+		}
+		if (!hamcrestDefined && isDefined(Config_key.HAMCREST_PATH, inheritedConfig)) {
+			conf.hamcrestPath(getStringArgument(Config_key.HAMCREST_PATH, inheritedConfig));
+		}
+		return null;
 	}
 	
 	public void saveConfig(Config conf, String path) throws ConfigurationException {
@@ -651,36 +783,52 @@ public class ConfigReader {
 	
 	//TODO: comment
 	public String getStringArgument(Config_key key) {
-		if (!argumentExist(key) || isBooleanKey(key) || isIntKey(key)) {
+		return getStringArgument(key, this.config);
+	}
+	
+	public String getStringArgument(Config_key key, Configuration config) {
+		if (!argumentExist(key, config) || isBooleanKey(key) || isIntKey(key)) {
 			return "";
 		}
-		return this.config.getString(key.getKey());
+		return config.getString(key.getKey());
 	}
 	
 	//TODO: comment
 	public boolean getBooleanArgument(Config_key key) {
-		if (!argumentExist(key) || !isBooleanKey(key) || isIntKey(key)) return false;
-		return this.config.getBoolean(key.getKey());
+		return getBooleanArgument(key, this.config);
+	}
+	
+	public boolean getBooleanArgument(Config_key key, Configuration config) {
+		if (!argumentExist(key, config) || !isBooleanKey(key) || isIntKey(key)) return false;
+		return config.getBoolean(key.getKey());
 	}
 	
 	//TODO: comment
 	public int getIntArgument(Config_key key) {
-		if (!argumentExist(key) || isBooleanKey(key) || !isIntKey(key)) return 0;
-		return this.config.getInt(key.getKey());
+		return getIntArgument(key, this.config);
+	}
+	
+	public int getIntArgument(Config_key key, Configuration config) {
+		if (!argumentExist(key, config) || isBooleanKey(key) || !isIntKey(key)) return 0;
+		return config.getInt(key.getKey());
 	}
 	
 	//TODO: comment
 	public boolean argumentExist(Config_key key) {
-		if (this.config.containsKey(key.getKey())) {
+		return argumentExist(key, this.config);
+	}
+	
+	public boolean argumentExist(Config_key key, Configuration config) {
+		if (config.containsKey(key.getKey())) {
 			if (isBooleanKey(key)) {
 				try {
-					this.config.getBoolean(key.getKey());
+					config.getBoolean(key.getKey());
 					return true;
 				} catch (ConversionException ex) {
 					return false;
 				}
 			} else {
-				return !this.config.getString(key.getKey()).trim().isEmpty();
+				return !config.getString(key.getKey()).trim().isEmpty();
 			}
 		} else {
 			return false;
@@ -688,7 +836,11 @@ public class ConfigReader {
 	}
 	
 	public boolean isDefined(Config_key key) {
-		return this.config.containsKey(key.getKey());
+		return isDefined(key, this.config);
+	}
+	
+	public boolean isDefined(Config_key key, Configuration config) {
+		return config.containsKey(key.getKey());
 	}
 	
 	public boolean isBooleanKey(Config_key key) {
@@ -719,6 +871,10 @@ public class ConfigReader {
 			case PRVO_ENABLE_ONE_LITERAL:
 			case PRVO_ENABLE_STRING_LITERALS:
 			case ALLOW_NUMERIC_LITERAL_VARIATIONS:
+			case PRVO_ALLOW_FINAL_MEMBERS:
+			case PRVO_ENABLE_RELAXED_TYPES:
+			case PRVO_ENABLE_AUTOBOXING:
+			case PRVO_ENABLE_INHERITED_ELEMENTS:
 			case MUTATION_SCORE:
 			case ROR_REPLACE_WITH_TRUE:
 			case ROR_REPLACE_WITH_FALSE:
@@ -730,6 +886,8 @@ public class ConfigReader {
 			case MUTATION_SCORE_TOUGHNESS_ANALYSIS:
 			case USE_SIMPLE_CLASS_NAMES:
 			case OUPUT_MUTANT_MUTATIONS:
+			case USE_EXTERNAL_JUNIT_RUNNER:
+			case USE_PARALLEL_JUNIT_RUNNER:	
 			case MUTGENLIMIT: return true;
 			default : return false;
 		}
@@ -737,6 +895,7 @@ public class ConfigReader {
 	
 	public boolean isIntKey(Config_key key) {
 		switch (key) {
+			case PARALLEL_JUNIT_RUNNER_THREADS:
 			case RELOADER_INSTANCES_LIMIT:
 			case GENERATIONS : return true;
 			default : return false;
