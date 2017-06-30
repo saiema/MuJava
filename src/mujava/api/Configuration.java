@@ -187,6 +187,15 @@ public final class Configuration {
 	public static final String ENABLE_RELAXED_TYPES = PRVO.ENABLE_RELAXED_TYPES;
 	
 	/**
+	 * {@link mujava.op.PRVO#ENABLE_AUTOBOXING}
+	 */
+	public static final String ENABLE_AUTOBOXING = PRVO.ENABLE_AUTOBOXING;
+	
+	/**
+	 * {@link mujava.op.PRVO#ENABLE_INHERITED_ELEMENTS}
+	 */
+	public static final String ENABLE_INHERITED_ELEMENTS = PRVO.ENABLE_INHERITED_ELEMENTS;
+	/**
 	 * Option to enable/disable priority evaluation of mutations
 	 * <p>
 	 * This option is disabled by default
