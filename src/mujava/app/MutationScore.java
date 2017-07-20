@@ -5,11 +5,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.lang.ProcessBuilder.Redirect;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -25,9 +27,10 @@ import mujava.junit.runner.MuJavaJunitTestRunner;
 import mujava.junit.runner.MuJavaTestRunnerException;
 import mujava.loader.Reloader;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
-import org.junit.runners.model.InitializationError;
+//import org.junit.runners.model.InitializationError; //changed to support junit 3.8
 
 public class MutationScore {
 	private static String mutantsSourceFolder = null;
@@ -66,6 +69,7 @@ public class MutationScore {
 	}
 	
 	public CompilationResult compile(String path) {
+		System.out.println("Compiling with classpath: " + getCurrentClasspath());
 		File fileToCompile = new File(/*mutantsSourceFolder+*/path);
 		if (!fileToCompile.exists() || !fileToCompile.isFile() || !fileToCompile.getName().endsWith(".java")) {
 			return new CompilationResult(new Exception("Error in file : " + fileToCompile.getAbsolutePath()));
@@ -75,17 +79,38 @@ public class MutationScore {
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 		StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 		Iterable<? extends JavaFileObject> compilationUnit = fileManager.getJavaFileObjectsFromFiles(Arrays.asList(files));
-		compiler.getTask(null, fileManager, diagnostics, Arrays.asList(new String[] {"-classpath", originalBinFolder}), null, compilationUnit).call();
+		boolean success = false;
+		Exception compilationUnexpectedError = null;
+		try {
+			success = compiler.getTask(null, fileManager, diagnostics, Arrays.asList(new String[] {
+					"-classpath",
+					originalBinFolder+File.pathSeparator+getCurrentClasspath()
+					}
+			), null, compilationUnit).call();
+		} catch (RuntimeException e) {
+			System.err.println(ExceptionUtils.getFullStackTrace(e));
+			compilationUnexpectedError = e;
+		} catch (Exception e) {
+			System.err.println(ExceptionUtils.getFullStackTrace(e));
+			compilationUnexpectedError = e;
+		}
 		String compilationErrorOutput = "";
 		for (Diagnostic<? extends JavaFileObject> diagnostic : diagnostics.getDiagnostics()) {
-	        compilationErrorOutput += String.format("Error on line %d in %s%n%s%n",
-								                    diagnostic.getLineNumber(),
-								                    diagnostic.getSource().toUri(),
-								                    diagnostic.getMessage(null));
+			String kind = diagnostic.getKind()==null?"N/A":diagnostic.getKind().toString();
+			long lineNumber = diagnostic.getLineNumber();
+			String source = diagnostic.getSource()==null?"N/A":diagnostic.getSource().toUri().toString();
+	        String msg = diagnostic.getMessage(null)==null?"N/A":diagnostic.getMessage(null);
+			compilationErrorOutput += String.format("%s on line %d in %s%n%s%n",
+	        										kind,
+								                    lineNumber,
+								                    source,
+								                    msg);
 		}
 		CompilationResult cresult = null;
-		if (compilationErrorOutput.isEmpty()) {
-			cresult = new CompilationResult(null);
+		if (compilationUnexpectedError != null) {
+			cresult = new CompilationResult(compilationUnexpectedError);
+		} else if (success) {
+			cresult = new CompilationResult(compilationErrorOutput);
 		} else {
 			cresult = new CompilationResult(new Exception(compilationErrorOutput));
 		}
@@ -129,9 +154,12 @@ public class MutationScore {
 				if (!testResult.wasSuccessful() && MutationScore.quickDeath) {
 					break;
 				}
-			} catch (ClassNotFoundException | IllegalArgumentException | MuJavaTestRunnerException | InitializationError e) {
+			} catch (ClassNotFoundException | IllegalArgumentException | MuJavaTestRunnerException e) {// | InitializationError e) { //change to support junit 3.8
 				e.printStackTrace();
 				this.lastError = e;
+			} catch (Throwable e) {
+				e.printStackTrace();
+				this.lastError = new Exception(e);
 			}
 		}
 		return testResults;
@@ -142,15 +170,18 @@ public class MutationScore {
 		List<TestResult> testResults = new LinkedList<>();
 		String classpath = ".:bin/:"+MutationScore.originalBinFolder+":"+MutationScore.testsBinFolder;
 		classpath += ":"+junitPath+":"+hamcrestPath;
-		classpath += ":"+getCurrentClasspath();
+		classpath += ":"+cleanClasspath(getCurrentClasspath());
+		System.out.println("Running external runner with classpath: " + classpath);
 		String mutPath = mut.getClassRootFolder();
 		//ProcessBuilder args are:
 		//command + binFolder + testsBinFolder + tests + mutantLocation + mutantClass + quickDeath + toughness
 		//where except for the command, the other arguments need a flag, which are the following:
-		//-b -t -T -m -c -q -x
+		//-b -t -T -m -c -q -x -l
 		//-q and -t will only be used if quickdeath or toughness where set
+		String[] libs = cleanClasspath(getCurrentClasspath()).split(File.pathSeparator);
 		int optionalFlags = (MutationScore.quickDeath || Core.toughnessAnalysis())?1:0;
-		String[] args = new String[testClasses.size() /*tests*/ + 5 /*flags*/ + 4 /*args*/ + 4 /*command*/ + optionalFlags];
+		int libsSize = libs.length;
+		String[] args = new String[testClasses.size() /*tests*/ + 5 /*flags*/ + (libs.length==0?0:1) /*libs flag*/ + 4 /*args*/ + 4 /*command*/ + optionalFlags + libsSize];
 		args[0] = "java";
 		args[1] = "-cp";
 		args[2] = classpath;
@@ -176,11 +207,22 @@ public class MutationScore {
 				args[12+i] = "-x";
 			}
 		}
+		if (libs.length > 0) {
+			args[13+i] = "-l";
+			int j = 1;
+			for (String l : libs) {
+				args[13+i+j] = l;
+				j++;
+			}
+		}
 		ProcessBuilder pb = new ProcessBuilder(args);
-		//File errorlog = new File("error_" + mut.getPath().replaceAll(File.separator, "-") + ".log");
+		File errorLog = new File("error.log");
+		//File errorLog = new File("error_" + mut.getPath().replaceAll(File.separator, "-") + ".log");
 		//File outLog = new File("out_" + mut.getPath().replaceAll(File.separator, "-") + ".log");
-		//pb.redirectError(errorlog);
+		//System.out.println("Error log is found in: " + errorlog.getAbsolutePath());
+		//pb.redirectError(errorLog);
 		//pb.redirectOutput(outLog);
+		pb.redirectError(Redirect.appendTo(errorLog));
 		
 		try {
 			Process p = pb.start();
@@ -210,6 +252,36 @@ public class MutationScore {
 		return res;
 	}
 	
+	private String cleanClasspath(String classpath) {
+		String[] paths = classpath.split(File.pathSeparator);
+		List<String> cleanedPaths = new LinkedList<>();
+		for (String p : paths) {
+			if (p.contains("junit")) {
+				continue;
+			}
+			if (p.contains("hamcrest")) {
+				continue;
+			}
+			if (p.contains(MutationScore.testsBinFolder)) {
+				continue;
+			}
+			if (p.contains(MutationScore.originalBinFolder)) {
+				continue;
+			}
+			cleanedPaths.add(p);
+		}
+		Iterator<String> it = cleanedPaths.iterator();
+		String result = "";
+		while (it.hasNext()) {
+			String p = it.next();
+			result += p;
+			if (it.hasNext()) {
+				result += File.pathSeparator;
+			}
+		}
+		return result;
+	}
+
 	private Collection<? extends TestResult> parseResultsFromInputStream(InputStream is) throws ClassNotFoundException, IOException {
 		List<TestResult> results = new LinkedList<>();
 		ObjectInputStream in = new ObjectInputStream(is);
