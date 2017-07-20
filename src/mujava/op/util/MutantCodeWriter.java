@@ -34,6 +34,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	
 	
 	public static final String USE_SIMPLE_CLASS_NAMES = "mutant_code_writer_use_simple_class_names";
+	public static final String KEEP_ORIGINAL_TYPE_NAMES = "mutant_code_writer_keep_original_type_names";
 	
 	/**
 	 * The mutation to write
@@ -1409,7 +1410,19 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			useLineSeparator = false;
 		}
 		outputCommentIfApplicable(p.getComment(), useTabs, useLineSeparator); //added (12/09/14)
-		String typename = (useSimpleClassName()?p.getSimpleName():p.getName()).replace('$', '.');
+		String typename = "";
+		if (useSimpleClassName()) {
+			if (p.constructedFromOJClass()) {
+				typename = p.getSimpleName().replace('$', '.');
+			} else if (keepOriginalTypeNames()) {
+				typename = p.getName().replace('$', '.');
+			} else {
+				typename = p.getSimpleName().replace('$', '.');
+			}
+		} else {
+			typename = p.getName().replace('$', '.');
+		}
+		//String typename = (useSimpleClassName()?p.getSimpleName():p.getName()).replace('$', '.');
 		out.print(typename);
 
 		int dims = p.getDimension();
@@ -1474,7 +1487,19 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 		TypeName typespec = p.getTypeSpecifier();
 //		typespec.accept(this);
-		String typename = (useSimpleClassName()?typespec.getSimpleName():typespec.getName()).replace('$', '.');//typespec.getName().replace('$', '.');
+		String typename = "";
+		if (useSimpleClassName()) {
+			if (typespec.constructedFromOJClass()) {
+				typename = typespec.getSimpleName().replace('$', '.');
+			} else if (keepOriginalTypeNames()) {
+				typename = typespec.getName().replace('$', '.');
+			} else {
+				typename = typespec.getSimpleName().replace('$', '.');
+			}
+		} else {
+			typename = typespec.getName().replace('$', '.');
+		}
+		//String typename = (useSimpleClassName()?typespec.getSimpleName():typespec.getName()).replace('$', '.');//typespec.getName().replace('$', '.');
 		out.print(typename);
 
 		int dims = typespec.getDimension();
@@ -1890,6 +1915,13 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			return (Boolean) Configuration.getValue(USE_SIMPLE_CLASS_NAMES);
 		}
 		return false;
+	}
+	
+	private boolean keepOriginalTypeNames() {
+		if (Configuration.argumentExist(KEEP_ORIGINAL_TYPE_NAMES)) {
+			return (Boolean) Configuration.getValue(KEEP_ORIGINAL_TYPE_NAMES);
+		}
+		return true; //TODO: should be changed to false
 	}
 
 }
