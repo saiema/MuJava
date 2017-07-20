@@ -101,6 +101,7 @@ public class Config {
 	private boolean showSurvivingMutants;
 	private boolean toughnessAnalysis;
 	private boolean outputMutationsInfo;
+	private boolean useOldJUnit = true; //TODO: complete getters, setters, and config in file
 	//mutation score
 	
 	//mutation score advanced options
@@ -981,10 +982,13 @@ public class Config {
 	
 	private boolean isTestClass(Class<?> c) {
 		if (c == null) return false;
-		RunWith runWithAnnotation = c.getAnnotation(RunWith.class);
-		if (runWithAnnotation != null) {
-			return true;
-		} else if (TestCase.class.isAssignableFrom(c)) {
+		if (!this.useOldJUnit) {
+			RunWith runWithAnnotation = c.getAnnotation(RunWith.class);
+			if (runWithAnnotation != null) {
+				return true;
+			}
+		}
+		if (TestCase.class.isAssignableFrom(c)) {
 			return true;
 		} else if (TestSuite.class.isAssignableFrom(c)) {
 			return true;
