@@ -12,6 +12,7 @@ import mujava.api.Configuration;
 import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 import mujava.op.PRVO;
+import mujava.op.util.MutantCodeWriter;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,7 +50,7 @@ public class PRVOTests {
 	
 	@Parameters
 	public static Collection<Object[]> firstValues() {
-		
+		TestingTools.setVerbose(true);
 		/*
 		 * ORIGINAL
 		 * current = this.header.next;
@@ -579,6 +580,8 @@ public class PRVOTests {
 		List<MutantInfo> mfOMUCU;
 		
 		Configuration.add(PRVO.ALLOW_FINAL_MEMBERS, Boolean.TRUE);
+		Configuration.add(MutantCodeWriter.USE_SIMPLE_CLASS_NAMES, Boolean.FALSE);
+		Configuration.add(MutantCodeWriter.KEEP_ORIGINAL_TYPE_NAMES, Boolean.FALSE);
 		
 		mfSLLBEVarField_right = TestingTools.generateMutants(propSLLBEVarField_right);
 		
@@ -611,6 +614,8 @@ public class PRVOTests {
 		mfOMUCU = TestingTools.generateMutants(propOMUCU);
 		
 		Configuration.removeArgument(PRVO.ALLOW_FINAL_MEMBERS);
+		Configuration.removeArgument(MutantCodeWriter.USE_SIMPLE_CLASS_NAMES);
+		Configuration.removeArgument(MutantCodeWriter.KEEP_ORIGINAL_TYPE_NAMES);
 		
 		return Arrays.asList(new Object[][] {
 				{propSLLBEVarField_right, mfSLLBEVarField_right},			//0

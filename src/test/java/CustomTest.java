@@ -37,7 +37,7 @@ public class CustomTest {
 	public static Collection<Object[]> firstValues() {
 		TestingTools.setVerbose(false);
 		MutantsInformationHolder.setVerbose(true);
-		Configuration.add(Configuration.USE_MUTGENLIMIT, Boolean.FALSE);
+		Configuration.add(Configuration.USE_MUTGENLIMIT, Boolean.TRUE);
 		Configuration.add(Configuration.PRETTY_PRINT, Boolean.FALSE);
 		Configuration.add(Configuration.USE_SIMPLE_CLASS_NAMES, Boolean.TRUE);
 		
@@ -246,6 +246,20 @@ public class CustomTest {
 											null,
 											false);
 		
+		List<MutationOperator> operators12 = new LinkedList<>();
+		operators12.add(MutationOperator.PRVOL_SMART);
+		operators12.add(MutationOperator.PRVOR_REFINED);
+		operators12.add(MutationOperator.PRVOU_REFINED);
+		Property propCustom12 = new Property(operators12,
+											"bugHunting/prvoDecrease/SinglyLinkedList",
+											"contains",
+											TestingTools.NO_MUTANTS_EXPECTED,
+											TestingTools.NO_MUTANTS_EXPECTED,
+											TestingTools.NO_PATTERN_EXPECTED,
+											TestingTools.NO_PATTERN_EXPECTED,
+											null,
+											false);
+		
 		//Configuration.clear();
 		//MutantCodeWriter.useSimpleClassNames(false);
 		
@@ -255,7 +269,7 @@ public class CustomTest {
 		
 		//PARAMETERS
 		return Arrays.asList(new Object[][] {
-				{propCustom0},
+				{propCustom12},
 		});
 	}
 	
