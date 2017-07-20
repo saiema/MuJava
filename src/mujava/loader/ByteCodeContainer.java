@@ -11,6 +11,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 import mujava.util.JustCodeDigest;
 
@@ -84,6 +86,46 @@ public class ByteCodeContainer {
 		}
 	}
 	
+	public byte[] loadByteCodeJarFile(String file, String asClass) throws IOException {
+		String classAsPath = asClass.replaceAll("\\.", File.separator)+".class";
+		if (asClass != null && this.filePerClass.containsKey(asClass)) {
+			String associatedPath = this.filePerClass.get(asClass);
+			if (associatedPath.compareTo(file) != 0) {
+				this.classByteCodeMap.remove(associatedPath);
+				this.filePerClass.put(asClass, file+"!/"+classAsPath);
+			}
+		} else if (asClass != null) {
+			this.filePerClass.put(asClass, file+"!/"+classAsPath);
+		}
+		String key = file+"!/"+classAsPath;
+		JarFile jar = new JarFile(file);
+		if (ByteCodeContainer.reuseByteCode && this.classByteCodeMap.containsKey(key)) {
+			if (this.classesToReload.contains(key)) {
+				byte buff[] = loadFileFromJar(jar, classAsPath);
+				this.classByteCodeMap.put(key, buff);
+				return buff;
+			} else if (this.verifyFileChanges) {
+				byte lastBuff[] = this.classByteCodeMap.get(key);
+				byte currentBuff[] = JustCodeDigest.digest(jar, classAsPath, false);
+				if (Arrays.equals(lastBuff, currentBuff)) {
+					jar.close();
+					return lastBuff;
+				} else {
+					this.classByteCodeMap.put(key, currentBuff);
+					jar.close();
+					return currentBuff;
+				}
+			} else {
+				jar.close();
+				return this.classByteCodeMap.get(key);
+			}
+		} else {
+			byte buff[] = loadFileFromJar(jar, asClass.replaceAll("\\.", File.separator));
+			this.classByteCodeMap.put(key, buff);
+			return buff;
+		}
+	}
+	
 	public boolean byteCodeExist(File file) {
 		if (this.classByteCodeMap.containsKey(file.getAbsolutePath())) {
 			return true;
@@ -92,11 +134,29 @@ public class ByteCodeContainer {
 		}
 	}
 	
+	public boolean byteCodeExistInJar(JarFile jarfile, String clazz) {
+		ZipEntry entry = jarfile.getEntry(clazz);
+		if (entry == null) return false;
+		return !entry.isDirectory();
+	}
+	
 	private byte[] loadFile(File file) throws IOException {
 		int size = (int) file.length();
 		byte buff[] = new byte[size];
 		FileInputStream fis = new FileInputStream(file);
 		DataInputStream dis = new DataInputStream(fis);
+		dis.readFully(buff);
+		dis.close();
+		return buff;
+	}
+	
+	private byte[] loadFileFromJar(JarFile file, String clazz) throws IOException {
+		ZipEntry entry = file.getEntry(clazz);
+		if (entry == null) throw new IOException(clazz + " is not a valid entry in " + file.getName());
+		if (entry.isDirectory()) throw new IOException(clazz + " is not a file entry in " + file.getName());
+		int size = (int) entry.getSize();
+		byte buff[] = new byte[size];
+		DataInputStream dis = new DataInputStream(file.getInputStream(entry));
 		dis.readFully(buff);
 		dis.close();
 		return buff;
