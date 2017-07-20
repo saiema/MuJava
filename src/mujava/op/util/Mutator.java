@@ -606,7 +606,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		}
 
 		if (p.toString().compareTo("<type>null") == 0) {
-			return c == null || c.toString().compareTo("<type>null") == 0;
+			return c == null || c.toString().compareTo("<type>null") == 0 || !c.isPrimitive();
 		}
 
 		if ("void".equalsIgnoreCase(c.getName())) {
@@ -636,11 +636,11 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		}
 
 		if (c == null || c.toString().compareTo("<type>null") == 0) {
-			return p.isPrimitive() ? false : true;
+			return !p.isPrimitive();
 		}
 
 		if (p.toString().compareTo("<type>null") == 0) {
-			return c == null || c.toString().compareTo("<type>null") == 0;
+			return c == null || c.toString().compareTo("<type>null") == 0 || !c.isPrimitive();
 		}
 
 		if ("void".equalsIgnoreCase(c.getName())) {
