@@ -341,16 +341,18 @@ public class Core {
 			System.out.println("Testing mutant : "+externalJPRResults.getMutant().getPath()+'\n');
 			
 			if (!externalJPRResults.compilationResults().compilationSuccessful()) {
-				System.out.println("File : " + externalJPRResults.getMutant().getPath() + " didn't compile\n");
-				System.out.print("Compilation error:\n" + externalJPRResults.compilationResults().error().getMessage());
+				System.err.println("File : " + externalJPRResults.getMutant().getPath() + " didn't compile\n");
+				System.err.print("Compilation error:\n" + externalJPRResults.compilationResults().error().getMessage());
 				failedToCompile++;
 				continue;
+			} else if (externalJPRResults.compilationResults().getWarnings() != null) {
+				System.err.println("Warnings\n"+externalJPRResults.compilationResults().getWarnings());
 			}
 			boolean killed = false;
 			ExternalJUnitResult testResults = externalJPRResults.testResults();
 			if (!testResults.testsRunSuccessful()) {
-				System.out.println("An error ocurred while running tests for mutants");
-				System.out.println(testResults.error().getMessage());
+				System.err.println("An error ocurred while running tests for mutants");
+				System.err.println(testResults.error().getMessage());
 				return -1;
 			}
 			int runnedTestsCount = 0;
@@ -435,7 +437,9 @@ public class Core {
 			String pathToFile = mut.getPath();
 			CompilationResult cresult = ms.compile(pathToFile);
 			ExternalJUnitResult results = null;
-			if (cresult.compilationSuccessful()) {
+			if (cresult == null) {
+				results = new ExternalJUnitResult(new Exception("Compilation error while compiling mutant "+mut.getPath()));
+			} else if (cresult.compilationSuccessful()) {
 				results = ms.runTestsWithMutantsUsingExternalRunner(testClasses, mut);
 		  	}
 			System.out.println("Mutant analysis for : " + mut.getPath() + " finished");
