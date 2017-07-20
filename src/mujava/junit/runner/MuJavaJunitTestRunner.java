@@ -1,5 +1,6 @@
 package mujava.junit.runner;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import junit.framework.TestCase;
@@ -13,7 +14,7 @@ import org.junit.runner.Runner;
 import org.junit.runners.Parameterized;
 import org.junit.runners.ParentRunner;
 import org.junit.runners.Suite;
-import org.junit.runners.model.InitializationError;
+//import org.junit.runners.model.InitializationError; //changed to support junit 3.8
 
 public class MuJavaJunitTestRunner {
 	private boolean failFast;
@@ -32,7 +33,7 @@ public class MuJavaJunitTestRunner {
 		}
 	}
 	
-	public Result run() throws InitializationError {
+	public Result run() throws Throwable {//InitializationError { //to support junit 3.8
 		return this.testRunner!=null?this.core.run(this.testRunner):this.core.run(this.testToRun);
 	}
 	
@@ -45,6 +46,11 @@ public class MuJavaJunitTestRunner {
 				return new Suite(testToRun, new FailFastRunnerBuilder());
 			}
 		} else if (TestCase.class.isAssignableFrom(testToRun)) {
+			Method suiteMethod = getSuiteMethod(testToRun);
+			if (suiteMethod != null) {
+				TestSuite testSuite = getTestSuite(suiteMethod);
+				return retrieveTestRunner(testSuite.getClass());
+			}
 			this.testRunner = null; //TODO: for the moment will be using this runner
 		} else if (TestSuite.class.isAssignableFrom(testToRun)) {
 			this.testRunner = null; //TODO: for the moment will be using this runner
@@ -67,6 +73,27 @@ public class MuJavaJunitTestRunner {
 			}
 		}
 		return false;
+	}
+	
+	//looks for
+	//public static Test suite()
+	private Method getSuiteMethod(Class<?> testToRun) {
+		Method[] methods = testToRun.getDeclaredMethods();
+		for (Method m : methods) {
+			int modifiers = m.getModifiers();
+			if (Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)) {
+				if (m.getParameterTypes().length != 0) continue;
+				Class<?> retType = m.getReturnType();
+				if (retType.getCanonicalName().compareTo("junit.framework.Test") == 0) return m;
+			}
+		}
+		return null;
+	}
+	
+	//testToRun must have the suite method
+	private TestSuite getTestSuite(Method suiteMethod) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		Object res = suiteMethod.invoke(null, new Object[]{});
+		return (TestSuite) res;
 	}
 	
 	
