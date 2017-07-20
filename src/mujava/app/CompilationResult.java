@@ -4,14 +4,20 @@ public class CompilationResult {
 	
 	private final Exception error;
 	private final boolean compilationSuccessful;
+	private final String warnings;
 	
 	public CompilationResult(Exception error) {
-		this(error, error == null);
+		this(error, error == null, null);
 	}
 	
-	private CompilationResult(Exception error, boolean compilationSuccessful) {
+	public CompilationResult (String warnings) {
+		this(null, true, warnings);
+	}
+	
+	private CompilationResult(Exception error, boolean compilationSuccessful, String warnings) {
 		this.error = error;
 		this.compilationSuccessful = compilationSuccessful;
+		this.warnings = warnings;
 	}
 	
 	public boolean compilationSuccessful() {
@@ -20,6 +26,10 @@ public class CompilationResult {
 	
 	public Exception error() {
 		return this.error;
+	}
+	
+	public String getWarnings() {
+		return this.warnings;
 	}
 
 }
