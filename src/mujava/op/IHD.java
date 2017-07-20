@@ -74,8 +74,7 @@ public class IHD extends mujava.op.util.Mutator {
 				try {
 					ModifierList modlist = new ModifierList();
 					OJModifier modif = inheritedFields[i].getModifiers();
-					TypeName tname = TypeName.forOJClass(inheritedFields[i]
-							.getType());
+					TypeName tname = TypeName.forOJClass(inheritedFields[i].getType());
 					modlist.add(modif.toModifier());
 					String name = inheritedFields[i].getName();
 					FieldDeclaration mutant = new FieldDeclaration(modlist,
