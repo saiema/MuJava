@@ -3,7 +3,7 @@ package mujava.loader;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-//import java.util.Iterator;
+import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +11,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
+
+import org.apache.commons.lang.exception.ExceptionUtils;
 
 /**
  * This class is used to reload and re-link classes.
@@ -221,6 +226,15 @@ public class Reloader extends ClassLoader {
 		if (pathFile.exists() && pathFile.isDirectory()) {
 			setPathAsPriority(folder);
 			crawlAndMark(pathFile, "", allowedPackages);
+		} else if (pathFile.exists() && pathFile.getName().endsWith(".jar")) {
+			setPathAsPriority(folder);
+			JarFile jar;
+			try {
+				jar = new JarFile(pathFile);
+				crawlAndMarkInJar(jar, allowedPackages);
+			} catch (IOException e) {
+				System.err.println(ExceptionUtils.getFullStackTrace(e));
+			}
 		}
 	}
 	
@@ -230,7 +244,7 @@ public class Reloader extends ClassLoader {
 			if (file.getName().startsWith(".")) {
 				continue;
 			} else if (file.isFile() && file.getName().endsWith(".class")) {
-				if (allowedPackages != null && !allowedPackages.contains(pkg)) {
+				if (!pkg.isEmpty() && allowedPackages != null && !allowedPackages.contains(pkg)) {
 					continue;
 				}
 				this.markClassAsReloadable(this.getClassName(file, pkg));
@@ -242,6 +256,33 @@ public class Reloader extends ClassLoader {
 					newPkg = file.getName();
 				}
 				crawlAndMark(file, newPkg, allowedPackages);
+			} else if (file.getName().endsWith(".jar")) {
+				try {
+					crawlAndMarkInJar(new JarFile(file), allowedPackages);
+				} catch (IOException e) {
+					System.err.println(ExceptionUtils.getFullStackTrace(e));
+				}
+			}
+		}
+	}
+	
+	private void crawlAndMarkInJar(JarFile jar, Set<String> allowedPackages) {
+		Enumeration<? extends JarEntry> entries = jar.entries();
+		while (entries.hasMoreElements()) {
+			ZipEntry entry = entries.nextElement();
+			String path = entry.getName();
+			if (path.endsWith(".class")) {
+	            String className = path;
+	            className = className.replace(".class", "").replace("/", ".");
+	            String pkg = "";
+	            int lastDot = className.lastIndexOf(".");
+	            if (lastDot != -1) {
+	            	pkg = className.substring(0, lastDot);
+	            }
+	            if (!pkg.isEmpty() && allowedPackages != null && !allowedPackages.contains(pkg)) {
+					continue;
+				}
+	            this.markClassAsReloadable(className);
 			}
 		}
 	}
@@ -259,7 +300,7 @@ public class Reloader extends ClassLoader {
 
 	protected Class<?> loadAgain(String s) throws ClassNotFoundException {
 		Class<?> clazz = null;
-		if (classExist(s, this.classpath.toArray(new String[this.classpath.size()]))) {
+		if (classExists(s)) {
 			clazz = findClass(s);
 		} else {
 			clazz = loadClassAsReloadable(s);
@@ -280,7 +321,7 @@ public class Reloader extends ClassLoader {
 				}
 				r.addToCache(newClass);
 				//Class<?> newClass = r.loadAgain(c);
-				//r.addToCache(newClass);
+				//r.addTCache(newClass);
 			}
 		}
 		clazz = r.loadAgain(s);
@@ -322,36 +363,94 @@ public class Reloader extends ClassLoader {
 			throw new ClassNotFoundException("unable to find class " + s, ioe);
 		}
 	}
+	
+	//===========================LOAD CLASS BYTE CODE===========================================
 
 	protected byte[] loadClassData(String className) throws IOException {
-		boolean found = false;
-		File f = null;
-		if (this.specificClassPaths.containsKey(className)) {
-			String specificPath = this.specificClassPaths.get(className);
-			f = new File(specificPath + className.replaceAll("\\.", File.separator) + ".class");
-			if (f != null && f.exists()) {
-				found = true;
-			}
+		File f = getClassFile(className);
+		if (f == null) {
+			throw new IOException("Can't get data for " + className);
 		}
-		if (!found) {
-			if (this.priorityPath != null) f = new File(this.priorityPath + className.replaceAll("\\.", File.separator) + ".class");
-			if (f != null && f.exists()) {
-				found = true;
-			}
+		byte[] classDef = null;
+		if (f.getName().endsWith(".jar")) {
+			classDef = this.byteCodeContainer.loadByteCodeJarFile(f.getAbsolutePath(), className);
+		} else {
+			classDef = this.byteCodeContainer.loadByteCodeFile(f, className);
 		}
-		if (!found) {
-			for (String cp : this.classpath) {
-				f = new File(cp + className.replaceAll("\\.", File.separator) + ".class");
-				found = f.exists();
-				if (found) break;
-			}
-		}
-		if (!found) {
-			throw new IOException("File " + className + " doesn't exist\n");
-		}
-		byte[] classDef = this.byteCodeContainer.loadByteCodeFile(f, className);
 		return classDef;
 	}
+	
+	private File getClassFile(String className) throws IOException {
+		File f = getClassFileFromSpecificPath(className);
+		if (f == null) {
+			f = getClassFileFromPriorityPath(className);
+		}
+		if (f == null) {
+			f = getClassFileFromClasspath(className);
+		}
+		return f;
+	}
+	
+	private File getClassFileFromSpecificPath(String className) throws IOException {
+		File file = null;
+		if (this.specificClassPaths.containsKey(className)) {
+			String specificPath = this.specificClassPaths.get(className);
+			if (specificPath.endsWith(".jar")) {
+				JarFile jar = new JarFile(specificPath);
+				if (this.byteCodeContainer.byteCodeExistInJar(jar, className)) {
+					file = new File(specificPath);
+				}
+			} else {
+				file = new File(specificPath + className.replaceAll("\\.", File.separator) + ".class");
+				if (file == null || !file.exists()) {
+					file = null;
+				}
+			}
+		}
+		return file;
+	}
+	
+	private File getClassFileFromPriorityPath(String className) throws IOException {
+		File file = null;
+		if (this.priorityPath != null) {
+			if (this.priorityPath.endsWith(".jar")) {
+				JarFile jar = new JarFile(this.priorityPath);
+				if (this.byteCodeContainer.byteCodeExistInJar(jar, className)) {
+					file = new File(this.priorityPath);
+				}
+			} else {
+				file = new File(this.priorityPath + className.replaceAll("\\.", File.separator) + ".class");
+				if (file == null || !file.exists()) {
+					file = null;
+				}
+			}
+			
+		}
+		return file;
+	}
+	
+	private File getClassFileFromClasspath(String className) throws IOException {
+		File file = null;
+		for (String cp : this.classpath) {
+			if (cp.endsWith(".jar")) {
+				JarFile jar = new JarFile(cp);
+				if (this.byteCodeContainer.byteCodeExistInJar(jar, className)) {
+					file = new File(cp);
+					break;
+				}
+			} else {
+				file = new File(cp + className.replaceAll("\\.", File.separator) + ".class");
+				if (file != null && file.exists()) {
+					break;
+				} else {
+					file = null;
+				}
+			}
+		}
+		return file;
+	}
+	
+	//===========================LOAD CLASS BYTE CODE===========================================
 
 	private void addToCache(Class<?> clazz) {
 		boolean found = false;
@@ -376,21 +475,10 @@ public class Reloader extends ClassLoader {
 		}
 		return lastChild;
 	}
-
-	private boolean classExist(String s, String[] classpath) {
-		boolean found = false;
-		File f = null;
-		for (String cp : classpath) {
-			f = new File(cp + s.replaceAll("\\.", File.separator) + ".class");
-			found = this.byteCodeContainer.byteCodeExist(f);
-			if (found) break;
-		}
-		return found;
-	}
 	
 	private void cleanIfRescaning(String folder) {
 		File pathFile = new File(folder);
-		if (pathFile.exists() && pathFile.isDirectory()) {
+		if (pathFile.exists() && (pathFile.isDirectory() || pathFile.getName().endsWith(".jar"))) {
 			if (this.priorityPath != null && this.priorityPath.compareTo(folder) == 0) {
 				cleanDeletedClasses();
 			} else if (this.classpath.contains(folder)) {
@@ -414,13 +502,24 @@ public class Reloader extends ClassLoader {
 		this.reloadableCache = cleanedClasses;
 	}
 	
-	private boolean classExists(String className) {
+	private boolean classExists(String s) {
 		boolean found = false;
 		File f = null;
 		for (String cp : classpath) {
-			f = new File(cp + className.replaceAll("\\.", File.separator) + ".class");
-			found = f.exists() && f.isFile();
-			if (found) break;
+			if (cp.endsWith(".jar")) {
+				try {
+					JarFile jar = new JarFile(cp);
+					found = this.byteCodeContainer.byteCodeExistInJar(jar, s.replaceAll("\\.", File.separator) + ".class");
+					if (found) break;
+				} catch (IOException e) {
+					e.printStackTrace();
+					return false;
+				}
+			} else {
+				f = new File(cp + s.replaceAll("\\.", File.separator) + ".class");
+				found = this.byteCodeContainer.byteCodeExist(f);
+				if (found) break;
+			}
 		}
 		return found;
 	}
