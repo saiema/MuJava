@@ -1,6 +1,7 @@
 package mujava.util;
 
 import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,8 +10,10 @@ import java.nio.file.Files;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
 
 /**
  * Utility class to obtain a md5 digest of a java file prior to strip all coments and whitespace
@@ -90,6 +93,27 @@ public class JustCodeDigest {
 		try {
 			bytes = Files.readAllBytes(file.toPath());
 			String text = new String(bytes, StandardCharsets.UTF_8);
+			return digest(text, justCode);
+		} catch (IOException e) {
+			if (JustCodeDigest.printExceptions) e.printStackTrace();
+			JustCodeDigest.lastException = e;
+		}
+		return null;
+	}
+	
+	public static byte[] digest(JarFile jar, String file, boolean justCode) {
+		JustCodeDigest.lastException = null;
+		ZipEntry entry = jar.getEntry(file);
+		if (entry == null) return null;
+		if (entry.isDirectory()) return null;
+		int size = (int) entry.getSize();
+		byte buff[] = new byte[size];
+		DataInputStream dis;
+		try {
+			dis = new DataInputStream(jar.getInputStream(entry));
+			dis.readFully(buff);
+			dis.close();
+			String text = new String(buff, StandardCharsets.UTF_8);
 			return digest(text, justCode);
 		} catch (IOException e) {
 			if (JustCodeDigest.printExceptions) e.printStackTrace();
