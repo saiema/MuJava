@@ -13,8 +13,9 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.runner.Result;
-import org.junit.runners.model.InitializationError;
+//import org.junit.runners.model.InitializationError; //changed to support junit 3.8
 
 import mujava.app.Core;
 import mujava.app.TestResult;
@@ -52,6 +53,11 @@ public class ExternalJUnitTestRunner {
 		testsBinFolderOption.setArgs(1);
 		testsBinFolderOption.setType(String.class);
 		
+		Option libsOption = new Option("l", "libs", true, "libraries");
+		libsOption.setRequired(false);
+		libsOption.setArgs(Option.UNLIMITED_VALUES);
+		libsOption.setType(String.class);
+		
 		Option testsOption = new Option("T", "tests", true, "tests to run as class names");
 		testsOption.setRequired(true);
 		testsOption.setArgs(Option.UNLIMITED_VALUES);
@@ -81,6 +87,7 @@ public class ExternalJUnitTestRunner {
 		
 		options.addOption(projectBinFolderOption);
 		options.addOption(testsBinFolderOption);
+		options.addOption(libsOption);
 		options.addOption(testsOption);
 		options.addOption(mutantPathOption);
 		options.addOption(mutantClassOption);
@@ -111,12 +118,12 @@ public class ExternalJUnitTestRunner {
 			if (verbose) System.out.println("Validating parameters...");
 			
 			//original bin dir
-			String originalBinDir = cmd.getOptionValue(projectBinFolderOption.getOpt());
-			if (!verifyDirectory(originalBinDir)) {
-				System.err.println("Project bin directory ("+originalBinDir+") doesn't exist");
+			String binDir = cmd.getOptionValue(projectBinFolderOption.getOpt());
+			if (!verifyDirectory(binDir)) {
+				System.err.println("Project bin directory ("+binDir+") doesn't exist");
 				System.exit(1);
 			}
-			if (verbose) System.out.println("Project bin dir: " + originalBinDir);
+			if (verbose) System.out.println("Project bin dir: " + binDir);
 			
 			String testBinDir = cmd.getOptionValue(testsBinFolderOption.getOpt());
 			if (!verifyDirectory(testBinDir)) {
@@ -124,6 +131,17 @@ public class ExternalJUnitTestRunner {
 				System.exit(1);
 			}
 			if (verbose) System.out.println("Tests bin dir: " + testBinDir);
+			
+			String[] libs = cmd.getOptionValues(libsOption.getOpt());
+			for (String l : libs) {
+				if (!verifyDirectory(l) && !l.endsWith(".jar")) {
+					System.err.println("library ("+l+") is not a directory or jar file");
+					System.exit(1);
+				}
+			}
+			if (verbose) {
+				System.out.println("Libraries: " + Arrays.toString(libs));
+			}
 			
 			String[] tclasses = cmd.getOptionValues(testsOption.getOpt());
 			for (String tc : tclasses) {
@@ -148,14 +166,21 @@ public class ExternalJUnitTestRunner {
 			boolean quickDeath = toughness?false:cmd.hasOption(quickDeathOption.getOpt());
 			
 			
-			List<String> classpath = Arrays.asList(new String[]{originalBinDir, testBinDir});
+			List<String> classpath = Arrays.asList(new String[]{binDir, testBinDir});
 			Reloader reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
 			reloader.markEveryClassInFolderAsReloadable(testBinDir);
-			reloader.markEveryClassInFolderAsReloadable(originalBinDir);
+			for (String l : libs) {
+				reloader.markEveryClassInFolderAsReloadable(l);
+			}
+			reloader.markEveryClassInFolderAsReloadable(binDir);
 			reloader.setSpecificClassPath(classToMutate, mutantPath);
 			List<TestResult> testResults = new LinkedList<TestResult>();
 			if (tclasses.length > 0) {
 				reloader.rloadClass(tclasses[0], true);
+//				Class<?> t = reloader.rloadClass(classToMutate, true);
+//				System.err.println("Loaded: " + t.getCanonicalName());
+//				System.err.println("Classloader: " + t.getClassLoader().toString());
+//				System.err.println("Declared methods: " + t.getDeclaredMethods().length);
 			}
 			for (String test : tclasses) {
 				Class<?> testToRun;
@@ -168,8 +193,11 @@ public class ExternalJUnitTestRunner {
 					if (!testResult.wasSuccessful() && quickDeath) {
 						break;
 					}
-				} catch (ClassNotFoundException | IllegalArgumentException | MuJavaTestRunnerException | InitializationError e) {
-					e.printStackTrace();
+				} catch (ClassNotFoundException | IllegalArgumentException e) { //| MuJavaTestRunnerException e) { //| InitializationError e) { //changed to support junit 3.8
+					System.err.println(ExceptionUtils.getFullStackTrace(e));
+					System.exit(2);
+				} catch (Throwable e) {
+					System.err.println(ExceptionUtils.getFullStackTrace(e));
 					System.exit(2);
 				}
 			}
@@ -180,13 +208,14 @@ public class ExternalJUnitTestRunner {
 	        out.flush();
 		} catch (ParseException e) {
 			System.err.println("Incorrect options.  Reason: " + e.getMessage());
+			System.err.println(ExceptionUtils.getFullStackTrace(e));
 			System.exit(1);
 		} catch (IOException e) {
 			System.err.println("Error while serializing results");
-			e.printStackTrace();
+			System.err.println(ExceptionUtils.getFullStackTrace(e));
 			System.exit(3);
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
+			System.err.println(ExceptionUtils.getFullStackTrace(e));
 			System.exit(2);
 		}
 	}
