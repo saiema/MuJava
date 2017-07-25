@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 
 import openjava.mop.*;
 import openjava.ptree.*;
-import openjava.ptree.ParseTree.COPY_SCOPE;;
+import openjava.ptree.ParseTree.COPY_SCOPE;
 
 /**
  * <p>
