@@ -171,6 +171,7 @@ public class MutationScore {
 		String classpath = ".:bin/:"+MutationScore.originalBinFolder+":"+MutationScore.testsBinFolder;
 		classpath += ":"+junitPath+":"+hamcrestPath;
 		classpath += ":"+cleanClasspath(getCurrentClasspath());
+		classpath += ":"+mut.getClassRootFolder();
 		System.out.println("Running external runner with classpath: " + classpath);
 		String mutPath = mut.getClassRootFolder();
 		//ProcessBuilder args are:
