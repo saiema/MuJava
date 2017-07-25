@@ -1,7 +1,7 @@
 package mujava.op.util;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -246,7 +246,7 @@ public class OLMO extends ParseTreeVisitor {
 
 	public static java.util.List<Mutation> orderMutants(java.util.List<Mutation> originalList) {
 		java.util.List<Mutation> orderedList = new LinkedList<Mutation>();
-		Map<Integer, java.util.List<Mutation>> orderingMap = new HashMap<Integer, java.util.List<Mutation>>();
+		Map<Integer, java.util.List<Mutation>> orderingMap = new TreeMap<Integer, java.util.List<Mutation>>();
 		for (Mutation mi : originalList) {
 			Integer value = nodeValue(mi.getOriginal());
 			if (orderingMap.containsKey(value)) {
@@ -268,7 +268,7 @@ public class OLMO extends ParseTreeVisitor {
 	
 	public static java.util.List<MutationInformation> orderMutationsInformation(java.util.List<MutationInformation> originalList) {
 		java.util.List<MutationInformation> orderedList = new LinkedList<MutationInformation>();
-		Map<Integer, java.util.List<MutationInformation>> orderingMap = new HashMap<Integer, java.util.List<MutationInformation>>();
+		Map<Integer, java.util.List<MutationInformation>> orderingMap = new TreeMap<Integer, java.util.List<MutationInformation>>();
 		for (MutationInformation mi : originalList) {
 			Integer value = nodeValue(mi.getMutation().getOriginal());
 			if (orderingMap.containsKey(value)) {

@@ -6,11 +6,20 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Map.Entry;
+
 import mujava.api.MutationOperator;
+import mujava.app.MutantInfo;
+import mujava.app.MutationRequest;
+import mujava.app.Mutator;
+import openjava.ptree.ParseTreeException;
+import mujava.OpenJavaException;
 import mujava.api.Configuration;
 import mujava.api.MutantsInformationHolder;
+import mujava.api.Mutation;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +45,7 @@ public class CustomTest {
 	@Parameters
 	public static Collection<Object[]> firstValues() {
 		TestingTools.setVerbose(false);
-		MutantsInformationHolder.setVerbose(true);
+		MutantsInformationHolder.setVerbose(false);
 		Configuration.add(Configuration.USE_MUTGENLIMIT, Boolean.TRUE);
 		Configuration.add(Configuration.PRETTY_PRINT, Boolean.FALSE);
 		Configuration.add(Configuration.USE_SIMPLE_CLASS_NAMES, Boolean.TRUE);
@@ -247,12 +256,27 @@ public class CustomTest {
 											false);
 		
 		List<MutationOperator> operators12 = new LinkedList<>();
+		operators12.add(MutationOperator.AODS);
+		operators12.add(MutationOperator.AODU);
+		operators12.add(MutationOperator.AOIS);
+		operators12.add(MutationOperator.AOIU);
+		operators12.add(MutationOperator.AORB);
+		operators12.add(MutationOperator.AORS);
+		operators12.add(MutationOperator.AORU);
+		operators12.add(MutationOperator.ASRS);
+		operators12.add(MutationOperator.COD);
+		operators12.add(MutationOperator.COI);
+		operators12.add(MutationOperator.COR);
+		operators12.add(MutationOperator.LOD);
+		operators12.add(MutationOperator.LOR);
 		operators12.add(MutationOperator.PRVOL_SMART);
 		operators12.add(MutationOperator.PRVOR_REFINED);
 		operators12.add(MutationOperator.PRVOU_REFINED);
+		operators12.add(MutationOperator.ROR);
+		operators12.add(MutationOperator.SOR);
 		Property propCustom12 = new Property(operators12,
-											"bugHunting/prvoDecrease/SinglyLinkedList",
-											"contains",
+											"bugHunting/undeterminism/NodeCachingLinkedListAddFirst2Bug2Dx4D",
+											"addFirst",
 											TestingTools.NO_MUTANTS_EXPECTED,
 											TestingTools.NO_MUTANTS_EXPECTED,
 											TestingTools.NO_PATTERN_EXPECTED,
@@ -281,7 +305,35 @@ public class CustomTest {
 //		Configuration.add(Configuration.PRIORITY_EVALUATE, Boolean.TRUE);
 //		Configuration.add(Configuration.PRIORITY_NEUTRAL_DISCARD, Boolean.FALSE);
 //		Configuration.add(Configuration.PRIORITY_LOW_DISCARD, Boolean.FALSE);
-		assertTrue(!TestingTools.generateMutants(prop, false).isEmpty());
+		Property p = this.prop;
+		Mutator mutator = new Mutator();
+		try {
+			MutationOperator[] reqOps = p.ops!=null?p.ops.toArray(new MutationOperator[p.ops.size()]):new MutationOperator[]{p.op};
+			MutationRequest request = new MutationRequest(	p.clazz,
+															new String[] {p.method},
+															reqOps,
+															"test/",
+															"test/mutantExamples/");
+			//modified to allow filtering
+			mutator.setRequest(request);
+			Map<String, MutantsInformationHolder> mutationsPerMethod = mutator.obtainMutants();
+			//---------------------------
+			//mutantsInfo = mutator.generateMutants(request); //old code
+			mutator.resetMutantFolders();
+			for (MutantsInformationHolder mih : mutationsPerMethod.values()) {
+				for (Mutation m : mih.getMutantsIdentifiers()) {
+					System.out.println(m.toString());
+				}
+			}
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (OpenJavaException e) {
+			e.printStackTrace();
+		} catch (ParseTreeException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		assertTrue(true);
 	}
 	
 

@@ -1,6 +1,6 @@
 package test.java.utils;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 import mujava.api.Mutation;
 
 public class MultiMutationsFilter extends SimpleMutationsFilter {
-	Map<Integer, List<Mutation>> mutationsPerLine = new HashMap<Integer, List<Mutation>>();
+	Map<Integer, List<Mutation>> mutationsPerLine = new TreeMap<Integer, List<Mutation>>();
 
 	@Override
 	public List<Mutation> getFilteredMutations(List<Mutation> mutations) {

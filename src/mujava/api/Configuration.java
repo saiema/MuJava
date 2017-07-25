@@ -1,6 +1,6 @@
 package mujava.api;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 
 import mujava.app.Core;
@@ -20,7 +20,7 @@ import mujava.op.util.OLMO;
  * @version 0.2
  */
 public final class Configuration {
-	private static Map<String, Object> arguments = new HashMap<String, Object>();
+	private static Map<String, Object> arguments = new TreeMap<String, Object>();
 	/**
 	 * {@link mujava.api.Api#USE_MUTGENLIMIT}
 	 */
@@ -318,7 +318,7 @@ public final class Configuration {
 	 */
 	public static void clear() {
 		if (allowArgumentsModifications) {
-			Configuration.arguments = new HashMap<String, Object>();
+			Configuration.arguments = new TreeMap<String, Object>();
 		}
 	}
 	

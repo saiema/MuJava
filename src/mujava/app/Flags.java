@@ -1,16 +1,16 @@
 package mujava.app;
 
 import java.io.PrintStream;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class Flags {
-	private HashMap<Character, List<String>> optionalFlags;
-	private HashMap<Character, List<String>> requiredFlags;
-	private HashMap<Character, List<Character>> flagDependencies;
+	private TreeMap<Character, List<String>> optionalFlags;
+	private TreeMap<Character, List<String>> requiredFlags;
+	private TreeMap<Character, List<Character>> flagDependencies;
 	private Set<Character> noValueFlags; //these flags doen's have a value
 	private List<Character> flagsFound = new LinkedList<Character>();
 	private Set<Character> overridingFlags; //these flags have no values and override the use required and optional flags
@@ -18,10 +18,10 @@ public class Flags {
 	private boolean overridingFlagFound = false;
 	
 	public Flags(PrintStream output) {
-		this.optionalFlags = new HashMap<Character, List<String>>();
-		this.requiredFlags = new HashMap<Character, List<String>>();
+		this.optionalFlags = new TreeMap<Character, List<String>>();
+		this.requiredFlags = new TreeMap<Character, List<String>>();
 		this.noValueFlags = new TreeSet<Character>();
-		this.flagDependencies = new HashMap<Character, List<Character>>();
+		this.flagDependencies = new TreeMap<Character, List<Character>>();
 		this.overridingFlags = new TreeSet<Character>();
 		this.errorOutput = output;
 	}

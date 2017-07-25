@@ -1,7 +1,7 @@
 package mujava.api;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +31,7 @@ public class MutantsInformationHolder {
 	private static Set<String> generatedMutants = new TreeSet<>(); //keep record of generated mutants to avoid duplicates
 	private static boolean usePrototypeChecking = false;
 	
-	private static Map<String,Set<String>> mutatedNodes = new HashMap<String, Set<String>>();
+	private static Map<String,Set<String>> mutatedNodes = new TreeMap<String, Set<String>>();
 	private static String getParentAsString(ParseTreeObject object) {
 		String objectAsString = object.toFlattenString();
 		String objectParentAsString = "null";
@@ -132,7 +132,7 @@ public class MutantsInformationHolder {
 	}
 	
 	private static void clean() {
-		mutatedNodes = new HashMap<String, Set<String>>();
+		mutatedNodes = new TreeMap<String, Set<String>>();
 		generatedMutants = new TreeSet<>();
 		generatedMutations = new TreeSet<>();
 	}

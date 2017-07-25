@@ -9,7 +9,7 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,7 +39,7 @@ import openjava.ptree.ParseTreeObject;
  * <pre>
  * 		Mutator mut = new Mutator(req);
  * 		List<MutantInfo> mil = mut.generateMutants();
- * 		HashMap<String, List<String>> mutantsFolder = mut.mutantsFolders;
+ * 		TreeMap<String, List<String>> mutantsFolder = mut.mutantsFolders;
  * 		mut.resetMutantFolders();
  * </pre>
  * <p>
@@ -53,7 +53,7 @@ import openjava.ptree.ParseTreeObject;
  * 			doSomething(mi);
  * 			mi = mut.getNext();
  * 		}
- * 		HashMap<String, List<String>> mutantsFolder = mut.mutantsFolders;
+ * 		TreeMap<String, List<String>> mutantsFolder = mut.mutantsFolders;
  * 		mut.resetMutantFolders();
  * </pre>
  * <p>
@@ -101,7 +101,7 @@ public class Mutator implements Runnable{
 	 * the key in this map is {@code <class name> + <System path separator> + <method || (fieldMutations || classMutations)>}
 	 * the entry for a key is a list of subfolders 
 	 */
-	public HashMap<String, List<String>> mutantsFolders = new HashMap<String, List<String>>();
+	public TreeMap<String, List<String>> mutantsFolders = new TreeMap<String, List<String>>();
 	private MutationRequest request;
 	
 	
@@ -191,7 +191,7 @@ public class Mutator implements Runnable{
 	 * This method resets the variable {@code mutantsFolders} to an empty Map
 	 */
 	public void resetMutantFolders() {
-		mutantsFolders = new HashMap<String, List<String>>();
+		mutantsFolders = new TreeMap<String, List<String>>();
 	}
 	
 	/**
@@ -218,7 +218,7 @@ public class Mutator implements Runnable{
 		//|--------------------Initialization--------------------|
 		List<MutantInfo> res = new LinkedList<MutantInfo>();
 		this.mihs = new LinkedList<MutantsInformationHolder>();
-		mutantsFolders = new HashMap<String, List<String>>();
+		mutantsFolders = new TreeMap<String, List<String>>();
 		Mutationss = new LinkedList<List<Mutation>>();
 		//String basePath = request.outputDir;
 		//List<MutantsInformationHolder> mihs = null;
@@ -332,7 +332,7 @@ public class Mutator implements Runnable{
 	 * @throws ParseTreeException
 	 */
 	public Map<String, MutantsInformationHolder> obtainMutants() throws OpenJavaException, ClassNotFoundException, ParseTreeException {
-		Map<String, MutantsInformationHolder> mutants = new HashMap<String, MutantsInformationHolder>();
+		Map<String, MutantsInformationHolder> mutants = new TreeMap<String, MutantsInformationHolder>();
 		//|--------------------Initialization--------------------|
 		Set<MutationOperator> mutOps = new HashSet<MutationOperator>();
 		mutOps.addAll(Arrays.asList(request.ops));
@@ -406,7 +406,7 @@ public class Mutator implements Runnable{
 		List<Mutation> mis = mutations;
 		List<Mutation> filteredMutations = new LinkedList<Mutation>();
 		Random random = new Random();
-		Map<Integer, List<Mutation>> mutationsPerNodeID = new HashMap<Integer, List<Mutation>>();
+		Map<Integer, List<Mutation>> mutationsPerNodeID = new TreeMap<Integer, List<Mutation>>();
 		while (current < mis.size()) {
 			if (!mis.get(current).isOneLineInMethodOp()) {
 				mis.remove(current);
@@ -634,7 +634,7 @@ public class Mutator implements Runnable{
 		List<Mutation> mutationsToWrite;
 		if (applyAllMutantsToSameFile) {
 			OLMO olmo;
-			Map<Integer, List<Mutation>> mutations = new HashMap<Integer, List<Mutation>>();
+			Map<Integer, List<Mutation>> mutations = new TreeMap<Integer, List<Mutation>>();
 			for (Mutation mi : mih.getMutantsIdentifiers()) {
 				Integer affectedLine = mi.getAffectedLine();
 				if (affectedLine == -1) {

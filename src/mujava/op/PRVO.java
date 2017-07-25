@@ -1,6 +1,6 @@
 package mujava.op;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -275,7 +275,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	private String[] methodUnderConsiderationParams = null;
 	private OJClass methodUnderConsiderationType = null;
 
-	private HashMap<String, java.util.List<Object>> fieldsAndMethodsPerClass = new HashMap<String, java.util.List<Object>>();
+	private TreeMap<String, java.util.List<Object>> fieldsAndMethodsPerClass = new TreeMap<String, java.util.List<Object>>();
 	
 	@SuppressWarnings("unchecked")
 	public PRVO(FileEnvironment file_env, ClassDeclaration cdecl,CompilationUnit comp_unit) {

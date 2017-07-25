@@ -6,7 +6,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -35,11 +35,11 @@ public class MutatorsInfo {
 	private List<MutationOperator> basicOps;
 	private List<MutationOperator> advOps;
 	private List<MutationOperator> allOps;
-	private HashMap<MutationOperator, String> shortDescriptions;
-	private HashMap<MutationOperator, String> fullDescriptions;
-	private HashMap<MutationOperator, MutantType> mutantsType;
-	private HashMap<MutationOperator, Boolean> affectsOneLine;
-	private HashMap<MutationOperator, String> developerNotes;
+	private TreeMap<MutationOperator, String> shortDescriptions;
+	private TreeMap<MutationOperator, String> fullDescriptions;
+	private TreeMap<MutationOperator, MutantType> mutantsType;
+	private TreeMap<MutationOperator, Boolean> affectsOneLine;
+	private TreeMap<MutationOperator, String> developerNotes;
 	private Document doc = null;
 	
 	/**
@@ -68,11 +68,11 @@ public class MutatorsInfo {
 		this.basicOps = new LinkedList<MutationOperator>();
 		this.advOps = new LinkedList<MutationOperator>();
 		this.allOps = new LinkedList<MutationOperator>();
-		this.shortDescriptions = new HashMap<MutationOperator, String>();
-		this.fullDescriptions = new HashMap<MutationOperator, String>();
-		this.mutantsType = new HashMap<MutationOperator, MutantType>();
-		this.affectsOneLine = new HashMap<MutationOperator, Boolean>();
-		this.developerNotes = new HashMap<MutationOperator, String>();
+		this.shortDescriptions = new TreeMap<MutationOperator, String>();
+		this.fullDescriptions = new TreeMap<MutationOperator, String>();
+		this.mutantsType = new TreeMap<MutationOperator, MutantType>();
+		this.affectsOneLine = new TreeMap<MutationOperator, Boolean>();
+		this.developerNotes = new TreeMap<MutationOperator, String>();
 	}
 	
 	private void load() {

@@ -1,7 +1,7 @@
 package mujava2.api.mutator;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -65,7 +65,7 @@ public class Mutator extends ApiCaller {
 	 * @throws ParseTreeException
 	 */
 	public Collection<MutationInformation> generateMutations() throws OpenJavaException, ParseTreeException {
-		Map<String, MutantsInformationHolder> mutants = new HashMap<String, MutantsInformationHolder>();
+		Map<String, MutantsInformationHolder> mutants = new TreeMap<String, MutantsInformationHolder>();
 		LinkedList<MutationInformation> mutations = new LinkedList<>();
 		//|--------------------Initialization--------------------|
 		Set<MutationOperator> mutOps = new HashSet<>(req.getOperators());

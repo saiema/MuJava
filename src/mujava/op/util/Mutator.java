@@ -13,7 +13,7 @@ import mujava.api.MutationOperator;
 import java.io.*;
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -451,7 +451,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 
 	public Map<OJClass, List<Variable>> getReachableVariables(ParseTreeObject exp) throws ParseTreeException {
 		Statement previousStatement = (Statement)getStatement(exp, -1);
-		Map<OJClass, List<Variable>> variables = new HashMap<OJClass, List<Variable>>();
+		Map<OJClass, List<Variable>> variables = new TreeMap<OJClass, List<Variable>>();
 		List<Variable> allVars = new LinkedList<Variable>();
 		getReachableVariables(previousStatement, variables, allVars);
 		getMethodDeclarationVariables(exp, variables, allVars);
@@ -459,7 +459,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	}
 	
 	public Map<OJClass, List<Variable>> getReachableVariables(Statement exp) throws ParseTreeException {
-		Map<OJClass, List<Variable>> variables = new HashMap<OJClass, List<Variable>>();
+		Map<OJClass, List<Variable>> variables = new TreeMap<OJClass, List<Variable>>();
 		List<Variable> allVars = new LinkedList<Variable>();
 		getReachableVariables(exp, variables, allVars);
 		getMethodDeclarationVariables((ParseTreeObject) exp, variables, allVars);
@@ -721,7 +721,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			e.printStackTrace();
 		}
 		OJClass base = clazz.getSuperclass();
-		Map<Signature, OJMethod> table = new HashMap<Signature, OJMethod>();
+		Map<Signature, OJMethod> table = new TreeMap<Signature, OJMethod>();
 		while (base != null && (options & ALLOW_PROTECTED_INHERITED) != 0) {
 			OJMethod[] declaredMethods = filterPrivate(base.getDeclaredMethods(), filterFinal);
 			for (int m = 0; m < declaredMethods.length; m++) {
@@ -747,7 +747,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	public OJConstructor[] getInheritedConstructors(OJClass clazz, int options) {
 		boolean filterFinal = (options & ALLOW_FINAL) == 0;
 		OJClass base = clazz.getSuperclass();
-		Map<Signature, OJConstructor> table = new HashMap<Signature, OJConstructor>();
+		Map<Signature, OJConstructor> table = new TreeMap<Signature, OJConstructor>();
 		while (base != null && (options & ALLOW_PROTECTED_INHERITED) != 0) {
 			OJConstructor[] declaredConstructors = filterPrivate(base.getDeclaredConstructors(), filterFinal);
 			for (int m = 0; m < declaredConstructors.length; m++) {
@@ -801,7 +801,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 */
 	public OJField[] getInheritedFields(OJClass clazz, int options) {
 		OJClass base = clazz.getSuperclass();
-		Map<Signature, OJField> table = new HashMap<Signature, OJField>();
+		Map<Signature, OJField> table = new TreeMap<Signature, OJField>();
 		boolean target_is_null = (options & TARGET_IS_NULL) != 0;
 		boolean target_is_class_to_mutate = (options & TARGET_IS_MUTATED_CLASS_OBJECT) != 0;
 		boolean allowProtected = target_is_null || target_is_class_to_mutate || ((options & IGNORE_PROTECTED) != 0);
@@ -862,7 +862,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		boolean isInnerClass = self==null?false:isInnerClassOf(self, clazz, 0);
 		boolean sameClass = self==null?false:self.getName().compareTo(clazz.getName()) == 0;
 		OJField[] declaredFields = clazz.getDeclaredFields();
-		Map<Signature, OJField> table = new HashMap<Signature, OJField>();
+		Map<Signature, OJField> table = new TreeMap<Signature, OJField>();
 		for (OJField f : declaredFields) {
 			if (f.getModifiers().isPrivate() && !allowPrivate) {
 				continue;
@@ -927,7 +927,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		boolean isInnerClass = self==null?false:isInnerClassOf(self, clazz, 0);
 		boolean sameClass = self==null?false:self.getName().compareTo(clazz.getName()) == 0;
 		OJMethod[] declaredMethods = clazz.getDeclaredMethods();
-		Map<Signature, OJMethod> table = new HashMap<Signature, OJMethod>();
+		Map<Signature, OJMethod> table = new TreeMap<Signature, OJMethod>();
 		for (OJMethod m : declaredMethods) {
 			boolean isNonStatic = !m.getModifiers().isStatic();
 			if (m.getModifiers().isPrivate() && !allowPrivate) {
@@ -969,7 +969,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			return new OJConstructor[]{};
 		}
 		OJConstructor[] declaredConstructors = constructorClass.getDeclaredConstructors();
-		Map<Signature, OJConstructor> table = new HashMap<Signature, OJConstructor>();
+		Map<Signature, OJConstructor> table = new TreeMap<Signature, OJConstructor>();
 		for (OJConstructor c : declaredConstructors) {
 			table.put(c.signature(), c);
 		}
