@@ -182,7 +182,37 @@ public class Core {
 		if (!useExternalJUnitRunner && !useParallelJUnitRunner) {
 			return calculateMutationScore_internalRunner(testClasses, className);
 		} else {
-			return calculateMutationScoreUsingExternalRunner(testClasses, className, useParallelJUnitRunner);
+			String original = getFileToMutate(className);
+			float ms = -1;
+			if (deactivateOriginal(original)) {
+				ms = calculateMutationScoreUsingExternalRunner(testClasses, className, useParallelJUnitRunner);
+				if (!reactivateOriginal(original)) ms = -1;
+			}
+			return ms;
+		}
+	}
+	
+	private String getFileToMutate(String className) {
+		String classNameAsPath = className.replaceAll("\\.", SEPARATOR);
+		String fileToMutateName = classNameAsPath + ".class";
+		return this.inputBinDir + File.separator + fileToMutateName;
+	}
+	
+	private boolean deactivateOriginal(String path) {
+		File f = new File(path);
+		if (f.exists() && f.isFile()) {
+			return f.renameTo(new File(f.getAbsolutePath()+".bak"));
+		} else {
+			return false;
+		}
+	}
+	
+	private boolean reactivateOriginal(String path) {
+		File f = new File(path+".bak");
+		if (f.exists() && f.isFile()) {
+			return f.renameTo(new File(f.getAbsolutePath().replace(".bak", "")));
+		} else {
+			return false;
 		}
 	}
 	
