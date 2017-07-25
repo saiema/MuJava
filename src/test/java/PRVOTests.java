@@ -100,7 +100,7 @@ public class PRVOTests {
 		mcneSLLVD_0.add(Pattern.compile("Object !test = [a-zA-Z_0-9]+; //mutGenLimit 0"));
 		mcneSLLVD_0.add(Pattern.compile("Object test = current\\.clone\\(\\); //mutGenLimit 0"));
 		mcneSLLVD_0.add(Pattern.compile(".+//mutGenLimit [^0]+"));
-		Property propSLLVariableDeclaration_0 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListVariableDeclaration", "contains", 83, 77, mceSLLVD_0, mcneSLLVD_0);
+		Property propSLLVariableDeclaration_0 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListVariableDeclaration", "contains", 79 /*original: 83*/, 73 /*original: 77*/, mceSLLVD_0, mcneSLLVD_0);
 		
 		List<Pattern> mceSLLVD_1 = new LinkedList<Pattern>();
 		List<Pattern> mcneSLLVD_1 = new LinkedList<Pattern>();
@@ -244,7 +244,7 @@ public class PRVOTests {
 		mcneSLLR_0.add(Pattern.compile("return header; //mutGenLimit 0"));
 		mcneSLLR_0.add(Pattern.compile(".+//mutGenLimit [^0]+"));
 		mcneSLLR_0.add(Pattern.compile("return this\\.(current|value)(\\..+)?; //mutGenLimit"));
-		Property propSLLReturn_0 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListReturn", "getHeader", 83, 78, mceSLLR_0, mcneSLLR_0);
+		Property propSLLReturn_0 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListReturn", "getHeader", 79 /*original: 83*/, 74 /*original: 78*/, mceSLLR_0, mcneSLLR_0);
 		
 		List<Pattern> mceSLLR_1 = new LinkedList<Pattern>();
 		List<Pattern> mcneSLLR_1 = new LinkedList<Pattern>();
@@ -582,6 +582,12 @@ public class PRVOTests {
 		Configuration.add(PRVO.ALLOW_FINAL_MEMBERS, Boolean.TRUE);
 		Configuration.add(MutantCodeWriter.USE_SIMPLE_CLASS_NAMES, Boolean.FALSE);
 		Configuration.add(MutantCodeWriter.KEEP_ORIGINAL_TYPE_NAMES, Boolean.FALSE);
+		List<Pattern> prohibitedClassMethods = new LinkedList<>();
+		prohibitedClassMethods.add(Pattern.compile("java\\.lang\\.Class\\#getAnnotatedInterfaces"));
+		prohibitedClassMethods.add(Pattern.compile("java\\.lang\\.Class\\#getTypeName"));
+		prohibitedClassMethods.add(Pattern.compile("java\\.lang\\.Class\\#getAnnotatedSuperclass"));
+		prohibitedClassMethods.add(Pattern.compile("java\\.lang\\.Class\\#toGenericString"));
+		Configuration.add(Configuration.PROHIBITED_METHODS, prohibitedClassMethods);
 		
 		mfSLLBEVarField_right = TestingTools.generateMutants(propSLLBEVarField_right);
 		
@@ -616,6 +622,7 @@ public class PRVOTests {
 		Configuration.removeArgument(PRVO.ALLOW_FINAL_MEMBERS);
 		Configuration.removeArgument(MutantCodeWriter.USE_SIMPLE_CLASS_NAMES);
 		Configuration.removeArgument(MutantCodeWriter.KEEP_ORIGINAL_TYPE_NAMES);
+		Configuration.removeArgument(Configuration.PROHIBITED_METHODS);
 		
 		return Arrays.asList(new Object[][] {
 				{propSLLBEVarField_right, mfSLLBEVarField_right},			//0
