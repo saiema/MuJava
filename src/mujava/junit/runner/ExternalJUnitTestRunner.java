@@ -15,11 +15,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.runner.Result;
-//import org.junit.runners.model.InitializationError; //changed to support junit 3.8
 
 import mujava.app.Core;
 import mujava.app.TestResult;
-import mujava.loader.Reloader;
 
 /**
  * This class is meant as an alternative to running mutation analysis using the Reloader.
@@ -166,26 +164,19 @@ public class ExternalJUnitTestRunner {
 			boolean quickDeath = toughness?false:cmd.hasOption(quickDeathOption.getOpt());
 			
 			
-			List<String> classpath = Arrays.asList(new String[]{binDir, testBinDir});
-			Reloader reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
-			reloader.markEveryClassInFolderAsReloadable(testBinDir);
-			for (String l : libs) {
-				reloader.markEveryClassInFolderAsReloadable(l);
-			}
-			reloader.markEveryClassInFolderAsReloadable(binDir);
-			reloader.setSpecificClassPath(classToMutate, mutantPath);
+//			List<String> classpath = Arrays.asList(new String[]{binDir, testBinDir});
+//			Reloader reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
+//			reloader.markEveryClassInFolderAsReloadable(testBinDir);
+//			for (String l : libs) {
+//				reloader.markEveryClassInFolderAsReloadable(l);
+//			}
+//			reloader.markEveryClassInFolderAsReloadable(binDir);
+//			reloader.setSpecificClassPath(classToMutate, mutantPath);
 			List<TestResult> testResults = new LinkedList<TestResult>();
-			if (tclasses.length > 0) {
-				reloader.rloadClass(tclasses[0], true);
-//				Class<?> t = reloader.rloadClass(classToMutate, true);
-//				System.err.println("Loaded: " + t.getCanonicalName());
-//				System.err.println("Classloader: " + t.getClassLoader().toString());
-//				System.err.println("Declared methods: " + t.getDeclaredMethods().length);
-			}
 			for (String test : tclasses) {
 				Class<?> testToRun;
 				try {
-					testToRun = reloader.getLastChild().loadClass(test);
+					testToRun = Class.forName(test);
 					MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, quickDeath);
 					Result testResult = mjTestRunner.run();
 					Core.killStillRunningJUnitTestcaseThreads();
@@ -214,9 +205,6 @@ public class ExternalJUnitTestRunner {
 			System.err.println("Error while serializing results");
 			System.err.println(ExceptionUtils.getFullStackTrace(e));
 			System.exit(3);
-		} catch (ClassNotFoundException e) {
-			System.err.println(ExceptionUtils.getFullStackTrace(e));
-			System.exit(2);
 		}
 	}
 	
