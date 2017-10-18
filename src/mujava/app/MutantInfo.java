@@ -32,6 +32,7 @@ public class MutantInfo {
 	private String path;
 	private byte[] md5digest;
 	private boolean severalMutations;
+	private boolean isExternal;
 	private List<MutationInformation> mutations;
 	private Mutation lastMutation;
 	
@@ -43,19 +44,36 @@ public class MutantInfo {
 	/**
 	 * Constructs a new object to contain the information related to a mutated class
 	 * 
-	 * @param name			: 	the mutated class name : {@code String}
-	 * @param method		:	the method mutated ({@code null} if the mutation was on the class fields) : {@code String}
-	 * @param path			:	the path to the mutated file : {@code String}
-	 * @param mi			:	the mutant identifier that generated this mutant : {@code Mutation}
+	 * @param name          : 	the mutated class name : {@code String}
+	 * @param method        :	the method mutated ({@code null} if the mutation was on the class fields or if this is an external mutant) : {@code String}
+	 * @param path          :	the path to the mutated file : {@code String}
+	 * @param digest        :	the md5 hash of the mutated file
+	 * @param mi            :	the mutant identifier that generated this mutant, {@code null} if this is an external mutant : {@code Mutation}
+	 * @param isExternal    :	if the mutant was not created by mujava
 	 */
-	public MutantInfo(String name, String method, String path, byte[] md5digest, Mutation mi) {
+	public MutantInfo(String name, String method, String path, byte[] md5digest, Mutation mi, boolean isExternal) {
 		this.name = name;
+		if (isExternal && method != null) throw new IllegalArgumentException("Can't create an external mutation info with a method");
 		if (method != null) this.method = method;
 		this.path = path;
 		initializeLists();
+		if (isExternal && mi != null) throw new IllegalArgumentException("Can't create an external mutation info with a non-null mutation");
 		addMutation(mi, method);
 		this.md5digest = md5digest;
-		this.severalMutations = false;
+		this.severalMutations = isExternal;
+	}
+	
+	/**
+	 * Constructs a new object to contain the information related to a mutated class
+	 * 
+	 * @param name			: 	the mutated class name : {@code String}
+	 * @param method		:	the method mutated ({@code null} if the mutation was on the class fields) : {@code String}
+	 * @param path			:	the path to the mutated file : {@code String}
+	 * @param digest		:	the md5 hash of the mutated file
+	 * @param mi			:	the mutant identifier that generated this mutant : {@code Mutation}
+	 */
+	public MutantInfo(String name, String method, String path, byte[] md5digest, Mutation mi) {
+		this(name, method, path, md5digest, mi, false);
 	}
 	
 	/**
@@ -241,11 +259,15 @@ public class MutantInfo {
 	public String toString() {
 		String res =  "name: " + this.name
 						+ "\nPath                   : " + this.path
-						+ "\nMD5 hash               : " + Arrays.toString(this.md5digest)
-						+ "\nSeveral mutations      : "	+ this.severalMutationsApplied() 
-						+ "\nMutations              : " + "\n";
-		for (MutationInformation minfo : this.mutations) {
-			res += indentedMutations(minfo);
+						+ "\nMD5 hash               : " + Arrays.toString(this.md5digest);
+		if (!isExternal) {
+			res+= "\nSeveral mutations      : "	+ this.severalMutationsApplied(); 
+			res+= "\nMutations              : " + "\n";
+			for (MutationInformation minfo : this.mutations) {
+				res += indentedMutations(minfo);
+			}
+		} else {
+			res+= "\nis external";
 		}
 		return res;
 	}

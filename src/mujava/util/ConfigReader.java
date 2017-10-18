@@ -84,6 +84,14 @@ public class ConfigReader {
 				return "-m";
 			}
 		},
+		EXTERNAL_CLASSES_PROTOTYPE {
+			public String getKey() {
+				return "mutation.basic.prototype.classes";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
 		METHODS {
 			public String getKey() {
 				return "mutation.basic.methods";
@@ -122,6 +130,22 @@ public class ConfigReader {
 			}
 			public String getFlag() {
 				return "-W";
+			}
+		},
+		USE_EXTERNAL_MUTANTS {
+			public String getKey() {
+				return "mutation.basic.useExternalMutants";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		USE_SOCKETS {
+			public String getKey() {
+				return "mutation.basic.useSockets";
+			}
+			public String getFlag() {
+				return NO_FLAG;
 			}
 		},
 		//MUTATION BASIC
@@ -655,52 +679,66 @@ public class ConfigReader {
 	
 	public Config buildConfig() throws IllegalStateException {
 		Config conf = new Config(getStringArgument(Config_key.ORIGINAL_SOURCE_DIR), getStringArgument(Config_key.ORIGINAL_BIN_DIR), getStringArgument(Config_key.MUTANTS_DIR));
-		conf.classToMutate(getStringArgument(Config_key.CLASS));
-		for (String methodToMutate : stringArgumentsAsArray(getStringArgument(Config_key.METHODS))) {
-			conf.addMethodToMutate(methodToMutate);
+		boolean useExternalMutants = false;
+		if (isDefined(Config_key.USE_EXTERNAL_MUTANTS)) {
+			useExternalMutants = getBooleanArgument(Config_key.USE_EXTERNAL_MUTANTS);
+			conf.useExternalMutants(useExternalMutants);
 		}
-		for (String op : stringArgumentsAsArray(getStringArgument(Config_key.OPERATORS))) {
-			conf.addOperator(op);
+		if (useExternalMutants && isDefined(Config_key.EXTERNAL_CLASSES_PROTOTYPE)){
+			conf.externalClassesToMutate(stringArgumentsAsArray(getStringArgument(Config_key.EXTERNAL_CLASSES_PROTOTYPE)));
+		} else {
+			conf.classToMutate(getStringArgument(Config_key.CLASS));
+		}
+		if (!useExternalMutants) {
+			for (String methodToMutate : stringArgumentsAsArray(getStringArgument(Config_key.METHODS))) {
+				conf.addMethodToMutate(methodToMutate);
+			}
+			for (String op : stringArgumentsAsArray(getStringArgument(Config_key.OPERATORS))) {
+				conf.addOperator(op);
+			}
 		}
 		if (isDefined(Config_key.FULL_VERBOSE)) conf.fullVerboseMode(getBooleanArgument(Config_key.FULL_VERBOSE)); else conf.fullVerboseMode(false);
-		if (isDefined(Config_key.ALLOW_CLASS_MUTATIONS)) conf.allowClassMutations(getBooleanArgument(Config_key.ALLOW_CLASS_MUTATIONS));
-		if (isDefined(Config_key.ALLOW_FIELD_MUTATIONS)) conf.allowFieldMutations(getBooleanArgument(Config_key.ALLOW_FIELD_MUTATIONS));
-		if (isDefined(Config_key.DISABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS)) conf.allowPrimitiveToObjectAssignments(getBooleanArgument(Config_key.DISABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS));
-		if (isDefined(Config_key.WRAP_PRIMITIVE_TO_OBJECT_ASSIGNMENTS)) conf.wrapPrimitiveToObjectAssignments(getBooleanArgument(Config_key.WRAP_PRIMITIVE_TO_OBJECT_ASSIGNMENTS));
-		if (isDefined(Config_key.APPLY_REF_PRVO_TO_METHODCALLS_STATEMENTS)) conf.applyRefinedPRVOInMethodCallStatements(getBooleanArgument(Config_key.APPLY_REF_PRVO_TO_METHODCALLS_STATEMENTS));
-		if (isDefined(Config_key.GENERATIONS)) conf.generation(getIntArgument(Config_key.GENERATIONS)); else conf.generation(1);
-		if (isDefined(Config_key.ROR_REPLACE_WITH_TRUE)) conf.rorReplaceWithTrue(getBooleanArgument(Config_key.ROR_REPLACE_WITH_TRUE));
-		if (isDefined(Config_key.ROR_REPLACE_WITH_FALSE)) conf.rorReplaceWithFalse(getBooleanArgument(Config_key.ROR_REPLACE_WITH_FALSE));
-		if (isDefined(Config_key.COR_USE_AND_OP)) conf.corUseAndOp(getBooleanArgument(Config_key.COR_USE_AND_OP));
-		if (isDefined(Config_key.COR_USE_OR_OP)) conf.corUseOrOp(getBooleanArgument(Config_key.COR_USE_OR_OP));
-		if (isDefined(Config_key.COR_USE_XOR_OP)) conf.corUseXorOp(getBooleanArgument(Config_key.COR_USE_XOR_OP));
-		if (isDefined(Config_key.COR_USE_BIT_AND_OP)) conf.corUseBitAndOp(getBooleanArgument(Config_key.COR_USE_BIT_AND_OP));
-		if (isDefined(Config_key.COR_USE_BIT_OR__OP)) conf.corUseBitOrOp(getBooleanArgument(Config_key.COR_USE_BIT_OR__OP));
-		if (isDefined(Config_key.PRVO_ENABLE_SAME_LENGTH)) conf.prvoSameLenght(getBooleanArgument(Config_key.PRVO_ENABLE_SAME_LENGTH));
-		if (isDefined(Config_key.PRVO_ENABLE_INCREASE_LENGTH)) conf.prvoIncreaseLength(getBooleanArgument(Config_key.PRVO_ENABLE_INCREASE_LENGTH));
-		if (isDefined(Config_key.PRVO_ENABLE_DECREASE_LENGTH)) conf.prvoDecreaseLength(getBooleanArgument(Config_key.PRVO_ENABLE_DECREASE_LENGTH));
-		if (isDefined(Config_key.PRVO_ENABLE_ONE_BY_TWO)) conf.prvoOneByTwo(getBooleanArgument(Config_key.PRVO_ENABLE_ONE_BY_TWO));
-		if (isDefined(Config_key.PRVO_ENABLE_TWO_BY_ONE)) conf.prvoTwoByOne(getBooleanArgument(Config_key.PRVO_ENABLE_TWO_BY_ONE));
-		if (isDefined(Config_key.PRVO_ENABLE_ALL_BY_ONE_LEFT)) conf.prvoAllByOneLeft(getBooleanArgument(Config_key.PRVO_ENABLE_ALL_BY_ONE_LEFT));
-		if (isDefined(Config_key.PRVO_ENABLE_ALL_BY_ONE_RIGHT)) conf.prvoAllByOneRight(getBooleanArgument(Config_key.PRVO_ENABLE_ALL_BY_ONE_RIGHT));
-		if (isDefined(Config_key.PRVO_ENABLE_SUPER)) conf.prvoUseSuper(getBooleanArgument(Config_key.PRVO_ENABLE_SUPER));
-		if (isDefined(Config_key.PRVO_ENABLE_THIS)) conf.prvoUseThis(getBooleanArgument(Config_key.PRVO_ENABLE_THIS));
-		if (isDefined(Config_key.PRVO_ENABLE_REPLACEMENT_WITH_LITERALS)) conf.prvoReplacementWithLiterals(getBooleanArgument(Config_key.PRVO_ENABLE_REPLACEMENT_WITH_LITERALS));
-		if (isDefined(Config_key.PRVO_ENABLE_NULL_LITERAL)) conf.prvoUseNullLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_NULL_LITERAL));
-		if (isDefined(Config_key.PRVO_ENABLE_TRUE_LITERAL)) conf.prvoUseTrueLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_TRUE_LITERAL));
-		if (isDefined(Config_key.PRVO_ENABLE_FALSE_LITERAL)) conf.prvoUseFalseLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_FALSE_LITERAL));
-		if (isDefined(Config_key.PRVO_ENABLE_EMPTY_STRING_LITERAL)) conf.prvoUseEmptyStringLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_EMPTY_STRING_LITERAL));
-		if (isDefined(Config_key.PRVO_ENABLE_ZERO_LITERAL)) conf.prvoUseZeroLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_ZERO_LITERAL));
-		if (isDefined(Config_key.PRVO_ENABLE_ONE_LITERAL)) conf.prvoUseOneLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_ONE_LITERAL));
-		if (isDefined(Config_key.PRVO_ENABLE_STRING_LITERALS)) conf.prvoUseStringLiterals(getBooleanArgument(Config_key.PRVO_ENABLE_STRING_LITERALS));
-		if (isDefined(Config_key.PRVO_ALLOW_FINAL_MEMBERS)) conf.prvoAllowFinalMembers(getBooleanArgument(Config_key.PRVO_ALLOW_FINAL_MEMBERS));
-		if (isDefined(Config_key.PRVO_ENABLE_RELAXED_TYPES)) conf.prvoEnableRelaxedTypes(getBooleanArgument(Config_key.PRVO_ENABLE_RELAXED_TYPES));
-		if (isDefined(Config_key.PRVO_ENABLE_AUTOBOXING)) conf.prvoEnableAutoboxing(getBooleanArgument(Config_key.PRVO_ENABLE_AUTOBOXING));
-		if (isDefined(Config_key.PRVO_ENABLE_INHERITED_ELEMENTS)) conf.prvoEnableInheritedElements(getBooleanArgument(Config_key.PRVO_ENABLE_INHERITED_ELEMENTS));
-		if (isDefined(Config_key.USE_SIMPLE_CLASS_NAMES)) conf.useSimpleClassNames(getBooleanArgument(Config_key.USE_SIMPLE_CLASS_NAMES));
+		if (!useExternalMutants) {
+			if (isDefined(Config_key.ALLOW_CLASS_MUTATIONS)) conf.allowClassMutations(getBooleanArgument(Config_key.ALLOW_CLASS_MUTATIONS));
+			if (isDefined(Config_key.ALLOW_FIELD_MUTATIONS)) conf.allowFieldMutations(getBooleanArgument(Config_key.ALLOW_FIELD_MUTATIONS));
+			if (isDefined(Config_key.DISABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS)) conf.allowPrimitiveToObjectAssignments(getBooleanArgument(Config_key.DISABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS));
+			if (isDefined(Config_key.WRAP_PRIMITIVE_TO_OBJECT_ASSIGNMENTS)) conf.wrapPrimitiveToObjectAssignments(getBooleanArgument(Config_key.WRAP_PRIMITIVE_TO_OBJECT_ASSIGNMENTS));
+			if (isDefined(Config_key.APPLY_REF_PRVO_TO_METHODCALLS_STATEMENTS)) conf.applyRefinedPRVOInMethodCallStatements(getBooleanArgument(Config_key.APPLY_REF_PRVO_TO_METHODCALLS_STATEMENTS));
+			if (isDefined(Config_key.GENERATIONS)) conf.generation(getIntArgument(Config_key.GENERATIONS)); else conf.generation(1);
+			if (isDefined(Config_key.ROR_REPLACE_WITH_TRUE)) conf.rorReplaceWithTrue(getBooleanArgument(Config_key.ROR_REPLACE_WITH_TRUE));
+			if (isDefined(Config_key.ROR_REPLACE_WITH_FALSE)) conf.rorReplaceWithFalse(getBooleanArgument(Config_key.ROR_REPLACE_WITH_FALSE));
+			if (isDefined(Config_key.COR_USE_AND_OP)) conf.corUseAndOp(getBooleanArgument(Config_key.COR_USE_AND_OP));
+			if (isDefined(Config_key.COR_USE_OR_OP)) conf.corUseOrOp(getBooleanArgument(Config_key.COR_USE_OR_OP));
+			if (isDefined(Config_key.COR_USE_XOR_OP)) conf.corUseXorOp(getBooleanArgument(Config_key.COR_USE_XOR_OP));
+			if (isDefined(Config_key.COR_USE_BIT_AND_OP)) conf.corUseBitAndOp(getBooleanArgument(Config_key.COR_USE_BIT_AND_OP));
+			if (isDefined(Config_key.COR_USE_BIT_OR__OP)) conf.corUseBitOrOp(getBooleanArgument(Config_key.COR_USE_BIT_OR__OP));
+			if (isDefined(Config_key.PRVO_ENABLE_SAME_LENGTH)) conf.prvoSameLenght(getBooleanArgument(Config_key.PRVO_ENABLE_SAME_LENGTH));
+			if (isDefined(Config_key.PRVO_ENABLE_INCREASE_LENGTH)) conf.prvoIncreaseLength(getBooleanArgument(Config_key.PRVO_ENABLE_INCREASE_LENGTH));
+			if (isDefined(Config_key.PRVO_ENABLE_DECREASE_LENGTH)) conf.prvoDecreaseLength(getBooleanArgument(Config_key.PRVO_ENABLE_DECREASE_LENGTH));
+			if (isDefined(Config_key.PRVO_ENABLE_ONE_BY_TWO)) conf.prvoOneByTwo(getBooleanArgument(Config_key.PRVO_ENABLE_ONE_BY_TWO));
+			if (isDefined(Config_key.PRVO_ENABLE_TWO_BY_ONE)) conf.prvoTwoByOne(getBooleanArgument(Config_key.PRVO_ENABLE_TWO_BY_ONE));
+			if (isDefined(Config_key.PRVO_ENABLE_ALL_BY_ONE_LEFT)) conf.prvoAllByOneLeft(getBooleanArgument(Config_key.PRVO_ENABLE_ALL_BY_ONE_LEFT));
+			if (isDefined(Config_key.PRVO_ENABLE_ALL_BY_ONE_RIGHT)) conf.prvoAllByOneRight(getBooleanArgument(Config_key.PRVO_ENABLE_ALL_BY_ONE_RIGHT));
+			if (isDefined(Config_key.PRVO_ENABLE_SUPER)) conf.prvoUseSuper(getBooleanArgument(Config_key.PRVO_ENABLE_SUPER));
+			if (isDefined(Config_key.PRVO_ENABLE_THIS)) conf.prvoUseThis(getBooleanArgument(Config_key.PRVO_ENABLE_THIS));
+			if (isDefined(Config_key.PRVO_ENABLE_REPLACEMENT_WITH_LITERALS)) conf.prvoReplacementWithLiterals(getBooleanArgument(Config_key.PRVO_ENABLE_REPLACEMENT_WITH_LITERALS));
+			if (isDefined(Config_key.PRVO_ENABLE_NULL_LITERAL)) conf.prvoUseNullLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_NULL_LITERAL));
+			if (isDefined(Config_key.PRVO_ENABLE_TRUE_LITERAL)) conf.prvoUseTrueLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_TRUE_LITERAL));
+			if (isDefined(Config_key.PRVO_ENABLE_FALSE_LITERAL)) conf.prvoUseFalseLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_FALSE_LITERAL));
+			if (isDefined(Config_key.PRVO_ENABLE_EMPTY_STRING_LITERAL)) conf.prvoUseEmptyStringLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_EMPTY_STRING_LITERAL));
+			if (isDefined(Config_key.PRVO_ENABLE_ZERO_LITERAL)) conf.prvoUseZeroLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_ZERO_LITERAL));
+			if (isDefined(Config_key.PRVO_ENABLE_ONE_LITERAL)) conf.prvoUseOneLiteral(getBooleanArgument(Config_key.PRVO_ENABLE_ONE_LITERAL));
+			if (isDefined(Config_key.PRVO_ENABLE_STRING_LITERALS)) conf.prvoUseStringLiterals(getBooleanArgument(Config_key.PRVO_ENABLE_STRING_LITERALS));
+			if (isDefined(Config_key.PRVO_ALLOW_FINAL_MEMBERS)) conf.prvoAllowFinalMembers(getBooleanArgument(Config_key.PRVO_ALLOW_FINAL_MEMBERS));
+			if (isDefined(Config_key.PRVO_ENABLE_RELAXED_TYPES)) conf.prvoEnableRelaxedTypes(getBooleanArgument(Config_key.PRVO_ENABLE_RELAXED_TYPES));
+			if (isDefined(Config_key.PRVO_ENABLE_AUTOBOXING)) conf.prvoEnableAutoboxing(getBooleanArgument(Config_key.PRVO_ENABLE_AUTOBOXING));
+			if (isDefined(Config_key.PRVO_ENABLE_INHERITED_ELEMENTS)) conf.prvoEnableInheritedElements(getBooleanArgument(Config_key.PRVO_ENABLE_INHERITED_ELEMENTS));
+			if (isDefined(Config_key.USE_SIMPLE_CLASS_NAMES)) conf.useSimpleClassNames(getBooleanArgument(Config_key.USE_SIMPLE_CLASS_NAMES));
+		}
 		if (isDefined(Config_key.USE_EXTERNAL_JUNIT_RUNNER)) conf.useExternalJUnitRunner(getBooleanArgument(Config_key.USE_EXTERNAL_JUNIT_RUNNER));
 		if (isDefined(Config_key.USE_PARALLEL_JUNIT_RUNNER)) conf.useParallelExternalJUnitRunner(getBooleanArgument(Config_key.USE_PARALLEL_JUNIT_RUNNER));
 		if (isDefined(Config_key.PARALLEL_JUNIT_RUNNER_THREADS)) conf.parallelExternalJUnitRunnerThreads(getIntArgument(Config_key.PARALLEL_JUNIT_RUNNER_THREADS));
+		if (isDefined(Config_key.USE_SOCKETS)) conf.useSockets(getBooleanArgument(Config_key.USE_SOCKETS));
 		boolean junitPathDefined = false;
 		boolean hamcrestPathDefined = false;
 		if (isDefined(Config_key.JUNIT_PATH)) {
@@ -711,18 +749,20 @@ public class ConfigReader {
 			hamcrestPathDefined = true;
 			conf.hamcrestPath(getStringArgument(Config_key.HAMCREST_PATH));
 		}
-		for (String bannedField : stringArgumentsAsArray(getStringArgument(Config_key.BANNED_FIELDS))) {
-			conf.addBannedField(bannedField);
+		if (useExternalMutants) {
+			for (String bannedField : stringArgumentsAsArray(getStringArgument(Config_key.BANNED_FIELDS))) {
+				conf.addBannedField(bannedField);
+			}
+			for (String bannedMethod : stringArgumentsAsArray(getStringArgument(Config_key.BANNED_METHODS))) {
+				conf.addBannedMethod(bannedMethod);
+			}
+			conf.ignoreMutGenLimit(getBooleanArgument(Config_key.MUTGENLIMIT));
+			for (String allowedPackageToReload : stringArgumentsAsArray(getStringArgument(Config_key.ALLOWED_PACKAGES_TO_RELOAD))) {
+				conf.addPackageToReload(allowedPackageToReload);
+			}
+			conf.allowNumericLiteralVariations(getBooleanArgument(Config_key.ALLOW_NUMERIC_LITERAL_VARIATIONS));
+			conf.runMutationScore(getBooleanArgument(Config_key.MUTATION_SCORE));
 		}
-		for (String bannedMethod : stringArgumentsAsArray(getStringArgument(Config_key.BANNED_METHODS))) {
-			conf.addBannedMethod(bannedMethod);
-		}
-		conf.ignoreMutGenLimit(getBooleanArgument(Config_key.MUTGENLIMIT));
-		for (String allowedPackageToReload : stringArgumentsAsArray(getStringArgument(Config_key.ALLOWED_PACKAGES_TO_RELOAD))) {
-			conf.addPackageToReload(allowedPackageToReload);
-		}
-		conf.allowNumericLiteralVariations(getBooleanArgument(Config_key.ALLOW_NUMERIC_LITERAL_VARIATIONS));
-		conf.runMutationScore(getBooleanArgument(Config_key.MUTATION_SCORE));
 		if (conf.runMutationScore()) conf.testsBinDir(getStringArgument(Config_key.TESTS_BIN_DIR));
 		if (conf.runMutationScore()) conf.showSurvivingMutants(getBooleanArgument(Config_key.SHOW_SURVIVING_MUTANTS));
 		if (conf.runMutationScore()) {
@@ -733,7 +773,7 @@ public class ConfigReader {
 		if (conf.runMutationScore()) conf.quickDeath(getBooleanArgument(Config_key.QUICK_DEATH));
 		if (conf.runMutationScore()) conf.showSurvivingMutants(getBooleanArgument(Config_key.SHOW_SURVIVING_MUTANTS));
 		if (conf.runMutationScore()) conf.toughnessAnalysis(getBooleanArgument(Config_key.MUTATION_SCORE_TOUGHNESS_ANALYSIS));
-		if (conf.runMutationScore()) conf.outputMutationsInfo(getBooleanArgument(Config_key.OUPUT_MUTANT_MUTATIONS));	
+		if (!useExternalMutants && conf.runMutationScore()) conf.outputMutationsInfo(getBooleanArgument(Config_key.OUPUT_MUTANT_MUTATIONS));	
 		String e = loadInheritedBasicConfig(junitPathDefined, hamcrestPathDefined, conf);
 		if (e != null) throw new IllegalStateException("Bad inherited configuration : " + e);
 		String validationError = conf.validate();
@@ -888,6 +928,8 @@ public class ConfigReader {
 			case OUPUT_MUTANT_MUTATIONS:
 			case USE_EXTERNAL_JUNIT_RUNNER:
 			case USE_PARALLEL_JUNIT_RUNNER:	
+			case USE_EXTERNAL_MUTANTS:
+			case USE_SOCKETS:
 			case MUTGENLIMIT: return true;
 			default : return false;
 		}

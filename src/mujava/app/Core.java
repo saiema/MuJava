@@ -27,6 +27,7 @@ import mujava.generations.Generator;
 import mujava.generations.GoalTester;
 import mujava.generations.RequestGenerator;
 import mujava.generations.SameRequestGenerator;
+import mujava.util.JustCodeDigest;
 
 /**
  * This class execute all commands either from console or from a GUI
@@ -57,8 +58,9 @@ public class Core {
 	public static boolean showSurvivingMutants = false;
 	public static boolean useExternalJUnitRunner = false;
 	public static boolean useParallelJUnitRunner = false;
+	public static boolean useSockets = false;
 	public static int parallelJUnitRunnerThreads;
-	public static final int mujavappVersion = 20172805;
+	public static final int mujavappVersion = 20172408;
 	
 	private float totalToughness;
 	private float totalMutants;
@@ -98,6 +100,72 @@ public class Core {
 	private Core(String inputDir, String outputDir) {
 		Core.inputDir = inputDir;
 		Core.outputDir = outputDir;
+	}
+	
+	public boolean parseExternalMutants(String className) {
+		this.error = null;
+		this.lastGeneration = new LinkedList<>();
+		File mutantsDir = new File(outputDir);
+		if (mutantsDir.exists() && mutantsDir.isDirectory() && mutantsDir.canRead() && mutantsDir.canExecute()) {
+			for (String p : mutantsDir.list()) {
+				File mutDir = new File(mutantsDir, p);
+				if (mutDir.exists() && mutDir.isDirectory() && mutDir.canRead() && mutDir.canExecute()) {
+					String classNameAsPath = className.replaceAll("\\.", File.separator) + ".java";
+					File mutPath = new File(mutDir, classNameAsPath);
+					if (mutPath.exists() && mutPath.isFile()) {
+						byte[] md5digest = JustCodeDigest.digest(mutPath);
+						MutantInfo mi = new MutantInfo(className, null, mutPath.getAbsolutePath(), md5digest, null, true);
+						this.lastGeneration.add(mi);
+					} else {
+						this.error = new IOException("Expecting java source file at " + mutPath.getAbsolutePath() + " but didn't find any");
+						return false;
+					}
+				} else {
+					this.error = new IOException("Unable to access mutant directory " + mutDir.getAbsolutePath() + " (check that the folder exists and have the correct permissions)");
+					return false;
+				}
+			}
+		} else {
+			this.error = new IOException("Unable to access mutants directory " + mutantsDir.getAbsolutePath() + " (check that the folder exists and have the correct permissions)");
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean parseExternalSeveralMutants(String[] classes) {
+		this.error = null;
+		this.lastGeneration = new LinkedList<>();
+		File mutantsDir = new File(outputDir);
+		if (mutantsDir.exists() && mutantsDir.isDirectory() && mutantsDir.canRead() && mutantsDir.canExecute()) {
+			for (String p : mutantsDir.list()) {
+				File mutDir = new File(mutantsDir, p);
+				if (mutDir.exists() && mutDir.isDirectory() && mutDir.canRead() && mutDir.canExecute()) {
+					//boolean fileFound = false;
+					for (String c : classes) {
+						String classNameAsPath = c.replaceAll("\\.", File.separator) + ".java";
+						File mutPath = new File(mutDir, classNameAsPath);
+						if (mutPath.exists() && mutPath.isFile()) {
+							//fileFound = true;
+							byte[] md5digest = JustCodeDigest.digest(mutPath);
+							MutantInfo mi = new MutantInfo(c, null, mutPath.getAbsolutePath(), md5digest, null, true);
+							this.lastGeneration.add(mi);
+							break;
+						}
+					}
+//					if (!fileFound) {
+//						this.error = new IOException("No class found in " + mutDir.getAbsolutePath());
+//						return false;
+//					}
+				} else {
+					this.error = new IOException("Unable to access mutant directory " + mutDir.getAbsolutePath() + " (check that the folder exists and have the correct permissions)");
+					return false;
+				}
+			}
+		} else {
+			this.error = new IOException("Unable to access mutants directory " + mutantsDir.getAbsolutePath() + " (check that the folder exists and have the correct permissions)");
+			return false;
+		}
+		return true;
 	}
 	
 	public boolean generateMutants(String className, String[] methods, MutationOperator[] mutOps) {
@@ -282,18 +350,121 @@ public class Core {
 			return -1;
 		}
 		if (parallelize) {
-			return calculateMutationScoreUsingExternalRunner_parallel(testClasses, className);
+			return calculateMutationScoreUsingExternalRunner_parallel(testClasses);
 		} else {
-			return calculateMutationScoreUsingExternalRunner_sequential(testClasses, className);
+			return calculateMutationScoreUsingExternalRunner_sequential(testClasses);
 		}
 	}
 	
-	private float calculateMutationScoreUsingExternalRunner_sequential(String[] testClasses, String className) {
+	public float evaluateExternalResults(String[] testClasses, boolean parallel) {
+		List<ExternalJUnitRunnerResult> externalResults = obtainJUnitResults(testClasses, parallel);
 		List<String> survivingMutantsPaths = new LinkedList<>();
 		int failedToCompile = 0;
 		int mutantsKilled = 0;
 		int mutants = 0;
 		int timedOut = 0;
+		for (ExternalJUnitRunnerResult r : externalResults) {
+			mutants++;
+			String pathToFile = r.mut.getPath();
+			if (!r.compilationResults().compilationSuccessful()){
+				System.out.println("File : " + pathToFile + " didn't compile\n");
+				failedToCompile++;
+				continue;
+			}
+			boolean killed = false;
+			
+			ExternalJUnitResult results = r.testResults();
+			if (!results.testsRunSuccessful()) {
+				System.out.println("An error ocurred while running tests for mutants");
+				System.out.println(results.error()!=null?results.error().toString():"no exception to display, contact your favorite mujava++ developer");
+				return -1;
+			}
+			int runnedTestsCount = 0;
+			int totalFailures = 0;
+			for (TestResult tr : r.testResults().testResults()) {
+				System.out.println(tr.toString()+"\n");
+				runnedTestsCount += tr.getRunnedTestsCount();
+				totalFailures += tr.getTotalFailures();
+				if (!tr.wasSuccessful()) {
+					if (tr.getTimedoutTests() > 0) timedOut++;
+					for (Failure f : tr.getFailures()) {
+						if (Core.fullVerbose) System.out.println("test : " + f.getTestHeader());
+						if (Core.fullVerbose) System.out.println("failure description: " + f.getDescription());
+						if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
+						if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
+					}
+				}
+				if (!killed && !tr.wasSuccessful()) killed = true;
+			}
+			if (toughnessAnalysis()) {
+				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
+				this.addToughnessValue(toughness);
+				System.out.println("Toughness: " + toughness + " [failed : " + totalFailures + " | total : " + runnedTestsCount + "]");
+				if (killed) {
+					this.addKilledMutantsToughnessValue(toughness);
+				}
+				System.out.println();
+			}
+			if (killed) mutantsKilled++;
+			if (!killed && Core.showSurvivingMutants) {
+				survivingMutantsPaths.add(pathToFile);
+			}
+			
+		}
+		return mutationAnalysisResults(mutants, failedToCompile, mutantsKilled, timedOut, survivingMutantsPaths);
+	}
+	
+	private List<ExternalJUnitRunnerResult> obtainJUnitResults(String[] testClasses, boolean parallel) {
+		List<ExternalJUnitRunnerResult> results = new LinkedList<>();
+		int socketPort = Core.useSockets?1024:-1;
+		List<Future<ExternalJUnitRunnerResult>> junitExternalRunnerTasks = parallel?new LinkedList<Future<ExternalJUnitRunnerResult>>():null;
+		ExecutorService es = parallel?Executors.newFixedThreadPool(Core.parallelJUnitRunnerThreads):null;
+		if (parallel) {
+			for (MutantInfo mut : this.lastGeneration) {
+				ExternalJUnitParallelRunner externalRunner = new ExternalJUnitParallelRunner(Arrays.asList(testClasses), mut, this.ms, socketPort);
+				Future<ExternalJUnitRunnerResult> newTask = es.submit(externalRunner);
+				junitExternalRunnerTasks.add(newTask);
+				if (Core.useSockets) socketPort++;
+			}
+			for (int i = 0; i < junitExternalRunnerTasks.size(); i++) {
+				Future<ExternalJUnitRunnerResult> t = junitExternalRunnerTasks.get(i);
+				ExternalJUnitRunnerResult externalJPRResults;
+				try {
+					externalJPRResults = t.get();
+					results.add(externalJPRResults);
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+					es.shutdown();
+					return null;
+				}
+			}
+			es.shutdown();
+		} else {
+			for (MutantInfo mut : this.lastGeneration) {
+				String pathToFile = mut.getPath();
+				CompilationResult cresult = ms.compile(pathToFile);
+				ExternalJUnitResult exResult = null;
+				if (cresult == null) {
+					exResult = new ExternalJUnitResult(new Exception("Compilation error while compiling mutant "+mut.getPath()));
+				} else if (!cresult.compilationSuccessful()) {
+					exResult = new ExternalJUnitResult(cresult.error());
+			  	} else {
+			  		exResult = ms.runTestsWithMutantsUsingExternalRunner(Arrays.asList(testClasses), mut, socketPort);
+			  	}
+				if (Core.useSockets) socketPort++;
+				results.add(new ExternalJUnitRunnerResult(cresult, exResult, mut));
+			}
+		}
+		return results;
+	}
+	
+	private float calculateMutationScoreUsingExternalRunner_sequential(String[] testClasses) {
+		List<String> survivingMutantsPaths = new LinkedList<>();
+		int failedToCompile = 0;
+		int mutantsKilled = 0;
+		int mutants = 0;
+		int timedOut = 0;
+		int socketPort = Core.useSockets?1024:-1;
 		for (MutantInfo mut : this.lastGeneration) {
 			mutants++;
 			String pathToFile = mut.getPath();
@@ -304,7 +475,8 @@ public class Core {
 			}
 			boolean killed = false;
 			
-			ExternalJUnitResult results = ms.runTestsWithMutantsUsingExternalRunner(Arrays.asList(testClasses), mut);
+			ExternalJUnitResult results = ms.runTestsWithMutantsUsingExternalRunner(Arrays.asList(testClasses), mut, socketPort);
+			if (Core.useSockets) socketPort++;
 			if (!results.testsRunSuccessful()) {
 				System.out.println("An error ocurred while running tests for mutants");
 				System.out.println(results.error()!=null?results.error().toString():"no exception to display, contact your favorite mujava++ developer");
@@ -345,23 +517,25 @@ public class Core {
 		return mutationAnalysisResults(mutants, failedToCompile, mutantsKilled, timedOut, survivingMutantsPaths);
 	}
 	
-	private float calculateMutationScoreUsingExternalRunner_parallel(String[] testClasses, String className) {
+	private float calculateMutationScoreUsingExternalRunner_parallel(String[] testClasses) {
 		List<String> survivingMutantsPaths = new LinkedList<>();
 		int failedToCompile = 0;
 		int mutantsKilled = 0;
 		int mutants = 0;
 		int timedOut = 0;
-		List<Future<ExternalJUnitParallelRunnerResult>> junitExternalRunnerTasks = new LinkedList<>();
+		int port = Core.useSockets?1024:-1;
+		List<Future<ExternalJUnitRunnerResult>> junitExternalRunnerTasks = new LinkedList<>();
 		ExecutorService es = Executors.newFixedThreadPool(Core.parallelJUnitRunnerThreads);
 		for (MutantInfo mut : this.lastGeneration) {
 			mutants++;
-			ExternalJUnitParallelRunner externalRunner = new ExternalJUnitParallelRunner(Arrays.asList(testClasses), mut, this.ms);
-			Future<ExternalJUnitParallelRunnerResult> newTask = es.submit(externalRunner);
+			ExternalJUnitParallelRunner externalRunner = new ExternalJUnitParallelRunner(Arrays.asList(testClasses), mut, this.ms, port);
+			if (Core.useSockets) port++;
+			Future<ExternalJUnitRunnerResult> newTask = es.submit(externalRunner);
 			junitExternalRunnerTasks.add(newTask);
 		}
 		for (int i = 0; i < junitExternalRunnerTasks.size(); i++) {
-			Future<ExternalJUnitParallelRunnerResult> t = junitExternalRunnerTasks.get(i);
-			ExternalJUnitParallelRunnerResult externalJPRResults;
+			Future<ExternalJUnitRunnerResult> t = junitExternalRunnerTasks.get(i);
+			ExternalJUnitRunnerResult externalJPRResults;
 			try {
 				externalJPRResults = t.get();
 			} catch (InterruptedException | ExecutionException e) {
@@ -421,13 +595,13 @@ public class Core {
 		
 	}
 	
-	private static class ExternalJUnitParallelRunnerResult {
+	private static class ExternalJUnitRunnerResult {
 		private CompilationResult cr;
 		private ExternalJUnitResult results;
 		private MutantInfo mut;
 		
 		
-		public ExternalJUnitParallelRunnerResult(CompilationResult cr, ExternalJUnitResult testResults, MutantInfo mut) {
+		public ExternalJUnitRunnerResult(CompilationResult cr, ExternalJUnitResult testResults, MutantInfo mut) {
 			this.cr = cr;
 			this.results = testResults;
 			this.mut = mut;
@@ -448,32 +622,34 @@ public class Core {
 		
 	}
 	
-	private static class ExternalJUnitParallelRunner implements Callable<ExternalJUnitParallelRunnerResult> {
+	private static class ExternalJUnitParallelRunner implements Callable<ExternalJUnitRunnerResult> {
 		
 		private List<String> testClasses;
 		private MutantInfo mut;
 		private MutationScore ms;
+		private int socketPort;
 		
 		
-		public ExternalJUnitParallelRunner(List<String> testClasses, MutantInfo mut, MutationScore ms) {
+		public ExternalJUnitParallelRunner(List<String> testClasses, MutantInfo mut, MutationScore ms, int port) {
 			this.testClasses = testClasses;
 			this.mut = mut;
 			this.ms = ms;
+			this.socketPort = port;
 		}
 		
 		
 		@Override
-		public ExternalJUnitParallelRunnerResult call() throws Exception {
+		public ExternalJUnitRunnerResult call() throws Exception {
 			String pathToFile = mut.getPath();
 			CompilationResult cresult = ms.compile(pathToFile);
 			ExternalJUnitResult results = null;
 			if (cresult == null) {
 				results = new ExternalJUnitResult(new Exception("Compilation error while compiling mutant "+mut.getPath()));
 			} else if (cresult.compilationSuccessful()) {
-				results = ms.runTestsWithMutantsUsingExternalRunner(testClasses, mut);
+				results = ms.runTestsWithMutantsUsingExternalRunner(testClasses, mut, socketPort);
 		  	}
 			System.out.println("Mutant analysis for : " + mut.getPath() + " finished");
-			return new ExternalJUnitParallelRunnerResult(cresult, results, this.mut);
+			return new ExternalJUnitRunnerResult(cresult, results, this.mut);
 		}
 
 	
