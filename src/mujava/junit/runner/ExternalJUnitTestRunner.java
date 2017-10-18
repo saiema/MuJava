@@ -3,6 +3,9 @@ package mujava.junit.runner;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -80,6 +83,11 @@ public class ExternalJUnitTestRunner {
 		Option verboseOption = new Option("v", "verbose", false, "enable verbosity");
 		verboseOption.setRequired(false);
 		
+		Option socketOption = new Option("s", "socket", true, "socket port to comunicate");
+		socketOption.setRequired(false);
+		socketOption.setArgs(1);
+		socketOption.setType(Integer.class);
+		
 		Option help = new Option("h", "help", false, "print commands");
 		help.setRequired(false);
 		
@@ -91,6 +99,7 @@ public class ExternalJUnitTestRunner {
 		options.addOption(mutantClassOption);
 		options.addOption(quickDeathOption);
 		options.addOption(toughnessOption);
+		options.addOption(socketOption);
 		
 		CommandLineParser parser = new DefaultParser();
 		
@@ -137,6 +146,18 @@ public class ExternalJUnitTestRunner {
 					System.exit(1);
 				}
 			}
+			
+			boolean useSocket = cmd.hasOption(socketOption.getOpt());
+			int port = -1;
+			String host = "localhost";
+			if (useSocket) {
+				port = Integer.valueOf(cmd.getOptionValue(socketOption.getOpt()));
+			}
+			if (verbose) {
+				if (useSocket) System.out.println("Using socket " + host + ":" + port);
+				else System.out.println("Using System.out");
+			}
+			
 			if (verbose) {
 				System.out.println("Libraries: " + Arrays.toString(libs));
 			}
@@ -164,14 +185,6 @@ public class ExternalJUnitTestRunner {
 			boolean quickDeath = toughness?false:cmd.hasOption(quickDeathOption.getOpt());
 			
 			
-//			List<String> classpath = Arrays.asList(new String[]{binDir, testBinDir});
-//			Reloader reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
-//			reloader.markEveryClassInFolderAsReloadable(testBinDir);
-//			for (String l : libs) {
-//				reloader.markEveryClassInFolderAsReloadable(l);
-//			}
-//			reloader.markEveryClassInFolderAsReloadable(binDir);
-//			reloader.setSpecificClassPath(classToMutate, mutantPath);
 			List<TestResult> testResults = new LinkedList<TestResult>();
 			for (String test : tclasses) {
 				Class<?> testToRun;
@@ -192,11 +205,22 @@ public class ExternalJUnitTestRunner {
 					System.exit(2);
 				}
 			}
-			ObjectOutputStream out = new ObjectOutputStream(System.out);
+			ObjectOutputStream out = null;
+			Socket sc = null;
+			if (useSocket) {
+				SocketAddress sockaddr = new InetSocketAddress(host, port);
+				sc = new Socket();
+				sc.connect(sockaddr, 0);
+				out = new ObjectOutputStream(sc.getOutputStream());
+			} else {
+				out = new ObjectOutputStream(System.out);
+			}
 	        for (TestResult tr : testResults) {
 	            out.writeObject(tr);
 	        }
 	        out.flush();
+	        Core.killStillRunningJUnitTestcaseThreads();
+	        if (useSocket) sc.close();
 		} catch (ParseException e) {
 			System.err.println("Incorrect options.  Reason: " + e.getMessage());
 			System.err.println(ExceptionUtils.getFullStackTrace(e));

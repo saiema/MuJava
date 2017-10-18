@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.MalformedURLException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
@@ -165,24 +167,25 @@ public class MutationScore {
 		return testResults;
 	}
 	
-	public ExternalJUnitResult runTestsWithMutantsUsingExternalRunner(List<String> testClasses, MutantInfo mut) {
+	public ExternalJUnitResult runTestsWithMutantsUsingExternalRunner(List<String> testClasses, MutantInfo mut, int port) {
 		Exception error = null;
 		List<TestResult> testResults = new LinkedList<>();
-		String classpath = ".:bin/:"+MutationScore.originalBinFolder+":"+MutationScore.testsBinFolder;
+		String classpath = MutationScore.originalBinFolder+":"+MutationScore.testsBinFolder;
 		classpath += ":"+junitPath+":"+hamcrestPath;
 		classpath += ":"+cleanClasspath(getCurrentClasspath());
 		classpath += ":"+mut.getClassRootFolder();
 		System.out.println("Running external runner with classpath: " + classpath);
 		String mutPath = mut.getClassRootFolder();
+		boolean useSockets = port>0;
 		//ProcessBuilder args are:
-		//command + binFolder + testsBinFolder + tests + mutantLocation + mutantClass + quickDeath + toughness
+		//command + binFolder + testsBinFolder + tests + mutantLocation + mutantClass + quickDeath + toughness + socketPort
 		//where except for the command, the other arguments need a flag, which are the following:
-		//-b -t -T -m -c -q -x -l
+		//-b -t -T -m -c -q -x -l -s
 		//-q and -t will only be used if quickdeath or toughness where set
 		String[] libs = cleanClasspath(getCurrentClasspath()).split(File.pathSeparator);
 		int optionalFlags = (MutationScore.quickDeath || Core.toughnessAnalysis())?1:0;
 		int libsSize = libs.length;
-		String[] args = new String[testClasses.size() /*tests*/ + 5 /*flags*/ + (libs.length==0?0:1) /*libs flag*/ + 4 /*args*/ + 4 /*command*/ + optionalFlags + libsSize];
+		String[] args = new String[testClasses.size() /*tests*/ + 5 + (useSockets?1:0) + /*flags*/ + (libs.length==0?0:1) /*libs flag*/ + 4 + (useSockets?1:0) + /*args*/ + 4 /*command*/ + optionalFlags + libsSize];
 		args[0] = "java";
 		args[1] = "-cp";
 		args[2] = classpath;
@@ -208,26 +211,32 @@ public class MutationScore {
 				args[12+i] = "-x";
 			}
 		}
+		int j = 1;
 		if (libs.length > 0) {
 			args[13+i] = "-l";
-			int j = 1;
 			for (String l : libs) {
 				args[13+i+j] = l;
 				j++;
 			}
 		}
+		if (useSockets) {
+			args[13+i+j] = "-s";
+			args[14+i+j] = Integer.toString(port);
+		}
 		ProcessBuilder pb = new ProcessBuilder(args);
 		File errorLog = new File("error.log");
-		//File errorLog = new File("error_" + mut.getPath().replaceAll(File.separator, "-") + ".log");
-		//File outLog = new File("out_" + mut.getPath().replaceAll(File.separator, "-") + ".log");
-		//System.out.println("Error log is found in: " + errorlog.getAbsolutePath());
-		//pb.redirectError(errorLog);
-		//pb.redirectOutput(outLog);
 		pb.redirectError(Redirect.appendTo(errorLog));
-		
 		try {
+			ServerSocket sc = useSockets?new ServerSocket(port):null;
+			InputStream is = null;
 			Process p = pb.start();
-			InputStream is = p.getInputStream();
+			if (useSockets) {
+				System.out.println("Accepting on port " + port);
+				Socket client = sc.accept();
+				is = client.getInputStream();
+			} else {
+				is = p.getInputStream();
+			}
 			int exitCode = p.waitFor();
 			//TODO: manage errors in the result
 			if (exitCode != 0) {
@@ -237,9 +246,10 @@ public class MutationScore {
 					System.err.println("InputStream from external JUnit runner is null");
 				} else {
 					testResults.addAll(parseResultsFromInputStream(is));
-					is.close();
+					if (!useSockets) is.close();
 				}
 			}
+			if (useSockets) sc.close();
 		} catch (IOException | InterruptedException | ClassNotFoundException e) {
 			e.printStackTrace();
 			error = e;
