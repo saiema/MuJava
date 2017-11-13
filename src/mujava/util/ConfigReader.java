@@ -495,6 +495,14 @@ public class ConfigReader {
 				return NO_FLAG;
 			}
 		},
+		PRVO_ENABLE_STATIC_FROM_NON_STATIC_EXP {
+			public String getKey() {
+				return "mutation.advanced.prvo.enableStaticFromNonStaticExp";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
 		//MUTATION ADVANCED PRVO
 		//MUTATION ADVANCED ROR
 		ROR_REPLACE_WITH_TRUE {
@@ -733,6 +741,7 @@ public class ConfigReader {
 			if (isDefined(Config_key.PRVO_ENABLE_RELAXED_TYPES)) conf.prvoEnableRelaxedTypes(getBooleanArgument(Config_key.PRVO_ENABLE_RELAXED_TYPES));
 			if (isDefined(Config_key.PRVO_ENABLE_AUTOBOXING)) conf.prvoEnableAutoboxing(getBooleanArgument(Config_key.PRVO_ENABLE_AUTOBOXING));
 			if (isDefined(Config_key.PRVO_ENABLE_INHERITED_ELEMENTS)) conf.prvoEnableInheritedElements(getBooleanArgument(Config_key.PRVO_ENABLE_INHERITED_ELEMENTS));
+			if (isDefined(Config_key.PRVO_ENABLE_STATIC_FROM_NON_STATIC_EXP)) conf.prvoAllowStaticFromNonStaticExpression(getBooleanArgument(Config_key.PRVO_ENABLE_STATIC_FROM_NON_STATIC_EXP));
 			if (isDefined(Config_key.USE_SIMPLE_CLASS_NAMES)) conf.useSimpleClassNames(getBooleanArgument(Config_key.USE_SIMPLE_CLASS_NAMES));
 		}
 		if (isDefined(Config_key.USE_EXTERNAL_JUNIT_RUNNER)) conf.useExternalJUnitRunner(getBooleanArgument(Config_key.USE_EXTERNAL_JUNIT_RUNNER));
@@ -749,7 +758,7 @@ public class ConfigReader {
 			hamcrestPathDefined = true;
 			conf.hamcrestPath(getStringArgument(Config_key.HAMCREST_PATH));
 		}
-		if (useExternalMutants) {
+		if (!useExternalMutants) {
 			for (String bannedField : stringArgumentsAsArray(getStringArgument(Config_key.BANNED_FIELDS))) {
 				conf.addBannedField(bannedField);
 			}
@@ -757,12 +766,12 @@ public class ConfigReader {
 				conf.addBannedMethod(bannedMethod);
 			}
 			conf.ignoreMutGenLimit(getBooleanArgument(Config_key.MUTGENLIMIT));
-			for (String allowedPackageToReload : stringArgumentsAsArray(getStringArgument(Config_key.ALLOWED_PACKAGES_TO_RELOAD))) {
-				conf.addPackageToReload(allowedPackageToReload);
-			}
-			conf.allowNumericLiteralVariations(getBooleanArgument(Config_key.ALLOW_NUMERIC_LITERAL_VARIATIONS));
-			conf.runMutationScore(getBooleanArgument(Config_key.MUTATION_SCORE));
+			conf.allowNumericLiteralVariations(getBooleanArgument(Config_key.ALLOW_NUMERIC_LITERAL_VARIATIONS));	
 		}
+		for (String allowedPackageToReload : stringArgumentsAsArray(getStringArgument(Config_key.ALLOWED_PACKAGES_TO_RELOAD))) {
+			conf.addPackageToReload(allowedPackageToReload);
+		}
+		conf.runMutationScore(getBooleanArgument(Config_key.MUTATION_SCORE));
 		if (conf.runMutationScore()) conf.testsBinDir(getStringArgument(Config_key.TESTS_BIN_DIR));
 		if (conf.runMutationScore()) conf.showSurvivingMutants(getBooleanArgument(Config_key.SHOW_SURVIVING_MUTANTS));
 		if (conf.runMutationScore()) {
@@ -915,6 +924,7 @@ public class ConfigReader {
 			case PRVO_ENABLE_RELAXED_TYPES:
 			case PRVO_ENABLE_AUTOBOXING:
 			case PRVO_ENABLE_INHERITED_ELEMENTS:
+			case PRVO_ENABLE_STATIC_FROM_NON_STATIC_EXP:
 			case MUTATION_SCORE:
 			case ROR_REPLACE_WITH_TRUE:
 			case ROR_REPLACE_WITH_FALSE:

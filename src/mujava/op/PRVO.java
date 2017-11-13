@@ -28,6 +28,7 @@ import openjava.ptree.CaseGroup;
 import openjava.ptree.CaseGroupList;
 import openjava.ptree.CastExpression;
 import openjava.ptree.ClassDeclaration;
+import openjava.ptree.ClassLiteral;
 import openjava.ptree.CompilationUnit;
 import openjava.ptree.ConditionalExpression;
 import openjava.ptree.ConstructorInvocation;
@@ -243,6 +244,12 @@ public class PRVO extends mujava.op.util.Mutator {
 	 * this option is enabled by default
 	 */
 	public static final String ENABLE_INHERITED_ELEMENTS = "prvo_enable_inherited_elements";
+	/**
+	 * Option to enable/disable the use of static fields and methods access from non static expressions
+	 * <p>
+	 * this option is enabled by default
+	 */
+	public static final String ALLOW_STATIC_FROM_NON_STATIC_EXPRESSIONS = "prvo_allow_static_fromr_non_static_expressions";
 	
 	
 	//ParseTreeObject parent = null;
@@ -662,9 +669,17 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		int options = 0;
 		options += ignoreVars?0:VARIABLES;
-		options += this.allowNonStatic?ALLOW_NON_STATIC:0;
 		options += this.allowFinalMembers()?ALLOW_FINAL:0;
 		options += this.allowInheritedElements()?ALLOW_PROTECTED_INHERITED:0;
+		boolean useOnlyStatic = false;
+		if (elem instanceof FieldAccess) {
+			FieldAccess elemAsFA = (FieldAccess) elem;
+			if ((elemAsFA.isTypeReference() || (elemAsFA.getReferenceExpr() != null && elemAsFA.getReferenceExpr() instanceof ClassLiteral))) {
+				useOnlyStatic = true;
+			}
+		}
+		options += this.allowNonStatic?ALLOW_NON_STATIC:0;
+		options += (useOnlyStatic || this.useStaticForNonStaticExpressions())?ALLOW_STATIC:0;
 		if (elem != null && t.getName().compareTo(self.getName()) == 0) {
 			options += TARGET_IS_MUTATED_CLASS_OBJECT;
 		}
@@ -1316,6 +1331,13 @@ public class PRVO extends mujava.op.util.Mutator {
 	private boolean allowAutoboxing() {
 		if (Configuration.argumentExist(ENABLE_AUTOBOXING)) {
 			return (Boolean) Configuration.getValue(ENABLE_AUTOBOXING);
+		}
+		return true;
+	}
+	
+	private boolean useStaticForNonStaticExpressions() {
+		if (Configuration.argumentExist(ALLOW_STATIC_FROM_NON_STATIC_EXPRESSIONS)) {
+			return (Boolean) Configuration.getValue(ALLOW_STATIC_FROM_NON_STATIC_EXPRESSIONS);
 		}
 		return true;
 	}

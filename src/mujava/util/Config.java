@@ -91,6 +91,7 @@ public class Config {
 	private boolean prvoEnableRelaxedTypes;
 	private boolean prvoEnableAutoboxing;
 	private boolean prvoEnableInheritedElements;
+	private boolean prvoAllowStaticFromNonStaticExpression;
 	private boolean useSimpleClassNames;
 	private boolean useExternalJUnitRunner;
 	private boolean useParallelExternalJUnitRunner;
@@ -193,6 +194,7 @@ public class Config {
 		prvoEnableRelaxedTypes(true);
 		prvoEnableAutoboxing(true);
 		prvoEnableInheritedElements(true);
+		prvoAllowStaticFromNonStaticExpression(true);
 	}
 
 	public void classToMutate(String classToMutate) {
@@ -612,6 +614,14 @@ public class Config {
 	public void prvoEnableInheritedElements(boolean prvoEnableInheritedElements) {
 		this.prvoEnableInheritedElements = prvoEnableInheritedElements;
 	}
+	
+	public boolean prvoAllowStaticFromNonStaticExpression() {
+		return this.prvoAllowStaticFromNonStaticExpression;
+	}
+	
+	public void prvoAllowStaticFromNonStaticExpression(boolean prvoAllowStaticFromNonStaticExpression) {
+		this.prvoAllowStaticFromNonStaticExpression = prvoAllowStaticFromNonStaticExpression;
+	}
 
 	public boolean rorReplaceWithTrue() {
 		return rorReplaceWithTrue;
@@ -876,7 +886,10 @@ public class Config {
 		return packagesInOriginalBinDir;
 	}
 	
-	//TODO: if validated return null, else return error message
+	/**
+	 * Validates current configuration
+	 * @return an error message if the configuration is invalid or {@code null} otherwise : {@code String}
+	 */
 	public String validate() {
 		boolean prototypeMode = this.externalClassesToMutate != null && this.externalClassesToMutate.length > 0;
 		//verify folders

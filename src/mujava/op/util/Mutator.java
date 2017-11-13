@@ -51,6 +51,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	protected static final int TARGET_IS_MUTATED_CLASS_OBJECT = 1024;
 	protected static final int IGNORE_PROTECTED = 2048;
 	protected static final int ALLOW_PROTECTED_INHERITED = 4096;
+	protected static final int ONLY_FINAL = 8192;
 //	protected static final int ALLOW_PACKAGED = 1024;
 //	protected static final int ALLOW_PROTECTED = 2048;
 	private static boolean verbose = false;
@@ -457,13 +458,62 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		getMethodDeclarationVariables(exp, variables, allVars);
 		return variables;
 	}
-	
+		
 	public Map<OJClass, List<Variable>> getReachableVariables(Statement exp) throws ParseTreeException {
 		Map<OJClass, List<Variable>> variables = new TreeMap<OJClass, List<Variable>>();
 		List<Variable> allVars = new LinkedList<Variable>();
 		getReachableVariables(exp, variables, allVars);
 		getMethodDeclarationVariables((ParseTreeObject) exp, variables, allVars);
 		return variables;
+	}
+	
+	public Map<OJClass, List<Variable>> getReachableFinalVariables(ParseTreeObject exp) throws ParseTreeException {
+		Statement previousStatement = (Statement)getStatement(exp, -1);
+		return getReachableFinalVariables(previousStatement);
+	}
+	
+    public Map<OJClass, List<Variable>> getReachableFinalVariables(Statement exp) throws ParseTreeException {
+    	Map<OJClass, List<Variable>> variables = new TreeMap<OJClass, List<Variable>>();
+		List<Variable> allVars = new LinkedList<Variable>();
+		getReachableFinalVariables(exp, variables, allVars);
+		return variables;
+	}
+    
+    private void getReachableFinalVariables(Statement exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars ) throws ParseTreeException {
+		addForFinalVariables((ParseTreeObject) exp, variables, allVars);
+		ParseTreeObject current = (ParseTreeObject) exp;
+		ParseTreeObject limit = current;
+		while (current != null && !(current instanceof MethodDeclaration)) {
+			if (current instanceof VariableDeclarator) {
+				//addVar(variables, allVars, new Variable(((VariableDeclarator) current).getVariable()));
+				continue;
+			} else if (current instanceof VariableDeclaration) {
+				VariableDeclaration vd = (VariableDeclaration) current;
+				if (!vd.getModifiers().contains(ModifierList.FINAL)) continue;
+				addVar(variables, allVars, new Variable(((VariableDeclaration) current).getVariable()));
+			} else if (current instanceof ForStatement) {
+				String m = ((ForStatement) current).getModifier(); 
+				if (m != null && m.contains("final")) {
+					addVar(variables, allVars, new Variable(((ForStatement) current).getIdentifier()));
+				}
+			} else if (current instanceof StatementList) {
+				StatementList stList = (StatementList) current;
+				for (int s = 0; s < stList.size(); s++) {
+					Statement cst = stList.get(s);
+					if (cst == limit) {
+						break;
+					}
+					if (cst instanceof VariableDeclaration) {
+						VariableDeclaration vd = (VariableDeclaration) cst;
+						if (!vd.getModifiers().contains(ModifierList.FINAL)) continue;					
+						addVar(variables, allVars, new Variable(vd.getVariable()));
+					}
+				}
+			}
+			if (!(current instanceof StatementList))
+				limit = current;
+			current = current.getParent();
+		}
 	}
 	
 	private void getReachableVariables(Statement exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars ) throws ParseTreeException {
@@ -546,6 +596,16 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 						addVar(variables, allVars, new Variable(vd.getVariable()));
 					}
 				}
+			}
+		}
+	}
+	
+	private void addForFinalVariables(ParseTreeObject exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars) throws ParseTreeException {
+		ParseTreeObject current = getStatement(exp);
+		if (current instanceof ForStatement) {
+			String m = ((ForStatement) current).getModifier();
+			if (m != null && m.contains("final")) {
+				addVar(variables, allVars, new Variable(((ForStatement) current).getIdentifier()));
 			}
 		}
 	}
@@ -809,7 +869,6 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		try {
 			self = getSelfType();
 		} catch (ParseTreeException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		while (base != null && (options & ALLOW_PROTECTED_INHERITED) != 0) {
@@ -843,15 +902,24 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * 
 	 * @param clazz	  : the class from which fields will be searched : {@code OJClass}
 	 * @param options : options used by this method, the options used by this method are:
-	 * <p><li>ALLOW_NON_STATIC: will include fields without the static modifier</li><p> : {@code int}
+	 * <p>
+	 * <li>ALLOW_NON_STATIC                : will include fields without the static modifier</li>
+	 * <li>ALLOW_STATIC                    : will include static fields</li>
+	 * <li>ALLOW_PRIVATE                   : will include private fields</li>
+	 * <li>TARGET_IS_NULL                  : the expression that is being mutated is null</li>
+	 * <li>TARGET_IS_MUTATED_CLASS_OBJECT  : the expression that is being mutated is the same class under mutation</li>
+	 * <li>ONLY_FINAL                      : will only include final fields</li>
+	 * 
 	 * @return all fields in {@code clazz}
 	 */
 	public OJField[] getAllFields(OJClass clazz, int options) {
 		boolean allowNonStatic = (options & ALLOW_NON_STATIC) > 0;
+		boolean allowStatic = (options & ALLOW_STATIC) > 0;
 		boolean allowPrivate = (options & ALLOW_PRIVATE) > 0;
 		boolean target_is_null = (options & TARGET_IS_NULL) != 0;
 		boolean target_is_class_to_mutate = (options & TARGET_IS_MUTATED_CLASS_OBJECT) != 0;
 		boolean allowProtected = target_is_null || target_is_class_to_mutate;
+		boolean onlyFinal = (options & ONLY_FINAL) > 0;
 		OJClass self = null;
 		try {
 			self = getSelfType();
@@ -874,10 +942,14 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			if (!allowNonStatic && isNonStatic) {
 				continue;
 			}
+			if (!allowStatic && !isNonStatic) {
+				continue;
+			}
 			if (f.getModifiers().isProtected() && !allowProtected) continue;
 			if (f.getModifiers().isPackaged()) {
 				if ((!sameClass && !isInnerClass) || (isInnerClass && target_is_null)) continue;
 			}
+			if (!f.getModifiers().isFinal() && onlyFinal) continue;
 			table.put(f.signature(), f);
 		}
 		OJField[] inheritedFields = getInheritedFields(clazz, options);
@@ -901,18 +973,22 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * @return all fields in {@code clazz} including those with the static modifier
 	 */
 	public OJField[] getAllFields(OJClass clazz) {
-		return getAllFields(clazz, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED);
+		return getAllFields(clazz, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED + ALLOW_STATIC);
 	}
 
 	/**
 	 * 
 	 * @param clazz	  : the class from which methods will be searched : {@code OJClass}
 	 * @param options : options used by this method, the options used by this method are:
-	 * <p><li>ALLOW_NON_STATIC: will include methods without the static modifier</li><p> : {@code int}
+	 * <p>
+	 * <li>ALLOW_NON_STATIC : will include methods without the static modifier</li>
+	 * <li>ALLOW_STATIC     : will include static methods</li>
+	 * 
 	 * @return all methods in {@code clazz}
 	 */
 	public OJMethod[] getAllMethods(OJClass clazz, int options) {
 		boolean allowNonStatic = (options & ALLOW_NON_STATIC) > 0;
+		boolean allowStatic = (options & ALLOW_STATIC) > 0;
 		boolean allowPrivate = (options & ALLOW_PRIVATE) > 0;
 		boolean target_is_null = (options & TARGET_IS_NULL) != 0;
 		boolean target_is_class_to_mutate = (options & TARGET_IS_MUTATED_CLASS_OBJECT) != 0;
@@ -934,6 +1010,9 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 				continue;
 			}
 			if (!allowNonStatic && isNonStatic) {
+				continue;
+			}
+			if (!allowStatic && !isNonStatic) {
 				continue;
 			}
 			if (m.getModifiers().isProtected() && !allowProtected) continue;
@@ -987,7 +1066,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * @return all methods in {@code clazz} including those with the static modifier
 	 */
 	public OJMethod[] getAllMethods(OJClass clazz) {
-		return getAllMethods(clazz, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED);
+		return getAllMethods(clazz, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED + ALLOW_STATIC);
 	}
 
 	/**
@@ -995,11 +1074,12 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * @param t	  : the class from which fields and methods will be searched 	: 	{@code OJClass}
 	 * @param options : options used by this method, the options used by this method are:
 	 * <p>
-	 * <li>VARIABLES: will include declared variables in the result</li>
-	 * <li>ALLOW_VOID: will include methods with a void return value</li>
-	 * <li>ALLOW_PARAMS: will include methods with parameters</li>
-	 * <li>ALLOW_NON_STATIC: will include methods and fields without the static modifier</li>
-	 * <li>IGNORE_PROTECTED: will ignore methods and fields that are protected coming from a super class</li><p>
+	 * <li>VARIABLES        : will include declared variables in the result</li>
+	 * <li>ALLOW_VOID       : will include methods with a void return value</li>
+	 * <li>ALLOW_PARAMS     : will include methods with parameters</li>
+	 * <li>ALLOW_NON_STATIC : will include methods and fields without the static modifier</li>
+	 * <li>ALLOW_STATIC     : will include static methods, fields, and vars</li>
+	 * <li>IGNORE_PROTECTED : will ignore methods and fields that are protected coming from a super class</li><p>
 	 * @return all methods and fields in {@code clazz}, optionally the result will include declared variables
 	 */
 	public List<Object> fieldsMethodsAndVars(ParseTreeObject limit, OJClass t, int options) throws ParseTreeException {
