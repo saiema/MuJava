@@ -79,7 +79,7 @@ public class Mutation {
 								};
 
 	// The mutant operator
-	private MutationOperator mutOp;
+	private MutationOperator mutOp = MutationOperator.NONE;
 	
 	private PRIORITY priority;
 	
@@ -124,7 +124,7 @@ public class Mutation {
 		this.mutOp = mutOp;
 		this.original = original;
 		this.mutant = mutant;
-		this.priority = p;
+		this.priority = (mutOp.equals(MutationOperator.NONE))?PRIORITY.NEUTRAL:p;
 		this.oneLineInMethodOp = checkOp(mutOp);
 		this.isGuardMutation = mutationAffectsGuardExpression(original) || mutationAffectsGuardExpression(mutant);
 		this.isAssignmentMutation = mutationAffectsAssignmentStatement(original) || mutationAffectsAssignmentStatement(mutant);
@@ -345,6 +345,7 @@ public class Mutation {
 	private boolean checkOp(MutationOperator mutOp) {
 		boolean res = false;
 		switch(mutOp) {
+			case NONE			: {res = true; break;}
 			//--------BASIC OPS-----------------
 			case AODS 			:;
 			case AODU 			:;

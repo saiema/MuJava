@@ -48,5 +48,6 @@ public enum MutationOperator {
 	ROR,
 	SOR,
 	NPER,
-	MULTI //used for mutants generated with several mutations
+	MULTI, //used for mutants generated with several mutations
+	NONE   //used when no operator has been used (no mutation applied)
 }

@@ -127,7 +127,7 @@ public class GenerationsInformation {
 			mutationsPerOperatorPerLine.put(affectedLine, mutationsPerOperator);
 		}
 		Integer mutations;
-		if (mutationsPerOperator.containsKey(mutant.getOpUsed())) {
+		if (mutant.getOpUsed() != null && mutationsPerOperator.containsKey(mutant.getOpUsed())) {
 			mutations = mutationsPerOperator.get(mutant.getOpUsed()) + 1;
 		} else {
 			mutations = new Integer(1);

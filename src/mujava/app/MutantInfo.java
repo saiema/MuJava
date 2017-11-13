@@ -179,7 +179,7 @@ public class MutantInfo {
 	 * @return the last mutation operator used : {@code MutationOperator}
 	 */
 	public MutationOperator getOpUsed() {
-		MutationOperator opUsed = null;
+		MutationOperator opUsed = MutationOperator.NONE;
 		if (!this.severalMutations && this.lastMutation != null) {
 			opUsed = this.lastMutation.getMutOp();
 		}
