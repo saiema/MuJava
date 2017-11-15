@@ -148,6 +148,14 @@ public class ConfigReader {
 				return NO_FLAG;
 			}
 		},
+		WRITE_PROLOGUE {
+			public String getKey() {
+				return "mutation.basic.writePrologue";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
 		//MUTATION BASIC
 		//MUTATION ADVANCED
 		BANNED_METHODS {
@@ -562,8 +570,34 @@ public class ConfigReader {
 			public String getFlag() {
 				return NO_FLAG;
 			}
-		};
+		},
 		//MUTATION ADVANCED COR
+		//MUTATION ADVANCED BEE
+		BEE_SKIP_EQUIVALENT_MUTATION {
+			public String getKey() {
+				return "mutation.advanced.bee.skipEquivalentMutations";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		BEE_SKIP_CONSTANTS {
+			public String getKey() {
+				return "mutation.advanced.bee.skipConstants";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		BEE_SCAN_EXPRESSIONS {
+			public String getKey() {
+				return "mutation.advanced.bee.scanExpressions";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		};
+		//MUTATION ADVANCED BEE
 		public static final String NO_FLAG="-?";
 		
 		public abstract String getKey();
@@ -742,6 +776,9 @@ public class ConfigReader {
 			if (isDefined(Config_key.PRVO_ENABLE_AUTOBOXING)) conf.prvoEnableAutoboxing(getBooleanArgument(Config_key.PRVO_ENABLE_AUTOBOXING));
 			if (isDefined(Config_key.PRVO_ENABLE_INHERITED_ELEMENTS)) conf.prvoEnableInheritedElements(getBooleanArgument(Config_key.PRVO_ENABLE_INHERITED_ELEMENTS));
 			if (isDefined(Config_key.PRVO_ENABLE_STATIC_FROM_NON_STATIC_EXP)) conf.prvoAllowStaticFromNonStaticExpression(getBooleanArgument(Config_key.PRVO_ENABLE_STATIC_FROM_NON_STATIC_EXP));
+			if (isDefined(Config_key.BEE_SKIP_EQUIVALENT_MUTATION)) conf.beeSkipEquivalentMutations(getBooleanArgument(Config_key.BEE_SKIP_EQUIVALENT_MUTATION));
+			if (isDefined(Config_key.BEE_SKIP_CONSTANTS)) conf.beeSkipConstantsWithTrueAndFalse(getBooleanArgument(Config_key.BEE_SKIP_CONSTANTS));
+			if (isDefined(Config_key.BEE_SCAN_EXPRESSIONS)) conf.beeScanExpressions(getBooleanArgument(Config_key.BEE_SCAN_EXPRESSIONS));
 			if (isDefined(Config_key.USE_SIMPLE_CLASS_NAMES)) conf.useSimpleClassNames(getBooleanArgument(Config_key.USE_SIMPLE_CLASS_NAMES));
 		}
 		if (isDefined(Config_key.USE_EXTERNAL_JUNIT_RUNNER)) conf.useExternalJUnitRunner(getBooleanArgument(Config_key.USE_EXTERNAL_JUNIT_RUNNER));
@@ -767,6 +804,7 @@ public class ConfigReader {
 			}
 			conf.ignoreMutGenLimit(getBooleanArgument(Config_key.MUTGENLIMIT));
 			conf.allowNumericLiteralVariations(getBooleanArgument(Config_key.ALLOW_NUMERIC_LITERAL_VARIATIONS));	
+			if (isDefined(Config_key.WRITE_PROLOGUE)) conf.writePrologue(getBooleanArgument(Config_key.WRITE_PROLOGUE));
 		}
 		for (String allowedPackageToReload : stringArgumentsAsArray(getStringArgument(Config_key.ALLOWED_PACKAGES_TO_RELOAD))) {
 			conf.addPackageToReload(allowedPackageToReload);
@@ -940,6 +978,10 @@ public class ConfigReader {
 			case USE_PARALLEL_JUNIT_RUNNER:	
 			case USE_EXTERNAL_MUTANTS:
 			case USE_SOCKETS:
+			case WRITE_PROLOGUE:
+			case BEE_SKIP_EQUIVALENT_MUTATION:
+			case BEE_SKIP_CONSTANTS:
+			case BEE_SCAN_EXPRESSIONS:
 			case MUTGENLIMIT: return true;
 			default : return false;
 		}

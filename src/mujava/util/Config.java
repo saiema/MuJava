@@ -43,6 +43,7 @@ public class Config {
 	private Set<String> methodsToMutate;
 	private boolean useExternalMutants;
 	private boolean useSockets;
+	private boolean writePrologue;
 	//basic mutation values
 	
 	//mutation operators
@@ -96,6 +97,9 @@ public class Config {
 	private boolean useExternalJUnitRunner;
 	private boolean useParallelExternalJUnitRunner;
 	private int parallelExternalJUnitRunnerThreads;
+	private boolean beeScanExpressions;
+	private boolean beeSkipEquivalentMutations;
+	private boolean beeSkipConstantsWithTrueAndFalse;
 	//advanced mutation options
 	
 	//mutation score
@@ -139,11 +143,13 @@ public class Config {
 		this.externalClassesToMutate = null;
 		useExternalMutants(false);
 		useSockets(false);
+		writePrologue(false);
 		outputMutationsInfo(false);
 		useSimpleClassNames(false);
 		initializePRVOOptions();
 		intitializeROROptions();
 		initializeCOROptions();
+		initializeBEEOptions();
 		clearMethodsToMutate();
 		clearOperators();
 		fullVerboseMode(false);
@@ -196,6 +202,12 @@ public class Config {
 		prvoEnableInheritedElements(true);
 		prvoAllowStaticFromNonStaticExpression(true);
 	}
+	
+	private void initializeBEEOptions() {
+		beeScanExpressions(false);
+		beeSkipEquivalentMutations(false);
+		beeSkipConstantsWithTrueAndFalse(false);
+	}
 
 	public void classToMutate(String classToMutate) {
 		this.classToMutate = classToMutate;
@@ -233,6 +245,14 @@ public class Config {
 	
 	public void useSockets(boolean b) {
 		this.useSockets = b;
+	}
+	
+	public boolean writePrologue() {
+		return this.writePrologue;
+	}
+	
+	public void writePrologue(boolean b) {
+		this.writePrologue = b;
 	}
 
 	public String junitPath() {
@@ -717,6 +737,30 @@ public class Config {
 	
 	public boolean prvoUseStringLiterals() {
 		return prvoUseStringLiterals;
+	}
+	
+	public boolean beeScanExpressions() {
+		return beeScanExpressions;
+	}
+	
+	public void beeScanExpressions(boolean b) {
+		this.beeScanExpressions = b;
+	}
+	
+	public boolean beeSkipEquivalentMutations() {
+		return beeSkipEquivalentMutations;
+	}
+	
+	public void beeSkipEquivalentMutations(boolean b) {
+		this.beeSkipEquivalentMutations = b;
+	}
+	
+	public boolean beeSkipConstantsWithTrueAndFalse() {
+		return beeSkipConstantsWithTrueAndFalse;
+	}
+	
+	public void beeSkipConstantsWithTrueAndFalse(boolean b) {
+		this.beeSkipConstantsWithTrueAndFalse = b;
 	}
 	
 	public int generation() {

@@ -24,7 +24,9 @@ import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.MutationOperator;
 import mujava.loader.Reloader;
+import mujava.op.BEE;
 import mujava.op.PRVO;
+import mujava.op.util.MutantCodeWriter;
 import mujava.util.Config;
 import mujava.util.ConfigReader;
 
@@ -318,6 +320,13 @@ public class Main {
 				Configuration.add(Configuration.USE_SIMPLE_CLASS_NAMES, Boolean.FALSE);
 			}
 			
+			if (config.writePrologue()) {
+				Configuration.add(MutantCodeWriter.WRITE_PROLOGUE, Boolean.TRUE);
+				System.out.println("Write mutant prologue enabled");
+			} else {
+				Configuration.add(MutantCodeWriter.WRITE_PROLOGUE, Boolean.FALSE);
+			}
+			
 			if (config.allowPrimitiveToObjectAssignments()) {
 				System.out.println("Primitive to Object assignments are disabled");
 				Configuration.add(PRVO.ENABLE_PRIMITIVE_TO_OBJECT_ASSIGNMENTS, Boolean.FALSE);
@@ -564,9 +573,6 @@ public class Main {
 				Configuration.add(Configuration.ENABLE_INHERITED_ELEMENTS, Boolean.FALSE);
 				if (config.fullVerboseMode()) System.out.println("PRVO inherited elements use disabled");
 			}
-		}
-
-		if (!useExternalMutants) {
 		
 			//ROR CONFIG
 			
@@ -585,9 +591,6 @@ public class Main {
 				Configuration.add(Configuration.REPLACE_WITH_FALSE, Boolean.FALSE);
 				if (config.fullVerboseMode()) System.out.println("ROR replacement with false disabled");
 			}
-		}
-		
-		if (!useExternalMutants) {
 		
 			//COR CONFIG
 			
@@ -629,6 +632,31 @@ public class Main {
 			} else {
 				Configuration.add(Configuration.ALLOW_LOGICAL_OR, Boolean.FALSE);
 				if (config.fullVerboseMode()) System.out.println("COR bit or op disabled");
+			}
+			
+			//BEE CONFIG
+			if (config.beeSkipEquivalentMutations()) {
+				Configuration.add(BEE.DISABLE_NEUTRAL_TRUE_FALSE, Boolean.TRUE);
+				if (config.fullVerboseMode()) System.out.println("BEE skip equivalent constant mutations enabled");
+			} else {
+				Configuration.add(BEE.DISABLE_NEUTRAL_TRUE_FALSE, Boolean.FALSE);
+				if (config.fullVerboseMode()) System.out.println("BEE skip equivalent constant mutations disabled");
+			}
+			
+			if (config.beeSkipConstantsWithTrueAndFalse()) {
+				Configuration.add(BEE.DISABLE_NEUTRAL_CONSTANTS, Boolean.TRUE);
+				if (config.fullVerboseMode()) System.out.println("BEE skip constants with true or false enabled");
+			} else {
+				Configuration.add(BEE.DISABLE_NEUTRAL_CONSTANTS, Boolean.FALSE);
+				if (config.fullVerboseMode()) System.out.println("BEE skip constants with true or false disabled");
+			}
+			
+			if (config.beeScanExpressions()) {
+				Configuration.add(BEE.SCAN_FOR_EXPRESSIONS, Boolean.TRUE);
+				if (config.fullVerboseMode()) System.out.println("BEE scan for expressions enabled");
+			} else {
+				Configuration.add(BEE.SCAN_FOR_EXPRESSIONS, Boolean.FALSE);
+				if (config.fullVerboseMode()) System.out.println("BEE scan for expressions disabled");
 			}
 		}
 		
