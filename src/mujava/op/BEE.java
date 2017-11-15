@@ -3,6 +3,8 @@ package mujava.op;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+
 import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.MutantsInformationHolder;
@@ -57,10 +59,15 @@ public class BEE extends Mutator {
 	 */
 	public static final String SCAN_FOR_EXPRESSIONS = "bee_scan_for_expressions";
 	
+	/**
+	 * This option Enables/Disables skipping equivalent mutations ({@code && true}, {@code || false}, and {@code ^false})
+	 * <p>
+	 * This option is disabled by default
+	 */
 	public static final String DISABLE_NEUTRAL_TRUE_FALSE = "bee_disable_neutral_true_false";
 	
 	/**
-	 * This option Enables/Disables the option {@link #DISABLE_NEUTRAL_TRUE_FALSE} for constants
+	 * This option Enables/Disables skipping boolean constants initialized with {@code true} or {@code false} 
 	 * <p>
 	 * This option is disabled by default
 	 */
@@ -69,9 +76,11 @@ public class BEE extends Mutator {
 	private List<Object> fieldsMethodsAndVarsCache = null;
 	private List<OJField> finalFieldsCache = null;
 	private String classCache = null;
+	private Map<OJClass, Map<String, OJField>> fieldDeclarationCache;
 
 	public BEE(FileEnvironment file_env, ClassDeclaration cdecl,CompilationUnit comp_unit) {
 		super(file_env, comp_unit);
+		this.fieldDeclarationCache = new TreeMap<>();
 	}
 	
 	public void visit(BinaryExpression p) throws ParseTreeException {
@@ -176,7 +185,8 @@ public class BEE extends Mutator {
 	
 	private List<BinaryExpression> generateMutants(Expression e) throws OJClassNotFoundException, ParseTreeException {
 		List<BinaryExpression> mutants = new LinkedList<>();
-		for (Object o : getBooleanExpressions((ParseTreeObject)e)) {
+		List<Object> expressions = getBooleanExpressions((ParseTreeObject)e);
+		for (Object o : expressions) {
 			boolean disableNeutralAnd = false;
 			boolean disableNeutralOr = false;
 			boolean disableNeutralXor = false;
@@ -255,6 +265,7 @@ public class BEE extends Mutator {
 			int options = 0;
 			options += ALLOW_FINAL;
 			options += ALLOW_NON_STATIC;
+			options += ALLOW_STATIC;
 			options += ALLOW_PRIVATE;
 			options += ALLOW_PUBLIC;
 			List<Object> fmv = fieldsMethodsAndVars(from, getSelfType(), options);
@@ -326,7 +337,7 @@ public class BEE extends Mutator {
 		if (Configuration.argumentExist(DISABLE_NEUTRAL_TRUE_FALSE)) {
 			return (Boolean) Configuration.getValue(DISABLE_NEUTRAL_TRUE_FALSE);
 		}
-		return true; //TODO: original value should be false
+		return false;
 	}
 	
 	private boolean disableNeutralAndOrConstants() {
@@ -577,9 +588,15 @@ public class BEE extends Mutator {
 				current = current.getParent();
 			}
 			return false;
-		} else if (o instanceof OJField) {
+		} else if (o instanceof OJField || o instanceof FieldAccess) {
 			try {
-				OJField f = (OJField) o;
+				OJField f = null;
+				if (o instanceof FieldAccess) {
+					f = getFieldDeclaration((FieldAccess)o);
+				} else {
+					f = (OJField) o;
+				}
+				if (f == null) return false;
 				List<OJField> finalFields = getFinalFields();
 				for (OJField ff : finalFields) {
 					if (f.equals(ff)) return true;
@@ -735,6 +752,43 @@ public class BEE extends Mutator {
 			this.finalFieldsCache = result;
 		}
 		return result;
+	}
+	
+	private OJField getFieldDeclaration(FieldAccess fa) throws ParseTreeException {
+		OJField[] declaredFields = getSelfType().getDeclaredFields();
+		OJField[] inheritedFields = getInheritedFields(getSelfType(), ALLOW_FINAL + IGNORE_PROTECTED + ALLOW_PROTECTED_INHERITED);
+		OJField res = null;
+		if (( res = findField(fa, declaredFields)) != null) {
+			return res;
+		} else {
+			return findField(fa, inheritedFields);
+		}
+	}
+	
+	private OJField findField(FieldAccess m, OJField[] fields) throws ParseTreeException {
+		OJClass mType = getType(m);
+		String mName = m.getName();
+		Map<String, OJField> fieldDeclarationsPerClass = null;
+		if (this.fieldDeclarationCache.containsKey(mType)) {
+			fieldDeclarationsPerClass = this.fieldDeclarationCache.get(mType);
+		} else {
+			fieldDeclarationsPerClass = new TreeMap<>();
+			this.fieldDeclarationCache.put(mType, fieldDeclarationsPerClass);
+		}
+		if (fieldDeclarationsPerClass.containsKey(mName)) {
+			return fieldDeclarationsPerClass.get(mName);
+		}
+		for (OJField im : fields) {
+			String imName = im.getName();
+			if (compareNamesWithoutPackage(imName, mName)) {
+				OJClass imType = im.getType();
+				if (mType.getName().compareTo(imType.getName())==0) {
+					fieldDeclarationsPerClass.put(mName, im);
+					return im;
+				}
+			}
+		}
+		return null;
 	}
 
 }
