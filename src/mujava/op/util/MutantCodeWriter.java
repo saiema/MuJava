@@ -35,6 +35,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	
 	public static final String USE_SIMPLE_CLASS_NAMES = "mutant_code_writer_use_simple_class_names";
 	public static final String KEEP_ORIGINAL_TYPE_NAMES = "mutant_code_writer_keep_original_type_names";
+	public static final String WRITE_PROLOGUE = "mutant_code_writer_write_prologue";
 	
 	/**
 	 * The mutation to write
@@ -616,13 +617,9 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 	public void visit(CompilationUnit p) throws ParseTreeException {
 		this.modified = false;
-		if (this.printMutantPrologue) {						//modified (10/09/14)
-			out.println("// This is a mutant program.");	//modified (10/09/14)
-			line_num++;										//modified (10/09/14)
-			out.println("// Author : ysma");				//modified (10/09/14)
-			line_num++;										//modified (10/09/14)
-			out.println();									//modified (10/09/14)
-			line_num++;										//modified (10/09/14)
+		if ((this.printMutantPrologue || writePrologue()) && this.mi != null) {
+			out.println("//mutation : " + this.mi.toString());
+			line_num++;
 		}
 		
 		/* package statement */
@@ -1922,6 +1919,13 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			return (Boolean) Configuration.getValue(KEEP_ORIGINAL_TYPE_NAMES);
 		}
 		return true; //TODO: should be changed to false
+	}
+	
+	private boolean writePrologue() {
+		if (Configuration.argumentExist(WRITE_PROLOGUE)) {
+			return (Boolean) Configuration.getValue(WRITE_PROLOGUE);
+		}
+		return false;
 	}
 
 }
