@@ -472,11 +472,11 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 
 	private boolean findMember(OJMember m, OJMember[] members) {
+		String mName = m.getName();
+		OJClass mType = (m instanceof OJMethod)?((OJMethod)m).getReturnType():((OJField)m).getType();
 		for (OJMember im : members) {
 			String imName = im.getName();
-			String mName = m.getName();
 			if (compareNamesWithoutPackage(imName, mName)) {
-				OJClass mType = (m instanceof OJMethod)?((OJMethod)m).getReturnType():((OJField)m).getType();
 				OJClass imType = (im instanceof OJMethod)?((OJMethod)im).getReturnType():((OJField)im).getType();
 				if (m instanceof OJMethod) {
 					OJClass[] mArgsTypes = ((OJMethod)m).getParameterTypes();
@@ -511,11 +511,11 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 
 	private boolean findField(FieldAccess m, OJField[] fields) throws ParseTreeException {
+		OJClass mType = getType(m);
 		for (OJField im : fields) {
 			String imName = im.getName();
 			String mName = m.getName();
 			if (compareNamesWithoutPackage(imName, mName)) {
-				OJClass mType = getType(m);
 				OJClass imType = im.getType();
 				if (mType.getName().compareTo(imType.getName())==0) {
 					return true;
@@ -537,13 +537,13 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 
 	private boolean findMethod(MethodCall m, OJMethod[] methods) throws ParseTreeException {
+		OJClass mType = getType(m);
+		String mName = m.getName();
+		ExpressionList mArgsTypes = m.getArguments();
 		for (OJMethod im : methods) {
 			String imName = im.getName();
-			String mName = m.getName();
 			if (compareNamesWithoutPackage(imName, mName)) {
-				OJClass mType = getType(m);
 				OJClass imType = im.getReturnType();
-				ExpressionList mArgsTypes = m.getArguments();
 				OJClass[] imArgsTypes = im.getParameterTypes();
 				if (mArgsTypes.size() != imArgsTypes.length) {
 					return false;
