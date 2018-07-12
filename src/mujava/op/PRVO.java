@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
+
+
 import java.util.Comparator;
 
 import mujava.api.Api;
@@ -51,6 +53,7 @@ import openjava.ptree.SelfAccess;
 import openjava.ptree.Statement;
 import openjava.ptree.StatementList;
 import openjava.ptree.SwitchStatement;
+import openjava.ptree.ThrowStatement;
 import openjava.ptree.TryStatement;
 import openjava.ptree.TypeName;
 import openjava.ptree.UnaryExpression;
@@ -152,6 +155,14 @@ public class PRVO extends mujava.op.util.Mutator {
 	 * this option is not set by default
 	 */
 	public static final String PROHIBITED_FIELDS = "prvo_prohibited_fields";
+	/**
+	 * Option to set a list of allowed fields and methods, this option is a contrast of the ones to prohibit methods and fields
+	 * <p>
+	 * this option is not set by default, this option will overwrite other options to restrict methods and fields
+	 * @see #PROHIBITED_FIELDS
+	 * @see #PROHIBITED_METHODS
+	 */
+	public static final String ALLOWED_METHODS_AND_FIELDS = "prvo_allowed_methods_and_fields";
 	/**
 	 * Option to enable/disable mutations that changes one element of an expression without affecting it's length
 	 * <p>
@@ -288,27 +299,40 @@ public class PRVO extends mujava.op.util.Mutator {
 	public PRVO(FileEnvironment file_env, ClassDeclaration cdecl,CompilationUnit comp_unit) {
 		super(file_env, comp_unit);
 		//this.smartMode = false;
-		if (Configuration.argumentExist(PROHIBITED_METHODS)) {
-			Object configValue = Configuration.getValue(PROHIBITED_METHODS);
+		if (Configuration.argumentExist(ALLOWED_METHODS_AND_FIELDS)) {
+			Object configValue = Configuration.getValue(ALLOWED_METHODS_AND_FIELDS);
 			try {
-				this.prohibitedMethodsPerClass = (Map<String, List<String>>) configValue;
+				this.allowedMethodsAndFieldsPerClass = (Map<String, List<String>>) configValue;
 			} catch (ClassCastException e) {
 				try {
-					this.prohibitedMethods = (List<Pattern>)configValue;
+					this.allowedMethodsAndFields = (List<Pattern>) configValue;
 				} catch (ClassCastException ex) {
-					throw new IllegalStateException("The value for PROHIBITED_METHODS it's not a Map<String, List<String>> nor a List<String>");
+					throw new IllegalStateException("The value for ALLOWED_METHODS_AND_FIELDS it's not a Map<String, List<String>> nor a List<String>", ex);
 				}
 			}
-		}
-		if (Configuration.argumentExist(PROHIBITED_FIELDS)) {
-			Object configValue = Configuration.getValue(PROHIBITED_FIELDS);
-			try {
-				this.prohibitedFieldsPerClass = (Map<String, List<String>>) configValue;
-			} catch (ClassCastException e) {
+		} else {
+			if (Configuration.argumentExist(PROHIBITED_METHODS)) {
+				Object configValue = Configuration.getValue(PROHIBITED_METHODS);
 				try {
-					this.prohibitedFields = (List<Pattern>)configValue;
-				} catch (ClassCastException ex) {
-					throw new IllegalStateException("The value for PROHIBITED_FIELDS it's not a Map<String, List<String>> nor a List<String>");
+					this.prohibitedMethodsPerClass = (Map<String, List<String>>) configValue;
+				} catch (ClassCastException e) {
+					try {
+						this.prohibitedMethods = (List<Pattern>)configValue;
+					} catch (ClassCastException ex) {
+						throw new IllegalStateException("The value for PROHIBITED_METHODS it's not a Map<String, List<String>> nor a List<String>", ex);
+					}
+				}
+			}
+			if (Configuration.argumentExist(PROHIBITED_FIELDS)) {
+				Object configValue = Configuration.getValue(PROHIBITED_FIELDS);
+				try {
+					this.prohibitedFieldsPerClass = (Map<String, List<String>>) configValue;
+				} catch (ClassCastException e) {
+					try {
+						this.prohibitedFields = (List<Pattern>)configValue;
+					} catch (ClassCastException ex) {
+						throw new IllegalStateException("The value for PROHIBITED_FIELDS it's not a Map<String, List<String>> nor a List<String>", ex);
+					}
 				}
 			}
 		}
@@ -2122,6 +2146,17 @@ public class PRVO extends mujava.op.util.Mutator {
 			}
 		}
 		return false;
+	}
+	
+	public void visit(ThrowStatement p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
+		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
+		pushAllowNull(p, false);
+		visit(p.getExpression());
+		popAllowNull(p);
 	}
 	
 	public void visit(AllocationExpression p) throws ParseTreeException {
