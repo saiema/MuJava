@@ -15,6 +15,7 @@ import mujava.api.Configuration;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.FileEnvironment;
 import openjava.mop.OJClass;
+import openjava.mop.OJField;
 import openjava.ptree.AssignmentExpression;
 import openjava.ptree.BinaryExpression;
 import openjava.ptree.ClassDeclaration;
@@ -61,6 +62,7 @@ public class AOIS extends Arithmetic_OP {
 					op == UnaryExpression.PRE_INCREMENT) {
 				return;
 			}
+			//if (isFinal(p.getExpression())) return;
 			UnaryExpression pmutantPD = new UnaryExpression(UnaryExpression.POST_DECREMENT, original);
 			UnaryExpression pmutantPI = new UnaryExpression(UnaryExpression.POST_INCREMENT, original);
 			UnaryExpression pmutantPreD = new UnaryExpression(UnaryExpression.PRE_DECREMENT, original);
@@ -82,6 +84,7 @@ public class AOIS extends Arithmetic_OP {
 	public void visit(Variable p) throws ParseTreeException {
 		
 		if (!(getMutationsLeft(p) > 0)) return;
+		//if (isArithmeticType(p) && !isFinal(p)) {
 		if (isArithmeticType(p)) {
 			Variable originalCopy = (Variable) nodeCopyOf(p); //p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutantPD = new UnaryExpression(UnaryExpression.POST_DECREMENT, originalCopy);
@@ -98,6 +101,7 @@ public class AOIS extends Arithmetic_OP {
 	public void visit( FieldAccess p ) throws ParseTreeException {
 
 		if (!(getMutationsLeft(p) > 0)) return;
+		//if (isArithmeticType(p) && !isFinal(p)) {
 		if (isArithmeticType(p)) {
 			FieldAccess originalCopy = (FieldAccess) nodeCopyOf(p); //p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutantPD = new UnaryExpression(UnaryExpression.POST_DECREMENT, originalCopy);
@@ -183,6 +187,48 @@ public class AOIS extends Arithmetic_OP {
 					}
 				} else {
 					return false;
+				}
+			} catch (ParseTreeException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		return false;
+	}
+	
+	private boolean isFinal(Expression e) {
+		if (e instanceof Variable) {
+			Variable v = (Variable) e;
+			try {
+				OJClass vType = getType(v);
+				Map<OJClass, List<Variable>> localVars = getReachableFinalVariables((ParseTreeObject) e);
+				if (localVars.containsKey(vType)) {
+					for (Variable lv : localVars.get(vType)) {
+						if (v.toFlattenString().compareTo(lv.toFlattenString()) == 0) {
+							return true;
+						}
+					}
+				} else {
+					return false;
+				}
+			} catch (ParseTreeException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		} else if (e instanceof FieldAccess) {
+			FieldAccess fa = (FieldAccess) e;
+			try {
+				OJClass fType = getType(fa);
+				OJField[] finalFields = getAllFields(fType, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED + ALLOW_STATIC + ONLY_FINAL);
+				for (OJField f : finalFields) {
+					String faName = fa.getName();
+					String fName = f.getName();
+					if (faName.compareTo(fName) != 0) continue;
+					OJClass faClass = fa.getReferenceExpr() == null?getSelfType():getType(fa.getReferenceExpr());
+					OJClass fClass = f.getDeclaringClass();
+					if (faClass.isAssignableFrom(fClass)) {
+						return true;
+					}
 				}
 			} catch (ParseTreeException e1) {
 				// TODO Auto-generated catch block
