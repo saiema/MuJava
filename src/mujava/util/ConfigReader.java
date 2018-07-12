@@ -10,6 +10,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 
+
 /**
  * This class allows access to a configuration loaded from a properties file
  * but also allows access to some values that either doesn't belong to the
@@ -158,6 +159,22 @@ public class ConfigReader {
 		},
 		//MUTATION BASIC
 		//MUTATION ADVANCED
+		TEST_TIMEOUT {
+			public String getKey() {
+				return "mutation.advanced.timeout";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		ALLOWED_MEMBERS {
+			public String getKey() {
+				return "mutation.advanced.allowedMembers";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
 		BANNED_METHODS {
 			public String getKey() {
 				return "mutation.advanced.bannedMethods";
@@ -241,6 +258,30 @@ public class ConfigReader {
 		MUTATION_SCORE_TOUGHNESS_ANALYSIS {
 			public String getKey() {
 				return "mutation.advanced.toughness";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		DYNAMIC_SUBSUMPTION_ANALYSIS {
+			public String getKey() {
+				return "mutation.advanced.dynamicSubsumption";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		DYNAMIC_SUBSUMPTION_REDUCE_GRAPH {
+			public String getKey() {
+				return "mutation.advanced.dynamicSubsumption.reduceGraph";
+			}
+			public String getFlag() {
+				return NO_FLAG;
+			}
+		},
+		DYNAMIC_SUBSUMPTION_FOLDER {
+			public String getKey() {
+				return "mutation.advanced.dynamicSubsumption.output";
 			}
 			public String getFlag() {
 				return NO_FLAG;
@@ -802,6 +843,9 @@ public class ConfigReader {
 			for (String bannedMethod : stringArgumentsAsArray(getStringArgument(Config_key.BANNED_METHODS))) {
 				conf.addBannedMethod(bannedMethod);
 			}
+			for (String allowedMember : stringArgumentsAsArray(getStringArgument(Config_key.ALLOWED_MEMBERS))) {
+				conf.addAllowedMember(allowedMember);
+			}
 			conf.ignoreMutGenLimit(getBooleanArgument(Config_key.MUTGENLIMIT));
 			conf.allowNumericLiteralVariations(getBooleanArgument(Config_key.ALLOW_NUMERIC_LITERAL_VARIATIONS));	
 			if (isDefined(Config_key.WRITE_PROLOGUE)) conf.writePrologue(getBooleanArgument(Config_key.WRITE_PROLOGUE));
@@ -820,6 +864,10 @@ public class ConfigReader {
 		if (conf.runMutationScore()) conf.quickDeath(getBooleanArgument(Config_key.QUICK_DEATH));
 		if (conf.runMutationScore()) conf.showSurvivingMutants(getBooleanArgument(Config_key.SHOW_SURVIVING_MUTANTS));
 		if (conf.runMutationScore()) conf.toughnessAnalysis(getBooleanArgument(Config_key.MUTATION_SCORE_TOUGHNESS_ANALYSIS));
+		if (conf.runMutationScore()) conf.dynamicSubsumption(getBooleanArgument(Config_key.DYNAMIC_SUBSUMPTION_ANALYSIS));
+		if (conf.runMutationScore() && conf.dynamicSubsumption()) conf.dynamicSubsumptionOutput(getStringArgument(Config_key.DYNAMIC_SUBSUMPTION_FOLDER));
+		if (conf.runMutationScore() && conf.dynamicSubsumption()) conf.reduceDynamicSubsumptionGraph(getBooleanArgument(Config_key.DYNAMIC_SUBSUMPTION_REDUCE_GRAPH));
+		if (conf.runMutationScore() && isDefined(Config_key.TEST_TIMEOUT)) conf.testTimeout(getLongArgument(Config_key.TEST_TIMEOUT));
 		if (!useExternalMutants && conf.runMutationScore()) conf.outputMutationsInfo(getBooleanArgument(Config_key.OUPUT_MUTANT_MUTATIONS));	
 		String e = loadInheritedBasicConfig(junitPathDefined, hamcrestPathDefined, conf);
 		if (e != null) throw new IllegalStateException("Bad inherited configuration : " + e);
@@ -901,6 +949,16 @@ public class ConfigReader {
 	}
 	
 	//TODO: comment
+	public long getLongArgument(Config_key key) {
+		return getLongArgument(key, this.config);
+	}
+	
+	public long getLongArgument(Config_key key, Configuration config) {
+		if (!argumentExist(key, config) || isBooleanKey(key) || isIntKey(key)) return 0;
+		return config.getLong(key.getKey());
+	}
+	
+	//TODO: comment
 	public boolean argumentExist(Config_key key) {
 		return argumentExist(key, this.config);
 	}
@@ -972,6 +1030,8 @@ public class ConfigReader {
 			case COR_USE_BIT_AND_OP:
 			case COR_USE_BIT_OR__OP:
 			case MUTATION_SCORE_TOUGHNESS_ANALYSIS:
+			case DYNAMIC_SUBSUMPTION_ANALYSIS:
+			case DYNAMIC_SUBSUMPTION_REDUCE_GRAPH:
 			case USE_SIMPLE_CLASS_NAMES:
 			case OUPUT_MUTANT_MUTATIONS:
 			case USE_EXTERNAL_JUNIT_RUNNER:
@@ -992,6 +1052,13 @@ public class ConfigReader {
 			case PARALLEL_JUNIT_RUNNER_THREADS:
 			case RELOADER_INSTANCES_LIMIT:
 			case GENERATIONS : return true;
+			default : return false;
+		}
+	}
+	
+	public boolean isLongKey(Config_key key) {
+		switch (key) {
+			case TEST_TIMEOUT : return true;
 			default : return false;
 		}
 	}
