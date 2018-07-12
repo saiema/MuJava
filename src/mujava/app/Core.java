@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -43,6 +44,7 @@ public class Core {
 	 * this option is disabled by default
 	 */
 	public static final String ENABLE_TOUGHNESS = "Core_toughness";
+	public static final String DYNAMIC_SUBSUMPTION = "Core_dynamicSubsumption";
 	
 	public static String SEPARATOR = fixBackslash(FileSystems.getDefault().getSeparator());
 	private static Core instance = null;
@@ -52,15 +54,17 @@ public class Core {
 	private Map<String, List<String>> mutantsFolders;
 	private Exception error;
 	private MutationScore ms;
+	private SubsumptionAnalysis subsumptionAnalysis;
 	//private int generation = -1 ;
 	private List<MutantInfo> lastGeneration = null;
+	//private List<TestResult> lastTestResults = null;
 	public static boolean fullVerbose = false;
 	public static boolean showSurvivingMutants = false;
 	public static boolean useExternalJUnitRunner = false;
 	public static boolean useParallelJUnitRunner = false;
 	public static boolean useSockets = false;
 	public static int parallelJUnitRunnerThreads;
-	public static final int mujavappVersion = 20172408;
+	public static final int mujavappVersion = 20181207;
 	
 	private float totalToughness;
 	private float totalMutants;
@@ -91,6 +95,10 @@ public class Core {
 
 	public void setMutationScore(MutationScore ms) {
 		this.ms = ms;
+	}
+	
+	public void setDynamicSubsumptionAnalysis(SubsumptionAnalysis subsumptionAnalysis) {
+		this.subsumptionAnalysis = subsumptionAnalysis;
 	}
 	
 	public void setInputBinDir(String binDir) {
@@ -247,17 +255,24 @@ public class Core {
 	}
 	
 	public float calculateMutationScore(String[] testClasses, String className) {
+		//lastTestResults = new LinkedList<>();
+		float ms = -1;
 		if (!useExternalJUnitRunner && !useParallelJUnitRunner) {
-			return calculateMutationScore_internalRunner(testClasses, className);
+			ms = calculateMutationScore_internalRunner(testClasses, className);
 		} else {
 			String original = getFileToMutate(className);
-			float ms = -1;
 			if (deactivateOriginal(original)) {
 				ms = calculateMutationScoreUsingExternalRunner(testClasses, className, useParallelJUnitRunner);
 				if (!reactivateOriginal(original)) ms = -1;
 			}
-			return ms;
 		}
+//		if (dynamicSubsumptionAnalysis()) {
+//			for (TestResult tr : lastTestResults) {
+//				SubsumptionNode snode = tr.asSubsumptionNode();
+//				subsumptionAnalysis.add(snode);
+//			}
+//		}
+		return ms;
 	}
 	
 	private String getFileToMutate(String className) {
@@ -268,20 +283,37 @@ public class Core {
 	
 	private boolean deactivateOriginal(String path) {
 		File f = new File(path);
-		if (f.exists() && f.isFile()) {
-			return f.renameTo(new File(f.getAbsolutePath()+".bak"));
-		} else {
-			return false;
+		if (!f.exists() || !f.isFile()) return false;
+		File[] files = f.getParentFile().listFiles();
+		String name = f.getName().substring(0, f.getName().indexOf("."));
+		for (File file : files) {
+			String fname = file.getName().substring(0, file.getName().indexOf("."));
+			if (file.isFile() && fname.startsWith(name) && !file.renameTo(new File(file.getAbsolutePath()+".bak")))
+				return false;
 		}
+		return true;
+//		if (f.exists() && f.isFile()) {
+//			return f.renameTo(new File(f.getAbsolutePath()+".bak"));
+//		} else {
+//			return false;
+//		}
 	}
 	
 	private boolean reactivateOriginal(String path) {
 		File f = new File(path+".bak");
-		if (f.exists() && f.isFile()) {
-			return f.renameTo(new File(f.getAbsolutePath().replace(".bak", "")));
-		} else {
-			return false;
+		if (!f.exists() || !f.isFile()) return false;
+		File[] files = f.getParentFile().listFiles();
+		for (File file : files) {
+			if (file.isFile() && file.getName().endsWith(".bak") && !file.renameTo(new File(file.getAbsolutePath().replace(".bak", ""))))
+				return false;
 		}
+		return true;
+//		File f = new File(path+".bak");
+//		if (f.exists() && f.isFile()) {
+//			return f.renameTo(new File(f.getAbsolutePath().replace(".bak", "")));
+//		} else {
+//			return false;
+//		}
 	}
 	
 	private float calculateMutationScore_internalRunner(String[] testClasses, String className) {
@@ -304,6 +336,7 @@ public class Core {
 			}
 			boolean killed = false;
 			List<TestResult> results = ms.runTestsWithMutants(Arrays.asList(testClasses), mut);
+			Map<String, boolean[]> testsSimpleResults = new TreeMap<>();
 			if (results == null) {
 				System.out.println("An error ocurred while running tests for mutants");
 				System.out.println(ms.getLastError()!=null?ms.getLastError().toString():"no exception to display, contact your favorite mujava++ developer");
@@ -312,6 +345,7 @@ public class Core {
 			int runnedTestsCount = 0;
 			int totalFailures = 0;
 			for (TestResult r : results) {
+				testsSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
 				System.out.println(r.toString()+"\n");
 				runnedTestsCount += r.getRunnedTestsCount();
 				totalFailures += r.getTotalFailures();
@@ -326,6 +360,8 @@ public class Core {
 				}
 				if (!killed && !r.wasSuccessful()) killed = true;
 			}
+			SubsumptionNode snode = new SubsumptionNode(mut, testsSimpleResults);
+			subsumptionAnalysis.add(snode);
 			if (toughnessAnalysis()) {
 				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
 				this.addToughnessValue(toughness);
@@ -381,7 +417,9 @@ public class Core {
 			}
 			int runnedTestsCount = 0;
 			int totalFailures = 0;
+			Map<String, boolean[]> testSimpleResults = new TreeMap<>();
 			for (TestResult tr : r.testResults().testResults()) {
+				testSimpleResults.put(tr.getTestClassRunned().getName(), tr.testResultsAsArray());
 				System.out.println(tr.toString()+"\n");
 				runnedTestsCount += tr.getRunnedTestsCount();
 				totalFailures += tr.getTotalFailures();
@@ -396,6 +434,8 @@ public class Core {
 				}
 				if (!killed && !tr.wasSuccessful()) killed = true;
 			}
+			SubsumptionNode snode = new SubsumptionNode(r.getMutant(), testSimpleResults);
+			subsumptionAnalysis.add(snode);
 			if (toughnessAnalysis()) {
 				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
 				this.addToughnessValue(toughness);
@@ -484,7 +524,9 @@ public class Core {
 			}
 			int runnedTestsCount = 0;
 			int totalFailures = 0;
+			Map<String, boolean[]> testSimpleResults = new TreeMap<>();
 			for (TestResult r : results.testResults()) {
+				testSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
 				System.out.println(r.toString()+"\n");
 				runnedTestsCount += r.getRunnedTestsCount();
 				totalFailures += r.getTotalFailures();
@@ -499,6 +541,8 @@ public class Core {
 				}
 				if (!killed && !r.wasSuccessful()) killed = true;
 			}
+			SubsumptionNode snode = new SubsumptionNode(mut, testSimpleResults);
+			subsumptionAnalysis.add(snode);
 			if (toughnessAnalysis()) {
 				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
 				this.addToughnessValue(toughness);
@@ -561,7 +605,9 @@ public class Core {
 			}
 			int runnedTestsCount = 0;
 			int totalFailures = 0;
+			Map<String, boolean[]> testSimpleResults = new TreeMap<>();
 			for (TestResult r : testResults.testResults()) {
+				testSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
 				System.out.println(r.toString()+"\n");
 				runnedTestsCount += r.getRunnedTestsCount();
 				totalFailures += r.getTotalFailures();
@@ -576,6 +622,8 @@ public class Core {
 				}
 				if (!killed && !r.wasSuccessful()) killed = true;
 			}
+			SubsumptionNode snode = new SubsumptionNode(externalJPRResults.getMutant(), testSimpleResults);
+			subsumptionAnalysis.add(snode);
 			if (toughnessAnalysis()) {
 				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
 				this.addToughnessValue(toughness);
@@ -674,6 +722,14 @@ public class Core {
 	public static boolean toughnessAnalysis() {
 		if (Configuration.argumentExist(ENABLE_TOUGHNESS)) {
 			return (Boolean) Configuration.getValue(ENABLE_TOUGHNESS);
+		} else {
+			return false;
+		}
+	}
+	
+	public static boolean dynamicSubsumptionAnalysis() {
+		if (Configuration.argumentExist(DYNAMIC_SUBSUMPTION)) {
+			return (Boolean) Configuration.getValue(DYNAMIC_SUBSUMPTION);
 		} else {
 			return false;
 		}
