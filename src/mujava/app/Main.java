@@ -2,6 +2,8 @@ package mujava.app;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -204,6 +206,12 @@ public class Main {
 		//==============================verify methods to mutate==========================================//
 		if (!useExternalMutants) {
 			Set<String> mtm = config.methodToMutate();
+			if (mtm.isEmpty()) {
+				System.out.println("no methods set in configuration, using class methods");
+				for (Method m : config.getClassMethods()) {
+					mtm.add(m.getName());
+				}
+			}
 			System.out.println("Methods to mutate: "+stringListToString(mtm));
 			
 			if (config.allowFieldMutations()) {
@@ -220,33 +228,57 @@ public class Main {
 		}
 		//==================================add banned methods============================================//
 		if (!useExternalMutants) {
-			List<Pattern> bannedMethods = new LinkedList<>();
-			for (String bm : config.bannedMethods()) bannedMethods.add(Pattern.compile(bm));
-			System.out.print("banned methods: [");
-			Iterator<Pattern> bmIt = bannedMethods.iterator();
-			while (bmIt.hasNext()) {
-				System.out.print(bmIt.next());
-				if (bmIt.hasNext()) {
-					System.out.println(", ");
+			
+			boolean allowedMembersExists = !config.allowedMembers().isEmpty();
+			boolean bannedMethodsExists = !config.bannedMethods().isEmpty();
+			boolean bannedFieldsExists = !config.bannedFields().isEmpty();
+			if (allowedMembersExists) {
+				List<Pattern> allowedMembers = new LinkedList<>();
+				for (String am : config.allowedMembers()) allowedMembers.add(Pattern.compile(am));
+				System.out.print("allowed members: [");
+				Iterator<Pattern> amIt = allowedMembers.iterator();
+				while (amIt.hasNext()) {
+					System.out.print(amIt.next());
+					if (amIt.hasNext()) {
+						System.out.println(", ");
+					}
+				}
+				System.out.println("]");
+				
+				Configuration.add(PRVO.ALLOWED_METHODS_AND_FIELDS, allowedMembers);
+			} else {
+				if (bannedMethodsExists) {
+					List<Pattern> bannedMethods = new LinkedList<>();
+					for (String bm : config.bannedMethods()) bannedMethods.add(Pattern.compile(bm));
+					System.out.print("banned methods: [");
+					Iterator<Pattern> bmIt = bannedMethods.iterator();
+					while (bmIt.hasNext()) {
+						System.out.print(bmIt.next());
+						if (bmIt.hasNext()) {
+							System.out.println(", ");
+						}
+					}
+					System.out.println("]");
+					
+					Configuration.add(PRVO.PROHIBITED_METHODS, bannedMethods);
+				}
+				if (bannedFieldsExists) {
+					List<Pattern> bannedFields = new LinkedList<>();
+					for (String bf : config.bannedFields()) bannedFields.add(Pattern.compile(bf));
+					System.out.print("banned fields: [");
+					Iterator<Pattern> bfIt = bannedFields.iterator();
+					while (bfIt.hasNext()) {
+						System.out.print(bfIt.next());
+						if (bfIt.hasNext()) {
+							System.out.println(", ");
+						}
+					}
+					System.out.println("]");
+					
+					Configuration.add(PRVO.PROHIBITED_FIELDS, bannedFields);
 				}
 			}
-			System.out.println("]");
 			
-			Configuration.add(PRVO.PROHIBITED_METHODS, bannedMethods);
-			
-			List<Pattern> bannedFields = new LinkedList<>();
-			for (String bf : config.bannedFields()) bannedFields.add(Pattern.compile(bf));
-			System.out.print("banned fields: [");
-			Iterator<Pattern> bfIt = bannedFields.iterator();
-			while (bfIt.hasNext()) {
-				System.out.print(bfIt.next());
-				if (bfIt.hasNext()) {
-					System.out.println(", ");
-				}
-			}
-			System.out.println("]");
-			
-			Configuration.add(PRVO.PROHIBITED_FIELDS, bannedFields);
 		}
 		//================================ALLOWED PACKAGES TO RELOAD======================================//
 		if (!useExternalMutants && !config.useExternalJUnitRunner()) {
@@ -288,6 +320,19 @@ public class Main {
 		} else {
 			System.out.println("Quick death disabled");
 			MutationScore.quickDeath = false;
+		}
+		
+		if (config.dynamicSubsumption()) {
+			System.out.println("Dynamic subsumption analysis enabled");
+			Configuration.add(Core.DYNAMIC_SUBSUMPTION, Boolean.TRUE);
+			MutationScore.dynamicSubsumption = true;
+			if (config.reduceDynamicSubsumptionGraph()) {
+				System.out.println("Dynamic subsumption graph will be reduced");
+			}
+		} else {
+			System.out.println("Dynamic subsumption analysis disabled");
+			Configuration.add(Core.DYNAMIC_SUBSUMPTION, Boolean.FALSE);
+			MutationScore.dynamicSubsumption = false;
 		}
 		
 		if (config.fullVerboseMode()) {
@@ -660,6 +705,13 @@ public class Main {
 			}
 		}
 		
+		//================================TIMEOUT==============================================//
+		if (config.runMutationScore() && config.testTimeout() > 0) {
+			if (config.fullVerboseMode()) System.out.println("Default test timeout set to : " + config.testTimeout());
+			MutationScore.timeout = config.testTimeout();
+		}
+		//=====================================================================================//
+		
 		
 		System.out.println("Parameters validated\n\n");
 		
@@ -693,6 +745,11 @@ public class Main {
 			float mutationScoreResult = -1;
 			MutationScore ms = MutationScore.newInstance(mutantsSourceDir, originalBinDir, testBinDir);
 			core.setMutationScore(ms);
+			SubsumptionAnalysis subsumptionAnalysis = null;
+			if (config.dynamicSubsumption()) {
+				subsumptionAnalysis = new SubsumptionAnalysis();
+				core.setDynamicSubsumptionAnalysis(subsumptionAnalysis);
+			}
 			if (!useExternalMutants) {
 				System.out.println("Calculating mutation score for generation (" + generations + ")\n");
 				mutationScoreResult = core.calculateMutationScore(testClasses, classToMutate);
@@ -708,6 +765,21 @@ public class Main {
 			}
 			System.out.println(" scored : " + mutationScoreResult + " with tests : " + Arrays.asList(testClasses).toString());
 			Core.killStillRunningJUnitTestcaseThreads();
+			if (config.dynamicSubsumption()) {
+				//SubsumptionAnalysis.fullPrint = true;
+				subsumptionAnalysis.analyse();
+				Path output = Paths.get(config.dynamicSubsumptionOutput(), "dsg.dot");
+				if (subsumptionAnalysis.generateDotFile(output.toString())
+					&&
+					subsumptionAnalysis.generateSVG(output.toString(), config.reduceDynamicSubsumptionGraph())) {
+					System.out.println("Dynamic subsumption saved at " + config.dynamicSubsumptionOutput());
+				} else {
+					System.err.println("Error generating Dynamic Subsumption results");
+				}
+				
+				//System.out.println(subsumptionAnalysis.toString());
+				
+			}
 		}
 	}
 	
