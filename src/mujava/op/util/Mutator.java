@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import openjava.mop.*;
@@ -57,8 +58,10 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	private static boolean verbose = false;
 	
 	protected Map<String, List<String>> prohibitedMethodsPerClass = null;
+	protected Map<String, List<String>> allowedMethodsAndFieldsPerClass = null;
 	
 	protected List<Pattern> prohibitedMethods = null;
+	protected List<Pattern> allowedMethodsAndFields = null;
 	
 	protected Map<String, List<String>> prohibitedFieldsPerClass = null;
 	
@@ -469,6 +472,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	
 	public Map<OJClass, List<Variable>> getReachableFinalVariables(ParseTreeObject exp) throws ParseTreeException {
 		Statement previousStatement = (Statement)getStatement(exp, -1);
+		
 		return getReachableFinalVariables(previousStatement);
 	}
 	
@@ -476,6 +480,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
     	Map<OJClass, List<Variable>> variables = new TreeMap<OJClass, List<Variable>>();
 		List<Variable> allVars = new LinkedList<Variable>();
 		getReachableFinalVariables(exp, variables, allVars);
+		getMethodDeclarationVariables((ParseTreeObject) exp, variables, allVars, ONLY_FINAL);
 		return variables;
 	}
     
@@ -484,17 +489,29 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		ParseTreeObject current = (ParseTreeObject) exp;
 		ParseTreeObject limit = current;
 		while (current != null && !(current instanceof MethodDeclaration)) {
-			if (current instanceof VariableDeclarator) {
-				//addVar(variables, allVars, new Variable(((VariableDeclarator) current).getVariable()));
-				continue;
-			} else if (current instanceof VariableDeclaration) {
+//			if (current instanceof VariableDeclarator) {
+//				//addVar(variables, allVars, new Variable(((VariableDeclarator) current).getVariable()));
+//				continue;
+//			} else 
+			if (current instanceof VariableDeclaration) {
 				VariableDeclaration vd = (VariableDeclaration) current;
-				if (!vd.getModifiers().contains(ModifierList.FINAL)) continue;
-				addVar(variables, allVars, new Variable(((VariableDeclaration) current).getVariable()));
+				if (vd.getModifiers().contains(ModifierList.FINAL)) {
+					addVar(variables, allVars, new Variable(((VariableDeclaration) current).getVariable()));
+				}
 			} else if (current instanceof ForStatement) {
-				String m = ((ForStatement) current).getModifier(); 
-				if (m != null && m.contains("final")) {
-					addVar(variables, allVars, new Variable(((ForStatement) current).getIdentifier()));
+				ForStatement fs = (ForStatement) current;
+				if (fs.isEnhancedFor()) {
+					String m = ((ForStatement) current).getModifier();
+					if (m != null && m.contains("final")) {
+						addVar(variables, allVars, new Variable(((ForStatement) current).getIdentifier()));
+					}
+				} else if (true) { //TODO: modify when parser adds modifiers
+					VariableDeclarator[] vds = fs.getInitDecls();
+					if (vds != null) {
+						for (VariableDeclarator vd : vds) {
+							addVar(variables, allVars, new Variable(vd.getVariable()));
+						}
+					}
 				}
 			} else if (current instanceof StatementList) {
 				StatementList stList = (StatementList) current;
@@ -505,8 +522,9 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 					}
 					if (cst instanceof VariableDeclaration) {
 						VariableDeclaration vd = (VariableDeclaration) cst;
-						if (!vd.getModifiers().contains(ModifierList.FINAL)) continue;					
-						addVar(variables, allVars, new Variable(vd.getVariable()));
+						if (!vd.getModifiers().contains(ModifierList.FINAL)) {				
+							addVar(variables, allVars, new Variable(vd.getVariable()));
+						}
 					}
 				}
 			}
@@ -555,12 +573,18 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	}
 	
 	private void getMethodDeclarationVariables(ParseTreeObject exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars) throws ParseTreeException {
+		getMethodDeclarationVariables(exp, variables, allVars, 0);
+	}
+	
+	private void getMethodDeclarationVariables(ParseTreeObject exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars, int options) throws ParseTreeException {
 		ParseTreeObject methodDeclaration = getMethodDeclaration(exp);
+		boolean onlyFinals = (ONLY_FINAL & options) != 0;
 		if (methodDeclaration != null) {
 			ParameterList params = ((MethodDeclaration) methodDeclaration)
 					.getParameters();
 			for (int p = 0; p < params.size(); p++) {
 				Parameter param = params.get(p);
+				if (onlyFinals && !param.getModifiers().contains(ModifierList.FINAL)) continue;
 				addVar(variables, allVars, new Variable(param.getVariable()));
 			}
 		}
@@ -821,7 +845,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 
 	private OJMethod[] filterPrivate(OJMethod[] methods, boolean filterFinal) {
 		List<OJMethod> filtered = new LinkedList<OJMethod>();
-		for (OJMethod m : methods) {
+		for (OJMethod m : filterAccessMembers(methods)) {
 			if ((filterFinal && m.getModifiers().isFinal())
 					|| m.getModifiers().isPrivate()) {
 				continue;
@@ -833,7 +857,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	
 	private OJConstructor[] filterPrivate(OJConstructor[] constructors, boolean filterFinal) {
 		List<OJConstructor> filtered = new LinkedList<OJConstructor>();
-		for (OJConstructor c : constructors) {
+		for (OJConstructor c : filterAccessMembers(constructors)) {
 			if ((filterFinal && c.getModifiers().isFinal())
 					|| c.getModifiers().isPrivate()) {
 				continue;
@@ -841,6 +865,33 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			filtered.add(c);
 		}
 		return filtered.toArray(new OJConstructor[filtered.size()]);
+	}
+	
+	private <T extends OJMember> Set<T> filterAccessMembers(T[] members) {
+		Set<T> filtered = new HashSet<>();
+		for (T m : members) {
+			if (m.getName().contains("access$")) continue; //access member filtered
+			filtered.add(m);
+		}
+		return filtered;
+	}
+	
+	public boolean isAccessibleByInnerOrOuterClass(OJMember m, OJClass from) {
+		OJClass declaringClass = m.getDeclaringClass();
+		return areInSameClass(declaringClass, from);
+	}
+	
+	public boolean areInSameClass(OJClass a, OJClass b) {
+		if (a.getName().compareTo(b.getName()) == 0) return true; //both are the same class
+		OJClass[] adeclaredClasses = a.getDeclaredClasses();
+		OJClass[] bdeclaredClasses = b.getDeclaredClasses();
+		for (OJClass ad : adeclaredClasses) {
+			if (ad.getName().compareTo(b.getName()) == 0) return true; //b is an inner class of a 
+		}
+		for (OJClass bd : bdeclaredClasses) {
+			if (bd.getName().compareTo(a.getName()) == 0) return true; //a is an inner class of b
+		}
+		return false;
 	}
 
 	/**
@@ -1135,15 +1186,19 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 //	}
 	
 	protected boolean isMethodAllowed(OJMethod m) {
-		if (this.prohibitedMethodsPerClass != null) {
-			return isMethodAllowed_usingMap(m);
+		if (this.allowedMethodsAndFieldsPerClass != null) {
+			return isMemberAllowed_usingMap(m);
+		} else if (this.allowedMethodsAndFields != null) {
+			return isMemberAllowed_usingList(m);
+		} else if (this.prohibitedMethodsPerClass != null) {
+			return isMethodNotDisallowed_usingMap(m);
 		} else if (this.prohibitedMethods != null) {
-			return isMethodAllowed_usingList(m);
+			return isMethodNotDisallowed_usingList(m);
 		}
 		return true;
 	}
 	
-	private boolean isMethodAllowed_usingMap(OJMethod m) {
+	private boolean isMethodNotDisallowed_usingMap(OJMethod m) {
 		OJClass declaringClass = m.getDeclaringClass();
 		String methodName = m.getName();
 		if (this.prohibitedMethodsPerClass.containsKey(declaringClass.getName())) {
@@ -1155,7 +1210,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		return true;
 	}
 	
-	private boolean isMethodAllowed_usingList(OJMethod m) {
+	private boolean isMethodNotDisallowed_usingList(OJMethod m) {
 		String declaringClass = m.getDeclaringClass().getName();
 		String methodName = m.getName();
 		String fullName = declaringClass+"#"+methodName;
@@ -1168,15 +1223,19 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	}
 	
 	protected boolean isFieldAllowed(OJField f) {
-		if (this.prohibitedFieldsPerClass != null) {
-			return isFieldAllowed_usingMap(f);
+		if (this.allowedMethodsAndFieldsPerClass != null) {
+			return isMemberAllowed_usingMap(f);
+		} else if (this.allowedMethodsAndFields != null) {
+			return isMemberAllowed_usingList(f);
+		} else if (this.prohibitedFieldsPerClass != null) {
+			return isFieldNotDisallowed_usingMap(f);
 		} else if (this.prohibitedFields != null) {
-			return isFieldAllowed_usingList(f);
+			return isFieldNotDisallowed_usingList(f);
 		}
 		return true;
 	}
 	
-	private boolean isFieldAllowed_usingMap(OJField f) {
+	private boolean isFieldNotDisallowed_usingMap(OJField f) {
 		OJClass declaringClass = f.getDeclaringClass();
 		String fieldName = f.getName();
 		if (this.prohibitedFieldsPerClass.containsKey(declaringClass.getName())) {
@@ -1188,7 +1247,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		return true;
 	}
 	
-	private boolean isFieldAllowed_usingList(OJField f) {
+	private boolean isFieldNotDisallowed_usingList(OJField f) {
 		String declaringClass = f.getDeclaringClass().getName();
 		String methodName = f.getName();
 		String fullName = declaringClass+"#"+methodName;
@@ -1198,6 +1257,30 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			}
 		}
 		return true;
+	}
+	
+	private boolean isMemberAllowed_usingMap(OJMember m) {
+		OJClass declaringClass = m.getDeclaringClass();
+		String memberName = m.getName();
+		if (this.allowedMethodsAndFieldsPerClass.containsKey(declaringClass.getName())) {
+			List<String> allowedMembers = this.allowedMethodsAndFieldsPerClass.get(declaringClass.getName());
+			if (allowedMembers != null && !allowedMembers.isEmpty()) {
+				return allowedMembers.contains(memberName);
+			}
+		}
+		return false;
+	}
+	
+	private boolean isMemberAllowed_usingList(OJMember m) {
+		String declaringClass = m.getDeclaringClass().getName();
+		String memberName = m.getName();
+		String fullName = declaringClass+"#"+memberName;
+		for (Pattern pf : allowedMethodsAndFields) {
+			if (pf.matcher(fullName).find()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -1524,7 +1607,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			return getPreviousExpression( ((ArrayAccess)e).getReferenceExpr() );
 		} else {
 			//should never reach this point
-			//throw an excepcion maybe
+			//throw an exception maybe
 			return null;
 		}
 	}
