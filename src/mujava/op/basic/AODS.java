@@ -7,11 +7,13 @@
 package mujava.op.basic;
 
 import mujava.api.MutationOperator;
+import mujava.api.Configuration;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.FileEnvironment;
 import openjava.ptree.ClassDeclaration;
 import openjava.ptree.CompilationUnit;
 import openjava.ptree.Expression;
+import openjava.ptree.ExpressionStatement;
 import openjava.ptree.ForStatement;
 import openjava.ptree.ParseTreeException;
 import openjava.ptree.ParseTreeObject;
@@ -29,6 +31,13 @@ import openjava.ptree.UnaryExpression;
  */
 
 public class AODS extends MethodLevelMutator {
+	
+	/**
+	 * Option to enable/disable the mutation of expression statements, e.g.: <pre>a++;</pre>
+	 * <p>
+	 * this option is disabled by default
+	 */
+	public static final String AODS_AVOID_EXPRESSION_STATEMENTS = "aods_dont_mutate_expression_statement";
 
 
 	public AODS(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit) {
@@ -38,6 +47,7 @@ public class AODS extends MethodLevelMutator {
 	
 	public void visit( UnaryExpression p ) throws ParseTreeException {
 		if (!(getMutationsLeft(p) > 0)) return;
+		if (ignoreExpressionStatements() && (p.getParent() instanceof ExpressionStatement)) return;
 		int op = p.getOperator();
 		if ( 	(op == UnaryExpression.POST_DECREMENT) || (op == UnaryExpression.POST_INCREMENT)
 			|| 	(op == UnaryExpression.PRE_DECREMENT) || (op == UnaryExpression.PRE_INCREMENT) ) {
@@ -51,6 +61,14 @@ public class AODS extends MethodLevelMutator {
 		StatementList stmts = p.getStatements();
 		super.visit(stmts);
 	}
+	
+	private boolean ignoreExpressionStatements() {
+		if (Configuration.argumentExist(AODS_AVOID_EXPRESSION_STATEMENTS)) {
+			return (Boolean) Configuration.getValue(AODS_AVOID_EXPRESSION_STATEMENTS);
+		} else {
+			return false;
+		}
+	}
 
 	/**
 	 * Write AODS mutants to files
@@ -63,4 +81,6 @@ public class AODS extends MethodLevelMutator {
 		MutantsInformationHolder.mainHolder().addMutation(MutationOperator.AODS, original, (ParseTreeObject) mutant);
 
 	}
+	
+	
 }
