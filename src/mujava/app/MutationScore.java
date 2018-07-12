@@ -1,10 +1,8 @@
 package mujava.app;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
@@ -12,11 +10,14 @@ import java.net.Socket;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
@@ -41,8 +42,10 @@ public class MutationScore {
 	private static MutationScore instance = null;
 	private Exception lastError = null;
 	private static Reloader reloader;
+	public static long timeout;
 	public static Set<String> allowedPackages = null;
 	public static boolean quickDeath;
+	public static boolean dynamicSubsumption;
 	public static boolean outputMutationsInfo = true;
 	public static String junitPath;
 	public static String hamcrestPath;
@@ -149,10 +152,11 @@ public class MutationScore {
 				MutationScore.reloader = MutationScore.reloader.getLastChild();
 				MutationScore.reloader.setSpecificClassPath(mut.getName(), mut.getClassRootFolder());//(className, MutationScore.mutantsSourceFolder+pathToMutant);
 				testToRun = MutationScore.reloader.rloadClass(test, true);
-				MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, MutationScore.quickDeath);
+				MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, MutationScore.quickDeath, MutationScore.dynamicSubsumption, timeout);
 				Result testResult = mjTestRunner.run();
 				Core.killStillRunningJUnitTestcaseThreads();
-				testResults.add(new TestResult(testResult, testToRun));
+				TestResult tres = new TestResult(testResult, testToRun, mjTestRunner.getSimpleResults());
+				testResults.add(tres);
 				if (!testResult.wasSuccessful() && MutationScore.quickDeath) {
 					break;
 				}
@@ -184,6 +188,8 @@ public class MutationScore {
 		//-q and -t will only be used if quickdeath or toughness where set
 		String[] libs = cleanClasspath(getCurrentClasspath()).split(File.pathSeparator);
 		int optionalFlags = (MutationScore.quickDeath || Core.toughnessAnalysis())?1:0;
+		if (MutationScore.dynamicSubsumption) optionalFlags += 1;
+		if (MutationScore.timeout > 0) optionalFlags += 2;
 		int libsSize = libs.length;
 		String[] args = new String[testClasses.size() /*tests*/ + 5 + (useSockets?1:0) + /*flags*/ + (libs.length==0?0:1) /*libs flag*/ + 4 + (useSockets?1:0) + /*args*/ + 4 /*command*/ + optionalFlags + libsSize];
 		args[0] = "java";
@@ -205,27 +211,43 @@ public class MutationScore {
 		args[10+i] = "-c";
 		args[11+i] = mut.getName();
 		if (optionalFlags != 0) {
-			if (MutationScore.quickDeath && !Core.toughnessAnalysis()) {
+			if (MutationScore.quickDeath && !Core.toughnessAnalysis()) {				//1+ optional flags
 				args[12+i] = "-q";
-			} else if (Core.toughnessAnalysis()) {
+			} else if (Core.toughnessAnalysis() && MutationScore.dynamicSubsumption) {	//2+ optional flags
 				args[12+i] = "-x";
+				args[13+i] = "-d";
+			} else if (Core.toughnessAnalysis()) {										//1+ optional flags
+				args[12+i] = "-x";
+			}
+			if (timeout > 0) {
+				int initialIdx = 12;
+				//if ((optionalFlags-2) == 0) initialIdx = 12;
+				if ((optionalFlags-2) == 1) initialIdx = 13;
+				if ((optionalFlags-2) == 2) initialIdx = 14;
+				args[initialIdx+i] = "-i"; args[(initialIdx+1)+i] = Long.toString(timeout);
 			}
 		}
 		int j = 1;
+		int currentIndex = 12 + optionalFlags;
 		if (libs.length > 0) {
-			args[13+i] = "-l";
+			args[currentIndex+i] = "-l";
 			for (String l : libs) {
-				args[13+i+j] = l;
+				args[currentIndex+i+j] = l;
 				j++;
 			}
 		}
+		currentIndex = currentIndex + i + j;
 		if (useSockets) {
-			args[13+i+j] = "-s";
-			args[14+i+j] = Integer.toString(port);
+			args[currentIndex] = "-s";
+			args[currentIndex+1] = Integer.toString(port);
 		}
 		ProcessBuilder pb = new ProcessBuilder(args);
 		File errorLog = new File("error.log");
 		pb.redirectError(Redirect.appendTo(errorLog));
+		if (useSockets) {
+			File outputLog = new File("external.log");
+			pb.redirectOutput(Redirect.appendTo(outputLog));
+		}
 		try {
 			ServerSocket sc = useSockets?new ServerSocket(port):null;
 			InputStream is = null;
@@ -233,10 +255,14 @@ public class MutationScore {
 			if (useSockets) {
 				System.out.println("Accepting on port " + port);
 				Socket client = sc.accept();
+				System.out.println("Connection accepted on port " + port);
 				is = client.getInputStream();
 			} else {
 				is = p.getInputStream();
 			}
+			ExecutorService es = Executors.newSingleThreadExecutor();
+			TestResultCollector testResultsCollector = new TestResultCollector(is, mut);
+			Future<List<TestResult>> testResultsCollectorTask = es.submit(testResultsCollector);
 			int exitCode = p.waitFor();
 			//TODO: manage errors in the result
 			if (exitCode != 0) {
@@ -245,12 +271,13 @@ public class MutationScore {
 				if (is == null) {
 					System.err.println("InputStream from external JUnit runner is null");
 				} else {
-					testResults.addAll(parseResultsFromInputStream(is));
+					//testResults.addAll(parseResultsFromInputStream(is,mut));
+					testResults.addAll(testResultsCollectorTask.get());
 					if (!useSockets) is.close();
 				}
 			}
 			if (useSockets) sc.close();
-		} catch (IOException | InterruptedException | ClassNotFoundException e) {
+		} catch (IOException | InterruptedException | /*ClassNotFoundException | */ ExecutionException e) {
 			e.printStackTrace();
 			error = e;
 		}
@@ -293,20 +320,20 @@ public class MutationScore {
 		return result;
 	}
 
-	private Collection<? extends TestResult> parseResultsFromInputStream(InputStream is) throws ClassNotFoundException, IOException {
-		List<TestResult> results = new LinkedList<>();
-		ObjectInputStream in = new ObjectInputStream(is);
-		Object o = null;
-		try {
-			while ((o = in.readObject()) != null) {
-				TestResult tr = (TestResult)o;
-				tr.refresh();
-				results.add(tr);
-			}
-		} catch (EOFException e) {}
-		in.close();
-		return results;
-	}
+//	private Collection<? extends TestResult> parseResultsFromInputStream(InputStream is, MutantInfo mi) throws ClassNotFoundException, IOException {
+//		List<TestResult> results = new LinkedList<>();
+//		ObjectInputStream in = new ObjectInputStream(is);
+//		Object o = null;
+//		try {
+//			while ((o = in.readObject()) != null) {
+//				TestResult tr = (TestResult)o;
+//				tr.refresh();
+//				results.add(tr);
+//			}
+//		} catch (EOFException e) {}
+//		in.close();
+//		return results;
+//	}
 
 	private String getCurrentClasspath() {
 		String classpath = System.getProperty("java.class.path");
