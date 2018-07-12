@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -51,11 +52,13 @@ public class Config {
 	//mutation operators
 	
 	//advanced mutation options
+	private long testTimeout;
 	private boolean fullVerboseMode;
 	private boolean allowClassMutations;
 	private boolean allowFieldMutations;
 	private Set<String> bannedFields;
 	private Set<String> bannedMethods;
+	private Set<String> allowedMembers;
 	private boolean ignoreMutGenLimit;
 	private Set<String> allowedPackagesToReload;
 	private boolean allowNumericLiteralVariations;
@@ -109,15 +112,18 @@ public class Config {
 	private boolean showSurvivingMutants;
 	private boolean toughnessAnalysis;
 	private boolean outputMutationsInfo;
-	private boolean useOldJUnit = true; //TODO: complete getters, setters, and config in file
+	private boolean useOldJUnit = false; //TODO: complete getters, setters, and config in file
 	//mutation score
 	
 	//mutation score advanced options
 	private boolean quickDeath;
+	private boolean dynamicSubsumption;
+	private String dynamicSubsumptionOutput;
+	private boolean reduceDynamicSubsumptionGraph;
 	//mutation score advanced options
 	
 	//auxiliary values
-	private List<Method> methodsInClassToMutate;
+	private Set<Method> methodsInClassToMutate;
 	private List<String> classesInOriginalBinDir;
 	private List<String> packagesInOriginalBinDir;
 	private List<String> testClassesInTestsBinDir;
@@ -127,20 +133,21 @@ public class Config {
 	
 
 	public Config(String originalSourceDir, String originalBinDir, String mutantsOutputFolder) {
-		this.originalSrcDir = addTrailingSeparator(originalSourceDir);
+		originalSrcDir = addTrailingSeparator(originalSourceDir);
 		this.originalBinDir = addTrailingSeparator(originalBinDir);
 		this.mutantsOutputFolder = addTrailingSeparator(mutantsOutputFolder);
-		this.useExternalMutants = false;
-		this.generation = 1;
-		this.showSurvivingMutants = false;
-		this.toughnessAnalysis = false;
-		this.reloaderInstancesLimit = DEFAULT_RELOADER_INSTANCES_LIMIT;
-		this.useExternalJUnitRunner = false;
-		this.useParallelExternalJUnitRunner = false;
-		this.parallelExternalJUnitRunnerThreads = DEFAULT_JUNIT_PARALLEL_RUNNER_THREADS;
-		this.junitPath = null;
-		this.hamcrestPath = null;
-		this.externalClassesToMutate = null;
+		useExternalMutants = false;
+		generation = 1;
+		showSurvivingMutants = false;
+		toughnessAnalysis = false;
+		reloaderInstancesLimit = DEFAULT_RELOADER_INSTANCES_LIMIT;
+		useExternalJUnitRunner = false;
+		useParallelExternalJUnitRunner = false;
+		parallelExternalJUnitRunnerThreads = DEFAULT_JUNIT_PARALLEL_RUNNER_THREADS;
+		junitPath = null;
+		hamcrestPath = null;
+		externalClassesToMutate = null;
+		testTimeout(0);
 		useExternalMutants(false);
 		useSockets(false);
 		writePrologue(false);
@@ -158,6 +165,7 @@ public class Config {
 		clearMethodsInsideClassToMutate();
 		clearClassesInOriginalBinDir();
 		clearPackagesInOriginalBinDir();
+		clearAllowedMembers();
 		clearBannedMethods();
 		clearBannedFields();
 		clearPackagesToReload();
@@ -219,6 +227,14 @@ public class Config {
 		return this.classToMutate;
 	}
 	
+	public long testTimeout() {
+		return testTimeout;
+	}
+
+	public void testTimeout(long testTimeout) {
+		this.testTimeout = testTimeout;
+	}
+
 	public String originalSourceDir() {
 		return this.originalSrcDir;
 	}
@@ -340,47 +356,67 @@ public class Config {
 	}
 	
 	public void allowClassMutations(boolean allow) {
-		this.allowClassMutations = allow;
+		allowClassMutations = allow;
 	}
 	
 	public boolean allowClassMutations() {
-		return this.allowClassMutations;
+		return allowClassMutations;
 	}
 	
 	public void allowFieldMutations(boolean allow) {
-		this.allowFieldMutations = allow;
+		allowFieldMutations = allow;
 	}
 	
 	public boolean allowFieldMutations() {
-		return this.allowFieldMutations;
+		return allowFieldMutations;
+	}
+	
+	public Set<String> allowedMembers() {
+		return allowedMembers;
+	}
+	
+	public void addAllowedMember(String m) {
+		allowedMembers.add(m);
+	}
+	
+	public void delAllowedMember(String m) {
+		allowedMembers.remove(m);
+	}
+	
+	public void clearAllowedMembers() {
+		if (allowedMembers == null) {
+			allowedMembers = new TreeSet<String>();
+		} else {
+			allowedMembers.clear();
+		}
 	}
 	
 	public void addBannedMethod(String m) {
-		this.bannedMethods.add(m);
+		bannedMethods.add(m);
 	}
 	
 	public void delBannedMethod(String m) {
-		this.bannedMethods.remove(m);
+		bannedMethods.remove(m);
 	}
 	
 	public void clearBannedMethods() {
-		if (this.bannedMethods == null) {
-			this.bannedMethods = new TreeSet<String>();
+		if (bannedMethods == null) {
+			bannedMethods = new TreeSet<String>();
 		} else {
-			this.bannedMethods.clear();
+			bannedMethods.clear();
 		}
 	}
 	
 	public Set<String> bannedMethods() {
-		return this.bannedMethods;
+		return bannedMethods;
 	}
 	
 	public void addBannedField(String f) {
-		this.bannedFields.add(f);
+		bannedFields.add(f);
 	}
 	
 	public void delBannedField(String f) {
-		this.bannedFields.remove(f);
+		bannedFields.remove(f);
 	}
 	
 	public void clearBannedFields() {
@@ -424,31 +460,55 @@ public class Config {
 	}
 	
 	public void allowNumericLiteralVariations(boolean allow) {
-		this.allowNumericLiteralVariations = allow;
+		allowNumericLiteralVariations = allow;
 	}
 	
 	public boolean allowNumericLiteralVariations() {
-		return this.allowNumericLiteralVariations;
+		return allowNumericLiteralVariations;
 	}
 	
 	public void runMutationScore(boolean run) {
-		this.runMutationScore = run;
+		runMutationScore = run;
 	}
 	
 	public boolean runMutationScore() {
-		return this.runMutationScore;
+		return runMutationScore;
+	}
+	
+	public void dynamicSubsumption(boolean ds) {
+		dynamicSubsumption = ds;
+	}
+	
+	public boolean dynamicSubsumption() {
+		return dynamicSubsumption;
+	}
+	
+	public boolean reduceDynamicSubsumptionGraph() {
+		return reduceDynamicSubsumptionGraph;
+	}
+
+	public void reduceDynamicSubsumptionGraph(boolean reduceDynamicSubsumptionGraph) {
+		this.reduceDynamicSubsumptionGraph = reduceDynamicSubsumptionGraph;
+	}
+
+	public void dynamicSubsumptionOutput(String o) {
+		dynamicSubsumptionOutput = o;
+	}
+	
+	public String dynamicSubsumptionOutput() {
+		return dynamicSubsumptionOutput;
 	}
 	
 	public String testsBinDir() {
-		return this.testsBinDir;
+		return testsBinDir;
 	}
 	
 	public void testsBinDir(String dir) {
-		this.testsBinDir = addTrailingSeparator(dir);
+		testsBinDir = addTrailingSeparator(dir);
 	}
 	
 	public void addTestClass(String c) {
-		this.testClasses.add(c);
+		testClasses.add(c);
 	}
 	
 	public void delTestClass(String c) {
@@ -848,9 +908,11 @@ public class Config {
 		this.outputMutationsInfo = outputMutationsInfo;
 	}
 	
-	public List<Method> getClassMethods() {
-		if (this.methodsInClassToMutate != null && !this.methodsInClassToMutate.isEmpty()) return this.methodsInClassToMutate;
-		List<Method> classMethods = new LinkedList<Method>();
+	public Set<Method> getClassMethods() {
+		if (this.methodsInClassToMutate != null && !this.methodsInClassToMutate.isEmpty()) {
+			return this.methodsInClassToMutate;
+		}
+		Set<Method> classMethods = new TreeSet<>(methodComparator);//new TreeSet<Method>();
 		if (verifyDirectory(this.originalBinDir) && verifyFile(sumPaths(this.originalBinDir, classNameAsPath(this.classToMutate))+".class")) {
 			Class<?> classToMutate = loadClass(this.classToMutate, this.originalBinDir);
 			if (classToMutate != null) {
@@ -862,6 +924,16 @@ public class Config {
 		this.methodsInClassToMutate.addAll(classMethods);
 		return classMethods;
 	}
+	
+	private static class MethodComparator implements Comparator<Method> {
+		@Override
+		public int compare(Method o1, Method o2) {
+			if (o1 == null || o2 == null) throw new IllegalArgumentException("null argument");
+			return o1.getName().compareTo(o2.getName());
+		}
+	}
+	
+	private MethodComparator methodComparator = new MethodComparator();
 	
 	public List<String> getClassesInOriginalBinDir() {
 		if (this.classesInOriginalBinDir != null && !this.classesInOriginalBinDir.isEmpty()) return this.classesInOriginalBinDir;
@@ -935,58 +1007,59 @@ public class Config {
 	 * @return an error message if the configuration is invalid or {@code null} otherwise : {@code String}
 	 */
 	public String validate() {
-		boolean prototypeMode = this.externalClassesToMutate != null && this.externalClassesToMutate.length > 0;
+		boolean prototypeMode = externalClassesToMutate != null && externalClassesToMutate.length > 0;
 		//verify folders
-		if (!useExternalMutants() && !verifyDirectory(addTrailingSeparator(this.originalSrcDir))) return "Invalid directory (Original source folder) : " + this.originalSrcDir;
-		if (!verifyDirectory(addTrailingSeparator(this.originalBinDir))) return "Invalid directory (Original binary folder) : " + this.originalBinDir;
-		if (this.generation <= 0) return "Invalid generation (" + this.generation + ") , valid values are > 0"; 
-		if (this.testsBinDir != null && !verifyDirectory(addTrailingSeparator(this.testsBinDir))) return "Invalid directory (Tests binary folder) : " + this.testsBinDir;
-		if (this.testsBinDir == null && this.runMutationScore) return "Mutation score is enabled but no tests binary folder has been selected";
+		if (!useExternalMutants() && !verifyDirectory(addTrailingSeparator(originalSrcDir))) return "Invalid directory (Original source folder) : " + originalSrcDir;
+		if (!verifyDirectory(addTrailingSeparator(originalBinDir))) return "Invalid directory (Original binary folder) : " + originalBinDir;
+		if (generation <= 0) return "Invalid generation (" + generation + ") , valid values are > 0"; 
+		if (testsBinDir != null && !verifyDirectory(addTrailingSeparator(testsBinDir))) return "Invalid directory (Tests binary folder) : " + testsBinDir;
+		if (testsBinDir == null && runMutationScore) return "Mutation score is enabled but no tests binary folder has been selected";
 		
-		if (!prototypeMode) if (!getClassesInOriginalBinDir().contains(this.classToMutate)) return "Class " + this.classToMutate + " can't be found inside " + this.originalBinDir;
-		
-		if (this.runMutationScore && (this.testClasses == null || this.testClasses.isEmpty())) return "Mutation score is enabled but no test classes has been selected";
-		if (this.runMutationScore && !prototypeMode) {
-			for (String t : this.testClasses) {
+		if (!prototypeMode) if (!getClassesInOriginalBinDir().contains(this.classToMutate)) return "Class " + classToMutate + " can't be found inside " + originalBinDir;
+		if (runMutationScore && testTimeout() < 0) return "Timeout can't be a negative value";
+		if (runMutationScore && (testClasses == null || testClasses.isEmpty())) return "Mutation score is enabled but no test classes has been selected";
+		if (runMutationScore && !prototypeMode) {
+			for (String t : testClasses) {
 				if (!existsAsTestClass(t)) {
-					return "Class " + t + " can't be found inside " + this.testsBinDir + " or is not a valid test class";
+					return "Class " + t + " can't be found inside " + testsBinDir + " or is not a valid test class";
 				}
 //				if (!isTestClass(loadClass(t, addTrailingSeparator(this.testsBinDir)))) {
 //					return "Class " + t + " is not a valid test class";
 //				}
 			}
 		}
-		for (MutationOperator m : this.operators) {
+		for (MutationOperator m : operators) {
 			if (!MutatorsInfo.getInstance().isSupported(m)) return "Operator " + m.toString() + " is not supported";
 		}
 		if (!prototypeMode) {
-			for (String method : this.methodsToMutate) {
+			for (String method : methodsToMutate) {
 				boolean found = false;
-				for (Method m : this.methodsInClassToMutate) {
+				for (Method m : methodsInClassToMutate) {
 					if (m.getName().compareTo(method) == 0) {
 						found = true;
 					}
-					if (!found) return "Method " + method + " doesn't belong to class " + this.classToMutate;
+					if (!found) return "Method " + method + " doesn't belong to class " + classToMutate;
 				}
 			}
 		}
-		for (String apr : this.allowedPackagesToReload) {
-			if (!this.packagesInOriginalBinDir.contains(apr)) return "Package " + apr + " is not present in " + this.originalBinDir;
+		for (String apr : allowedPackagesToReload) {
+			if (!packagesInOriginalBinDir.contains(apr)) return "Package " + apr + " is not present in " + originalBinDir;
 		}
-		if (this.quickDeath && !this.runMutationScore) return "Quick death option is enabled but mutation score is not";
-		if (!this.runMutationScore && this.showSurvivingMutants) return "Show surviving mutants is enabled but mutation score is not";
-		if (!this.runMutationScore && this.toughnessAnalysis) return "Toughness analysis is enabled but mutation score is not";
-		if (useExternalMutants && !this.useExternalJUnitRunner && !this.useParallelExternalJUnitRunner) {
+		if (quickDeath && !runMutationScore) return "Quick death option is enabled but mutation score is not";
+		if (dynamicSubsumption && !runMutationScore) return "Dynamic Subsumption option is enabled but mutation score is not";
+		if (!runMutationScore && showSurvivingMutants) return "Show surviving mutants is enabled but mutation score is not";
+		if (!runMutationScore && toughnessAnalysis) return "Toughness analysis is enabled but mutation score is not";
+		if (useExternalMutants && !useExternalJUnitRunner && !useParallelExternalJUnitRunner) {
 			return "Can't use internal junit runner when using external mutants";
 		}
-		if (this.useExternalJUnitRunner || this.useParallelExternalJUnitRunner) {
-			if (this.junitPath == null || this.junitPath.isEmpty()) return "Can't use external junit runner without defining the JUnit jar path";
+		if (useExternalJUnitRunner || useParallelExternalJUnitRunner) {
+			if (junitPath == null || junitPath.isEmpty()) return "Can't use external junit runner without defining the JUnit jar path";
 			if (!verifyFile(this.junitPath)) return "The defined JUnit path doesn't not point to an existing file";
-			if (!this.junitPath.endsWith(".jar")) return "The defined JUnit path doesn't point to a jar file";
-			if (this.hamcrestPath == null || this.junitPath.isEmpty()) return "Can't use external junit runner without defining the hamcrest jar path";
+			if (!junitPath.endsWith(".jar")) return "The defined JUnit path doesn't point to a jar file";
+			if (hamcrestPath == null || junitPath.isEmpty()) return "Can't use external junit runner without defining the hamcrest jar path";
 			if (!verifyFile(this.hamcrestPath)) return "The defined hamcrest path doesn't not point to an existing file";
-			if (!this.hamcrestPath.endsWith(".jar")) return "The defined hamcrest path doesn't point to a jar file";
-			if (this.useParallelExternalJUnitRunner && this.parallelExternalJUnitRunnerThreads <= 0) {
+			if (!hamcrestPath.endsWith(".jar")) return "The defined hamcrest path doesn't point to a jar file";
+			if (useParallelExternalJUnitRunner && parallelExternalJUnitRunnerThreads <= 0) {
 				return "Using parallel external JUnit runner with a non-positive amount of threads";
 			}
 		} else if (prototypeMode) {
@@ -1051,7 +1124,7 @@ public class Config {
 	
 	private void clearMethodsInsideClassToMutate() {
 		if (this.methodsInClassToMutate == null) {
-			this.methodsInClassToMutate = new LinkedList<Method>();
+			this.methodsInClassToMutate = new TreeSet<Method>(methodComparator);
 		} else {
 			this.methodsInClassToMutate.clear();
 		}
