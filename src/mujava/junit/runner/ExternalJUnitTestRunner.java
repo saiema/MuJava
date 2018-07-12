@@ -29,7 +29,8 @@ import mujava.app.TestResult;
  * @version 0.1
  */
 public class ExternalJUnitTestRunner {
-	private static final String VERSION = "0.1";
+	private static final String VERSION = "0.1.6";
+	private static final boolean VERBOSE_DEFAULT = true;
 	
 	/**
 	 * Main for running tests on a single mutant
@@ -74,7 +75,15 @@ public class ExternalJUnitTestRunner {
 		mutantClassOption.setArgs(1);
 		mutantClassOption.setType(String.class);
 		
+		Option timeoutOption = new Option("i", "timeout", true, "default timeout");
+		timeoutOption.setRequired(false);
+		timeoutOption.setArgs(1);
+		timeoutOption.setType(Long.class);
+		
 		Option quickDeathOption = new Option("q", "quickDeath", false, "stop tests at first fail");
+		quickDeathOption.setRequired(false);
+		
+		Option dynamicOption = new Option("d", "dynamic", false, "gather simple test results");
 		quickDeathOption.setRequired(false);
 		
 		Option toughnessOption = new Option("x", "toughness", false, "enable toughness analysis (disables quick death)");
@@ -98,10 +107,13 @@ public class ExternalJUnitTestRunner {
 		options.addOption(mutantPathOption);
 		options.addOption(mutantClassOption);
 		options.addOption(quickDeathOption);
+		options.addOption(dynamicOption);
 		options.addOption(toughnessOption);
 		options.addOption(socketOption);
+		options.addOption(timeoutOption);
 		
 		CommandLineParser parser = new DefaultParser();
+		boolean verbose = VERBOSE_DEFAULT;
 		
 		try {
 			CommandLine cmd = parser.parse(options, args);
@@ -115,8 +127,6 @@ public class ExternalJUnitTestRunner {
 				formatter.printHelp("muJava++ external JUnit runner", options );
 				System.exit(1);
 			}
-			
-			boolean verbose = false;
 			
 			if (cmd.hasOption(verboseOption.getOpt())) {
 				verbose = true;
@@ -181,8 +191,21 @@ public class ExternalJUnitTestRunner {
 			String classToMutate = cmd.getOptionValue(mutantClassOption.getOpt());
 			if (verbose) System.out.println("Class to mutate: "+ classToMutate); //TODO: this is not validated!
 			
+			
+			long timeout = 0;
+			if (cmd.hasOption(timeoutOption.getOpt())) {
+				timeout = Long.parseLong(cmd.getOptionValue(timeoutOption.getOpt()));
+				if (timeout < 0) {
+					System.err.println("Timeout cannot be a negative value");
+					System.exit(1);
+				}
+				if (verbose) System.out.println("Default timeout set to : " + timeout);
+			}
+			
 			boolean toughness = cmd.hasOption(toughnessOption.getOpt());
-			boolean quickDeath = toughness?false:cmd.hasOption(quickDeathOption.getOpt());
+			boolean dynamic = cmd.hasOption(dynamicOption.getOpt());
+			boolean quickDeath = (toughness||dynamic)?false:cmd.hasOption(quickDeathOption.getOpt());
+			
 			
 			
 			List<TestResult> testResults = new LinkedList<TestResult>();
@@ -190,10 +213,10 @@ public class ExternalJUnitTestRunner {
 				Class<?> testToRun;
 				try {
 					testToRun = Class.forName(test);
-					MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, quickDeath);
+					MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, quickDeath, dynamic, timeout);
 					Result testResult = mjTestRunner.run();
-					Core.killStillRunningJUnitTestcaseThreads();
-					testResults.add(new TestResult(testResult, testToRun));
+					TestResult tresult = new TestResult(testResult, testToRun, mjTestRunner.getSimpleResults());
+					testResults.add(tresult);
 					if (!testResult.wasSuccessful() && quickDeath) {
 						break;
 					}
@@ -216,6 +239,7 @@ public class ExternalJUnitTestRunner {
 				out = new ObjectOutputStream(System.out);
 			}
 	        for (TestResult tr : testResults) {
+	        	if (verbose) System.out.println(tr.toString());
 	            out.writeObject(tr);
 	        }
 	        out.flush();
@@ -229,6 +253,9 @@ public class ExternalJUnitTestRunner {
 			System.err.println("Error while serializing results");
 			System.err.println(ExceptionUtils.getFullStackTrace(e));
 			System.exit(3);
+		} finally {
+			if (verbose) System.out.println("Killing rogue junit threads");
+			Core.killStillRunningJUnitTestcaseThreads();
 		}
 	}
 	
