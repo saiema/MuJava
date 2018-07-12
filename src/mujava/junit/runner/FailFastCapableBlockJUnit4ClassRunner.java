@@ -1,22 +1,48 @@
 package mujava.junit.runner;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.internal.runners.model.EachTestNotifier;
+import org.junit.internal.runners.statements.FailOnTimeout;
 import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.Statement;
 
-public class FailFastBlockJUnit4ClassRunner extends BlockJUnit4ClassRunner {
+
+public class FailFastCapableBlockJUnit4ClassRunner extends BlockJUnit4ClassRunner {
 	
 	protected static boolean ignore = false;
+	private boolean failFast;
+	protected long timeout;
 
-	public FailFastBlockJUnit4ClassRunner(Class<?> klass) throws InitializationError {
+	public FailFastCapableBlockJUnit4ClassRunner(Class<?> klass, boolean failFast, long timeout) throws InitializationError {
 		super(klass);
+		this.failFast = failFast;
+		this.timeout = timeout;
 	}
 	
+	
+	
+	@Override
+	protected Statement withPotentialTimeout(FrameworkMethod method, Object test, Statement next) {
+		boolean methodHasTimeout = false;
+		Test ann = method.getAnnotation(Test.class);
+		if (ann != null) methodHasTimeout = ann.timeout() > 0;
+		if (timeout > 0 && methodHasTimeout) 
+			return FailOnTimeout.builder()
+		               .withTimeout(timeout, TimeUnit.MILLISECONDS)
+		               .build(next);
+		return super.withPotentialTimeout(method, test, next);
+	}
+
+
+
 	@Override
 	protected void runChild(FrameworkMethod method, RunNotifier notifier) {
 		EachTestNotifier eachNotifier= makeNotifier(method, notifier);
@@ -27,13 +53,13 @@ public class FailFastBlockJUnit4ClassRunner extends BlockJUnit4ClassRunner {
 
 		eachNotifier.fireTestStarted();
 		try {
-			if (!FailFastBlockJUnit4ClassRunner.ignore) methodBlock(method).evaluate();
+			if (!failFast || !FailFastCapableBlockJUnit4ClassRunner.ignore) methodBlock(method).evaluate();
 		} catch (AssumptionViolatedException e) {
 			eachNotifier.addFailedAssumption(e);
-			FailFastBlockJUnit4ClassRunner.ignore = true;
+			FailFastCapableBlockJUnit4ClassRunner.ignore = true;
 		} catch (Throwable e) {
 			eachNotifier.addFailure(e);
-			FailFastBlockJUnit4ClassRunner.ignore = true;
+			FailFastCapableBlockJUnit4ClassRunner.ignore = true;
 		} finally {
 			eachNotifier.fireTestFinished();
 		}
