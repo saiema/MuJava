@@ -34,7 +34,7 @@ public class FailFastCapableBlockJUnit4ClassRunner extends BlockJUnit4ClassRunne
 		boolean methodHasTimeout = false;
 		Test ann = method.getAnnotation(Test.class);
 		if (ann != null) methodHasTimeout = ann.timeout() > 0;
-		if (timeout > 0 && methodHasTimeout) 
+		if (timeout > 0 && !methodHasTimeout) 
 			return FailOnTimeout.builder()
 		               .withTimeout(timeout, TimeUnit.MILLISECONDS)
 		               .build(next);
