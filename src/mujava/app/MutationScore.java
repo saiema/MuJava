@@ -26,7 +26,7 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
-import mujava.junit.runner.MuJavaJunitTestRunner;
+import mujava.junit.runner.MuJavaJunitTestRunnerBuilder;
 import mujava.junit.runner.MuJavaTestRunnerException;
 import mujava.loader.Reloader;
 
@@ -152,7 +152,7 @@ public class MutationScore {
 				MutationScore.reloader = MutationScore.reloader.getLastChild();
 				MutationScore.reloader.setSpecificClassPath(mut.getName(), mut.getClassRootFolder());//(className, MutationScore.mutantsSourceFolder+pathToMutant);
 				testToRun = MutationScore.reloader.rloadClass(test, true);
-				MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, MutationScore.quickDeath, MutationScore.dynamicSubsumption, timeout);
+				MuJavaJunitTestRunnerBuilder mjTestRunner = new MuJavaJunitTestRunnerBuilder(testToRun, MutationScore.quickDeath, /*MutationScore.dynamicSubsumption,*/ timeout);
 				Result testResult = mjTestRunner.run();
 				Core.killStillRunningJUnitTestcaseThreads();
 				TestResult tres = new TestResult(testResult, testToRun, mjTestRunner.getSimpleResults());
@@ -277,6 +277,7 @@ public class MutationScore {
 				}
 			}
 			if (useSockets) sc.close();
+			es.shutdown();
 		} catch (IOException | InterruptedException | /*ClassNotFoundException | */ ExecutionException e) {
 			e.printStackTrace();
 			error = e;
