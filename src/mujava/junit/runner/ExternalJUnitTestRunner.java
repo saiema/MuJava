@@ -213,7 +213,7 @@ public class ExternalJUnitTestRunner {
 				Class<?> testToRun;
 				try {
 					testToRun = Class.forName(test);
-					MuJavaJunitTestRunner mjTestRunner = new MuJavaJunitTestRunner(testToRun, quickDeath, dynamic, timeout);
+					MuJavaJunitTestRunnerBuilder mjTestRunner = new MuJavaJunitTestRunnerBuilder(testToRun, quickDeath/*, dynamic*/, timeout);
 					Result testResult = mjTestRunner.run();
 					TestResult tresult = new TestResult(testResult, testToRun, mjTestRunner.getSimpleResults());
 					testResults.add(tresult);
@@ -254,8 +254,8 @@ public class ExternalJUnitTestRunner {
 			System.err.println(ExceptionUtils.getFullStackTrace(e));
 			System.exit(3);
 		} finally {
-			if (verbose) System.out.println("Killing rogue junit threads");
-			Core.killStillRunningJUnitTestcaseThreads();
+//			if (verbose) System.out.println("Killing rogue junit threads");
+//			Core.killStillRunningJUnitTestcaseThreads();
 		}
 	}
 	

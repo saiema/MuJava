@@ -18,9 +18,9 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.ParentRunner;
 import org.junit.runners.Suite;
 
-public class MuJavaJunitTestRunner {
+public class MuJavaJunitTestRunnerBuilder {
 	private boolean failFast;
-	private boolean dynamicSubsumption;
+	//private boolean dynamicSubsumption;
 	private Class<?> testToRun;
 	private Runner testRunner;
 	private JUnitCore core = new JUnitCore();
@@ -28,18 +28,18 @@ public class MuJavaJunitTestRunner {
 	private long timeout;
 	
 	
-	public MuJavaJunitTestRunner(Class<?> testToRun, boolean failFast, boolean dynamicSubsumption, long timeout) throws IllegalArgumentException, MuJavaTestRunnerException {
+	public MuJavaJunitTestRunnerBuilder(Class<?> testToRun, boolean failFast/*, boolean dynamicSubsumption*/, long timeout) throws IllegalArgumentException, MuJavaTestRunnerException {
 		this.failFast = failFast;
 		this.testToRun = testToRun;
-		this.dynamicSubsumption = dynamicSubsumption;
+		//this.dynamicSubsumption = dynamicSubsumption;
 		this.timeout = timeout;
 		try {
 			testRunner = retrieveTestRunner(testToRun);
-			if (this.dynamicSubsumption) {
+			//if (this.dynamicSubsumption) {
 				testsSimpleResults = new TreeMap<>();
 				TestInfoRunListener l = new TestInfoRunListener(testsSimpleResults); 
 				core.addListener(l);
-			}
+			//}
 		} catch (Throwable e) {
 			throw new MuJavaTestRunnerException(this.getClass().getName()+"#MuJavaJunitTestRunner("+testToRun.getName()+")", e);
 		}
