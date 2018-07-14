@@ -336,7 +336,7 @@ public class Core {
 			}
 			boolean killed = false;
 			List<TestResult> results = ms.runTestsWithMutants(Arrays.asList(testClasses), mut);
-			Map<String, boolean[]> testsSimpleResults = new TreeMap<>();
+			Map<String, boolean[]> testsSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<>():null;
 			if (results == null) {
 				System.out.println("An error ocurred while running tests for mutants");
 				System.out.println(ms.getLastError()!=null?ms.getLastError().toString():"no exception to display, contact your favorite mujava++ developer");
@@ -345,7 +345,7 @@ public class Core {
 			int runnedTestsCount = 0;
 			int totalFailures = 0;
 			for (TestResult r : results) {
-				testsSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
+				if (dynamicSubsumptionAnalysis())testsSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
 				System.out.println(r.toString()+"\n");
 				runnedTestsCount += r.getRunnedTestsCount();
 				totalFailures += r.getTotalFailures();
@@ -360,8 +360,10 @@ public class Core {
 				}
 				if (!killed && !r.wasSuccessful()) killed = true;
 			}
-			SubsumptionNode snode = new SubsumptionNode(mut, testsSimpleResults);
-			subsumptionAnalysis.add(snode);
+			if (dynamicSubsumptionAnalysis()) {
+				SubsumptionNode snode = new SubsumptionNode(mut, testsSimpleResults);
+				subsumptionAnalysis.add(snode);
+			}
 			if (toughnessAnalysis()) {
 				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
 				this.addToughnessValue(toughness);
@@ -417,9 +419,9 @@ public class Core {
 			}
 			int runnedTestsCount = 0;
 			int totalFailures = 0;
-			Map<String, boolean[]> testSimpleResults = new TreeMap<>();
+			Map<String, boolean[]> testSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<>():null;
 			for (TestResult tr : r.testResults().testResults()) {
-				testSimpleResults.put(tr.getTestClassRunned().getName(), tr.testResultsAsArray());
+				if (dynamicSubsumptionAnalysis()) testSimpleResults.put(tr.getTestClassRunned().getName(), tr.testResultsAsArray());
 				System.out.println(tr.toString()+"\n");
 				runnedTestsCount += tr.getRunnedTestsCount();
 				totalFailures += tr.getTotalFailures();
@@ -434,8 +436,10 @@ public class Core {
 				}
 				if (!killed && !tr.wasSuccessful()) killed = true;
 			}
-			SubsumptionNode snode = new SubsumptionNode(r.getMutant(), testSimpleResults);
-			subsumptionAnalysis.add(snode);
+			if (dynamicSubsumptionAnalysis()) {
+				SubsumptionNode snode = new SubsumptionNode(r.getMutant(), testSimpleResults);
+				subsumptionAnalysis.add(snode);
+			}
 			if (toughnessAnalysis()) {
 				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
 				this.addToughnessValue(toughness);
@@ -605,9 +609,9 @@ public class Core {
 			}
 			int runnedTestsCount = 0;
 			int totalFailures = 0;
-			Map<String, boolean[]> testSimpleResults = new TreeMap<>();
+			Map<String, boolean[]> testSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<>():null;
 			for (TestResult r : testResults.testResults()) {
-				testSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
+				if (dynamicSubsumptionAnalysis()) testSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
 				System.out.println(r.toString()+"\n");
 				runnedTestsCount += r.getRunnedTestsCount();
 				totalFailures += r.getTotalFailures();
@@ -622,8 +626,10 @@ public class Core {
 				}
 				if (!killed && !r.wasSuccessful()) killed = true;
 			}
-			SubsumptionNode snode = new SubsumptionNode(externalJPRResults.getMutant(), testSimpleResults);
-			subsumptionAnalysis.add(snode);
+			if (dynamicSubsumptionAnalysis()) {
+				SubsumptionNode snode = new SubsumptionNode(externalJPRResults.getMutant(), testSimpleResults);
+				subsumptionAnalysis.add(snode);
+			}
 			if (toughnessAnalysis()) {
 				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
 				this.addToughnessValue(toughness);
