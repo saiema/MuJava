@@ -197,6 +197,10 @@ public class SubsumptionNode implements Comparable<SubsumptionNode>{
 		return false;
 	}
 	
+	public List<MutantInfo> getMutants() {
+		return mutants;
+	}
+	
 	public String nodeName() {
 		String hash =JustCodeDigest.toHex(JustCodeDigest.digest(getMutantsID(), false));
 		StringBuilder sb = new StringBuilder();
