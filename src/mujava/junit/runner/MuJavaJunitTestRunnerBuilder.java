@@ -26,6 +26,7 @@ public class MuJavaJunitTestRunnerBuilder {
 	private JUnitCore core = new JUnitCore();
 	private Map<String, Boolean> testsSimpleResults;
 	private long timeout;
+	public static boolean verbose = false;
 	
 	
 	public MuJavaJunitTestRunnerBuilder(Class<?> testToRun, boolean failFast/*, boolean dynamicSubsumption*/, long timeout) throws IllegalArgumentException, MuJavaTestRunnerException {
@@ -55,29 +56,38 @@ public class MuJavaJunitTestRunnerBuilder {
 	}
 	
 	private ParentRunner<?> retrieveTestRunner(Class<?> testToRun) throws Throwable {
+		if (verbose) System.out.println("mujava.junit.runner.MuJavaJunitTestRunnerBuilder: retrieving runner for class " + testToRun.getName());
 		RunWith runWithAnnotation = testToRun.getAnnotation(RunWith.class);
 		if (runWithAnnotation != null) {
+			if (verbose) System.out.println("runWith annotation found");
 			if (runWithAnnotation.value().equals(Parameterized.class)) {
+				if (verbose) System.out.println("runWith Parameterized.class");
 				return new FailFastCapableParameterized(testToRun, failFast, timeout);
 			}  else if (runWithAnnotation.value().equals(Suite.class)) {
-				
+				if (verbose) System.out.println("runWith Suite.class");
 				return new Suite(testToRun, new FailFastCapableRunnerBuilder(failFast, timeout));
 			}
 		} else if (TestCase.class.isAssignableFrom(testToRun)) {
+			if (verbose) System.out.println("Test class extends TestCase");
 			Method suiteMethod = getSuiteMethod(testToRun);
 			if (suiteMethod != null) {
+				if (verbose) System.out.println("suite method found");
 				TestSuite testSuite = getTestSuite(suiteMethod);
 				return retrieveTestRunner(testSuite.getClass());
 			}
+			if (verbose) System.out.println("suite method not found");
 			testRunner = null; //TODO: for the moment will be using this runner
 		} else if (TestSuite.class.isAssignableFrom(testToRun)) {
+			if (verbose) System.out.println("Test class extends TestSuite");
 			testRunner = null; //TODO: for the moment will be using this runner
 		} else if (hasTestMethod(testToRun)) {
+			if (verbose) System.out.println("Test method found");
 			if (failFast) FailFastCapableBlockJUnit4ClassRunner.ignore = false;
 			return new FailFastCapableBlockJUnit4ClassRunner(testToRun, failFast, timeout);
 		} else {
 			throw new IllegalArgumentException("Class : " + testToRun.toString() + " is not a valid junit test");
 		}
+		if (verbose) System.out.println("No conditions met");
 		return null;
 	}
 	
