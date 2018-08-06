@@ -10,11 +10,20 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+import mujava.api.MutationOperator;
 
 public class SubsumptionAnalysis {
 	
 	public static boolean fullPrint = false;
 	private List<SubsumptionNode> nodes = new LinkedList<>();
+	private List<SubsumptionNode> dominatorNodes = null;
+	private boolean dataChanged = false;
 	private static enum AnalisisType {EQUIVALENT, SUBSUMING};
 	private boolean analyzed = false;
 	
@@ -27,6 +36,7 @@ public class SubsumptionAnalysis {
 			}
 		}
 		nodes.add(snode);
+		dataChanged = true;
 	}
 	
 	public void analyse() {
@@ -71,14 +81,23 @@ public class SubsumptionAnalysis {
 	}
 	
 	public List<SubsumptionNode> getDominatorNodes() {
-		List<SubsumptionNode> dominators = new LinkedList<>();
-		for (SubsumptionNode n : nodes) {
-			if (n.isDominator()) dominators.add(n);
+		analyse();
+		List<SubsumptionNode> dominators;
+		if (!dataChanged && dominatorNodes != null) {
+			return dominatorNodes;
+		} else if (dataChanged || dominatorNodes == null) {
+			dominators = new LinkedList<>();
+			for (SubsumptionNode n : nodes) {
+				if (n.isDominator()) dominators.add(n);
+			}
+			dominatorNodes = dominators;
 		}
-		return dominators;
+		dataChanged = false;
+		return dominatorNodes;
 	}
 	
 	public List<SubsumptionNode> getNonDominatorNodes() {
+		analyse();
 		List<SubsumptionNode> nondominators = new LinkedList<>();
 		for (SubsumptionNode n : nodes) {
 			if (!n.isDominator()) nondominators.add(n);
@@ -88,6 +107,7 @@ public class SubsumptionAnalysis {
 	
 	@Override
 	public String toString() {
+		analyse();
 		StringBuilder sb = new StringBuilder("");
 		Collections.sort(nodes);
 		sb.append("Dynamic Subsumption Analysis\n");
@@ -101,6 +121,7 @@ public class SubsumptionAnalysis {
 	}
 	
 	public boolean generateDotFile(String file) {
+		analyse();
 		Path pfile = Paths.get(file);
 		if (Files.exists(pfile)) {
 			System.err.println(pfile.toString() + " already exists");
@@ -245,6 +266,65 @@ public class SubsumptionAnalysis {
 			return null;
 		}
 		return pfile.getFileName();
+	}
+	
+	public Map<MutationOperator, Integer> getDominatorMutantsPerOperator() {
+		analyse();
+		Map<MutationOperator, Integer> res = new TreeMap<>();
+		for (SubsumptionNode d : getDominatorNodes()) {
+			Set<MutationOperator> alreadySeen = new TreeSet<>();
+			for (MutantInfo m : d.getMutants()) {
+				MutationOperator op = m.getOpUsed();
+				if (alreadySeen.add(op)) {
+					if (res.containsKey(op)) {
+						Integer cv = res.get(op);
+						res.put(op, cv + 1);
+					} else {
+						res.put(op, 1);
+					}
+				}
+			}
+		}
+		return res;
+	}
+	
+	public boolean writeDominatorMutantsPerOperator(String file) {
+		Path pfile = Paths.get(file);
+		int totalDomMutants = 0;
+		int totalDomPRVOMutants = 0;
+		if (Files.exists(pfile)) {
+			System.err.println(pfile.toString() + " already exists");
+			return true;
+		}
+		StringBuilder sb = new StringBuilder();
+		for (Entry<MutationOperator, Integer> opData : getDominatorMutantsPerOperator().entrySet()) {
+			if (isPRVO(opData.getKey())) totalDomPRVOMutants++;
+			totalDomMutants++;
+			sb.append(opData.getKey().name()).append("\t:\t").append(opData.getValue()).append("\n");
+		}
+		sb.append("Total dominator mutants\t:\t").append(totalDomMutants).append("\n");
+		sb.append("Total PRVO dominator mutants\t:\t").append(totalDomPRVOMutants).append("\n");
+		try {
+			Files.write(pfile, sb.toString().getBytes());
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	private boolean isPRVO(MutationOperator op) {
+		switch (op) {
+			case PRVOL:
+			case PRVOL_SMART:
+			case PRVOR:
+			case PRVOR_REFINED:
+			case PRVOR_SMART:
+			case PRVOU:
+			case PRVOU_REFINED:
+			case PRVOU_SMART: return true;
+			default: return false;
+		}
 	}
 
 }

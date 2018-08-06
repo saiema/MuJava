@@ -28,6 +28,8 @@ import mujava.api.MutationOperator;
 import mujava.loader.Reloader;
 import mujava.op.BEE;
 import mujava.op.PRVO;
+import mujava.op.basic.AODS;
+import mujava.op.basic.AOIS;
 import mujava.op.util.MutantCodeWriter;
 import mujava.util.Config;
 import mujava.util.ConfigReader;
@@ -618,6 +620,22 @@ public class Main {
 				Configuration.add(Configuration.ENABLE_INHERITED_ELEMENTS, Boolean.FALSE);
 				if (config.fullVerboseMode()) System.out.println("PRVO inherited elements use disabled");
 			}
+			
+			if (config.prvoSmartMode_arithmeticOpShortcuts()) {
+				Configuration.add(PRVO.SMART_MODE_WITH_ARITHMETIC_OP_SHORTCUTS, Boolean.TRUE);
+				if (config.fullVerboseMode()) System.out.println("PRVO will not use methods or final fields or variables for arithmetic shortcut operators expressions");
+			} else {
+				Configuration.add(PRVO.SMART_MODE_WITH_ARITHMETIC_OP_SHORTCUTS, Boolean.FALSE);
+				if (config.fullVerboseMode()) System.out.println("PRVO will use methods or final fields or variables for arithmetic shortcut operators expressions (WARNING: this will generate non-compiling mutants)");
+			}
+			
+			if (config.prvoSmartMode_assignments()) {
+				Configuration.add(PRVO.SMART_MODE_WITH_ASSIGNMENTS, Boolean.TRUE);
+				if (config.fullVerboseMode()) System.out.println("PRVO will not use final fields or variables for left hand side of assignments, and will not mutate the left hand side if it's final");
+			} else {
+				Configuration.add(PRVO.SMART_MODE_WITH_ASSIGNMENTS, Boolean.FALSE);
+				if (config.fullVerboseMode()) System.out.println("PRVO will ignore final modifiers when mutating left hand side of assignments (WARNING: this will generate non-compiling mutants)");
+			}
 		
 			//ROR CONFIG
 			
@@ -703,6 +721,24 @@ public class Main {
 				Configuration.add(BEE.SCAN_FOR_EXPRESSIONS, Boolean.FALSE);
 				if (config.fullVerboseMode()) System.out.println("BEE scan for expressions disabled");
 			}
+			
+			//AOIS CONFIG
+			if (config.aoisSkipFinal()) {
+				Configuration.add(AOIS.AOIS_IGNORE_FINAL, Boolean.TRUE);
+				if (config.fullVerboseMode()) System.out.println("AOIS will not mutate final variables or fields");
+			} else {
+				Configuration.add(AOIS.AOIS_IGNORE_FINAL, Boolean.FALSE);
+				if (config.fullVerboseMode()) System.out.println("AOIS will mutate final variable and fields (WARNING: this will generate non-compiling mutants)");
+			}
+			
+			//AODS CONFIG
+			if (config.aodsSkipExpressionStatements()) {
+				Configuration.add(AODS.AODS_AVOID_EXPRESSION_STATEMENTS, Boolean.TRUE);
+				System.out.println("AODS will ignore arithmetic operator shortcuts when they are a statement");
+			} else {
+				Configuration.add(AODS.AODS_AVOID_EXPRESSION_STATEMENTS, Boolean.FALSE);
+				System.out.println("AODS will not ignore arithmetic operator shortcuts when they are a statement (WARNING: this will generate non-compiling mutants)");
+			}
 		}
 		
 		//================================TIMEOUT==============================================//
@@ -716,6 +752,10 @@ public class Main {
 		System.out.println("Parameters validated\n\n");
 		
 		//================================Mutants generation==============================================//
+		//TEMP HARDCODED CONFIGURATION
+		//this configurations should be added to configurable values
+		//ADD HERE
+		//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		if (!useExternalMutants) {
 			System.out.println("Generating mutants...\n");
 			//List<MutationOperator> basicMutants = mi.listBasicOperators();
@@ -775,6 +815,12 @@ public class Main {
 					System.out.println("Dynamic subsumption saved at " + config.dynamicSubsumptionOutput());
 				} else {
 					System.err.println("Error generating Dynamic Subsumption results");
+				}
+				Path domMutantsPerOp = Paths.get(config.dynamicSubsumptionOutput(), "domMutantsPerOperator.txt");
+				if (subsumptionAnalysis.writeDominatorMutantsPerOperator(domMutantsPerOp.toString())) {
+					System.out.println("Dominator mutants per operator saved at " + domMutantsPerOp.toString());
+				} else {
+					System.err.println("Error while writting dominator mutants per operator");
 				}
 				
 				//System.out.println(subsumptionAnalysis.toString());

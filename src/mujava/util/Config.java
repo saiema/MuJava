@@ -67,6 +67,8 @@ public class Config {
 	private boolean applyRefinedPRVOInMethodCallStatements;
 	private int generation;
 	private int reloaderInstancesLimit;
+	private boolean aoisSkipFinal;
+	private boolean aodsSkipExpressionStatements;
 	private boolean rorReplaceWithTrue;
 	private boolean rorReplaceWithFalse;
 	private boolean corUseAndOp;
@@ -96,6 +98,8 @@ public class Config {
 	private boolean prvoEnableAutoboxing;
 	private boolean prvoEnableInheritedElements;
 	private boolean prvoAllowStaticFromNonStaticExpression;
+	private boolean prvoSmartMode_arithmeticOpShortcuts;
+	private boolean prvoSmartMode_assignments;
 	private boolean useSimpleClassNames;
 	private boolean useExternalJUnitRunner;
 	private boolean useParallelExternalJUnitRunner;
@@ -153,6 +157,8 @@ public class Config {
 		writePrologue(false);
 		outputMutationsInfo(false);
 		useSimpleClassNames(false);
+		initializeAIOSOptions();
+		initializeAODSOptions();
 		initializePRVOOptions();
 		intitializeROROptions();
 		initializeCOROptions();
@@ -171,6 +177,14 @@ public class Config {
 		clearPackagesToReload();
 		clearTestClassesInTestsBinDir();
 		clearTestClasses();
+	}
+	
+	private void initializeAIOSOptions() {
+		aoisSkipFinal(false);
+	}
+	
+	private void initializeAODSOptions() {
+		aodsSkipExpressionStatements(false);
 	}
 	
 	private void initializeCOROptions() {
@@ -209,6 +223,8 @@ public class Config {
 		prvoEnableAutoboxing(true);
 		prvoEnableInheritedElements(true);
 		prvoAllowStaticFromNonStaticExpression(true);
+		prvoSmartMode_arithmeticOpShortcuts(false);
+		prvoSmartMode_assignments(false);
 	}
 	
 	private void initializeBEEOptions() {
@@ -567,6 +583,22 @@ public class Config {
 		this.applyRefinedPRVOInMethodCallStatements = b;
 	}
 	
+	public boolean aoisSkipFinal() {
+		return aoisSkipFinal;
+	}
+	
+	public void aoisSkipFinal(boolean v) {
+		aoisSkipFinal = v;
+	}
+	
+	public boolean aodsSkipExpressionStatements() {
+		return aodsSkipExpressionStatements;
+	}
+	
+	public void aodsSkipExpressionStatements(boolean v) {
+		aodsSkipExpressionStatements = v;
+	}
+	
 	public void rorReplaceWithTrue(boolean b) {
 		this.rorReplaceWithTrue = b;
 	}
@@ -696,11 +728,27 @@ public class Config {
 	}
 	
 	public boolean prvoAllowStaticFromNonStaticExpression() {
-		return this.prvoAllowStaticFromNonStaticExpression;
+		return prvoAllowStaticFromNonStaticExpression;
 	}
 	
 	public void prvoAllowStaticFromNonStaticExpression(boolean prvoAllowStaticFromNonStaticExpression) {
 		this.prvoAllowStaticFromNonStaticExpression = prvoAllowStaticFromNonStaticExpression;
+	}
+	
+	public boolean prvoSmartMode_arithmeticOpShortcuts() {
+		return prvoSmartMode_arithmeticOpShortcuts;
+	}
+	
+	public void prvoSmartMode_arithmeticOpShortcuts(boolean v) {
+		prvoSmartMode_arithmeticOpShortcuts = v;
+	}
+	
+	public boolean prvoSmartMode_assignments() {
+		return prvoSmartMode_assignments;
+	}
+	
+	public void prvoSmartMode_assignments(boolean v) {
+		prvoSmartMode_assignments = v;
 	}
 
 	public boolean rorReplaceWithTrue() {
@@ -917,6 +965,8 @@ public class Config {
 			Class<?> classToMutate = loadClass(this.classToMutate, this.originalBinDir);
 			if (classToMutate != null) {
 				for (Method m : classToMutate.getDeclaredMethods()) {
+					String methodName = m.getName();
+					if (methodName.startsWith("access$")) continue;
 					classMethods.add(m);
 				}
 			}
