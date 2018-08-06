@@ -4,6 +4,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,18 +14,29 @@ import java.util.concurrent.Callable;
 public class TestResultCollector implements Callable<List<TestResult>> {
 	
 	private List<TestResult> results;
-	private InputStream is;
 	private MutantInfo forMutant;
+	private ServerSocket sc;
 	
-	public TestResultCollector(InputStream is, MutantInfo forMutant) {
-		this.is = is;
+	public TestResultCollector(int port, MutantInfo forMutant) throws IOException {
 		this.forMutant = forMutant;
 		results = new LinkedList<>();
+		sc = new ServerSocket(port);
+	}
+	
+	/**
+	 * Only for fiercely closing the connection
+	 * @throws IOException
+	 */
+	public void closeSocket() throws IOException {
+		sc.close();
 	}
 
 	@Override
 	public List<TestResult> call() throws Exception {
+		Socket client = sc.accept();
+		InputStream is = client.getInputStream();
 		results.addAll(parseResultsFromInputStream(is, forMutant));
+		sc.close();
 		return results;
 	}
 	

@@ -2,11 +2,8 @@ package mujava.app;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.net.MalformedURLException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
@@ -154,7 +151,7 @@ public class MutationScore {
 				testToRun = MutationScore.reloader.rloadClass(test, true);
 				MuJavaJunitTestRunnerBuilder mjTestRunner = new MuJavaJunitTestRunnerBuilder(testToRun, MutationScore.quickDeath, /*MutationScore.dynamicSubsumption,*/ timeout);
 				Result testResult = mjTestRunner.run();
-				Core.killStillRunningJUnitTestcaseThreads();
+				//Core.killStillRunningJUnitTestcaseThreads();
 				TestResult tres = new TestResult(testResult, testToRun, mjTestRunner.getSimpleResults());
 				testResults.add(tres);
 				if (!testResult.wasSuccessful() && MutationScore.quickDeath) {
@@ -242,45 +239,40 @@ public class MutationScore {
 			args[currentIndex+1] = Integer.toString(port);
 		}
 		ProcessBuilder pb = new ProcessBuilder(args);
-		File errorLog = new File("error.log");
+		//File errorLog = new File("externalError_" + port + ".log");
+		File errorLog = new File("externalError.log");
 		pb.redirectError(Redirect.appendTo(errorLog));
 		if (useSockets) {
-			File outputLog = new File("external.log");
+			//File outputLog = new File("externalOutput_" + port + ".log");
+			File outputLog = new File("externalOutput.log");
 			pb.redirectOutput(Redirect.appendTo(outputLog));
 		}
+		ExecutorService es = Executors.newSingleThreadExecutor();
 		try {
-			ServerSocket sc = useSockets?new ServerSocket(port):null;
-			InputStream is = null;
-			Process p = pb.start();
-			if (useSockets) {
-				System.out.println("Accepting on port " + port);
-				Socket client = sc.accept();
-				System.out.println("Connection accepted on port " + port);
-				is = client.getInputStream();
-			} else {
-				is = p.getInputStream();
-			}
-			ExecutorService es = Executors.newSingleThreadExecutor();
-			TestResultCollector testResultsCollector = new TestResultCollector(is, mut);
+			TestResultCollector testResultsCollector = new TestResultCollector(port, mut);
 			Future<List<TestResult>> testResultsCollectorTask = es.submit(testResultsCollector);
+			Process p = pb.start();
 			int exitCode = p.waitFor();
 			//TODO: manage errors in the result
 			if (exitCode != 0) {
 				System.err.println("External JUnit runner for mutant " + mut.getPath() + " failed with code " + exitCode);
+				testResultsCollector.closeSocket();
 			} else {
-				if (is == null) {
-					System.err.println("InputStream from external JUnit runner is null");
-				} else {
-					//testResults.addAll(parseResultsFromInputStream(is,mut));
-					testResults.addAll(testResultsCollectorTask.get());
-					if (!useSockets) is.close();
-				}
+				testResults.addAll(testResultsCollectorTask.get());
+//				if (is == null) {
+//					System.err.println("InputStream from external JUnit runner is null");
+//				} else {
+//					//testResults.addAll(parseResultsFromInputStream(is,mut));
+//					
+//					if (!useSockets) is.close();
+//				}
 			}
-			if (useSockets) sc.close();
-			es.shutdown();
+//			if (useSockets) sc.close();
 		} catch (IOException | InterruptedException | /*ClassNotFoundException | */ ExecutionException e) {
 			e.printStackTrace();
 			error = e;
+		} finally {
+			es.shutdown();
 		}
 		ExternalJUnitResult res = null;
 		if (error == null) {
