@@ -1361,6 +1361,10 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		expr.accept(this);
 
 		out.print(";");
+		
+		if (p.hasMutGenLimit()) {								//added (19/07/18) [simon]
+			out.print(" //mutGenLimit " + p.getMutGenLimit());	//added (19/07/18) [simon]
+		}														//added (19/07/18) [simon]
 
 		out.println();
 		line_num++;
@@ -1841,7 +1845,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	private void outputCommentIfApplicable(String original, boolean useTabs, boolean addLineSeparator) {
 		if (original == null) return;
 		if (original.isEmpty()) return;
-		Matcher m = Pattern.compile("(\n)|(\r)|(\r\n)|("+System.getProperty("line.separator")+")").matcher(original);
+		Matcher m = Pattern.compile("(\r\n)|(\n)|(\r)|("+System.getProperty("line.separator")+")").matcher(original);
 		int from = 0;
 		int to = 0;
 		while (!m.hitEnd()) {
