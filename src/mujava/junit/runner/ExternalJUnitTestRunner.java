@@ -37,9 +37,19 @@ public class ExternalJUnitTestRunner {
 	 * 
 	 * exit codes :
 	 * <li>0 : normal exit</li>
-	 * <li>1 : error in configuration</li>
-	 * <li>2 : error while running mutation analysis (running tests)</li>
-	 * <li>3 : error while serializing test results</li> 
+	 * <li>100 : Called help</li>
+	 * <li>101 : Project bin directory doesn't exist</li>
+	 * <li>102 : Tests directory doesn't exist</li>
+	 * <li>103 : Library not a directory nor a jar file</li>
+	 * <li>104 : Test class doesn't exist</li>
+	 * <li>105 : Mutant path doesn't exist</li>
+	 * <li>106 : Timeout is a negative value</li>
+	 * <li>199 : Incorrect arguments</li>
+	 * <li>201 : Error running mutation analysis (ClassNotFoundException | IllegalArgumentException)</li>
+	 * <li>202 : Error running mutation analysis (Throwable)</li>
+	 * <li>300 : error while serializing test results</li>
+	 * <li>400 : unexpected exception</li>
+	 * <li>500 : unexpected error</li>
 	 * @param args
 	 */
 	public static void main(String[] args) {
@@ -125,7 +135,7 @@ public class ExternalJUnitTestRunner {
 				System.out.println("Console version");
 				HelpFormatter formatter = new HelpFormatter();
 				formatter.printHelp("muJava++ external JUnit runner", options );
-				System.exit(1);
+				System.exit(100);
 			}
 			
 			if (cmd.hasOption(verboseOption.getOpt())) {
@@ -138,14 +148,14 @@ public class ExternalJUnitTestRunner {
 			String binDir = cmd.getOptionValue(projectBinFolderOption.getOpt());
 			if (!verifyDirectory(binDir)) {
 				System.err.println("Project bin directory ("+binDir+") doesn't exist");
-				System.exit(1);
+				System.exit(101);
 			}
 			if (verbose) System.out.println("Project bin dir: " + binDir);
 			
 			String testBinDir = cmd.getOptionValue(testsBinFolderOption.getOpt());
 			if (!verifyDirectory(testBinDir)) {
 				System.err.println("Tests directory ("+testBinDir+") doesn't exist");
-				System.exit(1);
+				System.exit(102);
 			}
 			if (verbose) System.out.println("Tests bin dir: " + testBinDir);
 			
@@ -153,7 +163,7 @@ public class ExternalJUnitTestRunner {
 			for (String l : libs) {
 				if (!verifyDirectory(l) && !l.endsWith(".jar")) {
 					System.err.println("library ("+l+") is not a directory or jar file");
-					System.exit(1);
+					System.exit(103);
 				}
 			}
 			
@@ -176,7 +186,7 @@ public class ExternalJUnitTestRunner {
 			for (String tc : tclasses) {
 				if (!verifyFile(testBinDir+tc.replaceAll("\\.", Core.SEPARATOR)+".class")) {
 					System.err.println("Test class ("+(testBinDir+tc.replaceAll("\\.", Core.SEPARATOR)+".class")+") doesn't exist");
-					System.exit(1);
+					System.exit(104);
 				}
 			}
 			if (verbose) System.out.println("Tests classes: "+stringArrayToString(tclasses));
@@ -184,7 +194,7 @@ public class ExternalJUnitTestRunner {
 			String mutantPath = cmd.getOptionValue(mutantPathOption.getOpt());
 			if (!verifyDirectory(mutantPath)) {
 				System.err.println("Mutant path : " + mutantPath + " doesn't exist");
-				System.exit(1);
+				System.exit(105);
 			}
 			if (verbose) System.out.println("Mutant path : " + mutantPath);
 			
@@ -197,7 +207,7 @@ public class ExternalJUnitTestRunner {
 				timeout = Long.parseLong(cmd.getOptionValue(timeoutOption.getOpt()));
 				if (timeout < 0) {
 					System.err.println("Timeout cannot be a negative value");
-					System.exit(1);
+					System.exit(106);
 				}
 				if (verbose) System.out.println("Default timeout set to : " + timeout);
 			}
@@ -222,10 +232,10 @@ public class ExternalJUnitTestRunner {
 					}
 				} catch (ClassNotFoundException | IllegalArgumentException e) { //| MuJavaTestRunnerException e) { //| InitializationError e) { //changed to support junit 3.8
 					System.err.println(ExceptionUtils.getFullStackTrace(e));
-					System.exit(2);
+					System.exit(201);
 				} catch (Throwable e) {
 					System.err.println(ExceptionUtils.getFullStackTrace(e));
-					System.exit(2);
+					System.exit(202);
 				}
 			}
 			ObjectOutputStream out = null;
@@ -233,7 +243,9 @@ public class ExternalJUnitTestRunner {
 			if (useSocket) {
 				SocketAddress sockaddr = new InetSocketAddress(host, port);
 				sc = new Socket();
+				if (verbose) System.out.println("About to connect to " + host + ":" + port);
 				sc.connect(sockaddr, 0);
+				if (verbose) System.out.println("Connected to " + host + ":" + port);
 				out = new ObjectOutputStream(sc.getOutputStream());
 			} else {
 				out = new ObjectOutputStream(System.out);
@@ -243,20 +255,30 @@ public class ExternalJUnitTestRunner {
 	            out.writeObject(tr);
 	        }
 	        out.flush();
-	        Core.killStillRunningJUnitTestcaseThreads();
+	        //Core.killStillRunningJUnitTestcaseThreads();
 	        if (useSocket) sc.close();
 		} catch (ParseException e) {
 			System.err.println("Incorrect options.  Reason: " + e.getMessage());
 			System.err.println(ExceptionUtils.getFullStackTrace(e));
-			System.exit(1);
+			System.exit(199);
 		} catch (IOException e) {
 			System.err.println("Error while serializing results");
 			System.err.println(ExceptionUtils.getFullStackTrace(e));
-			System.exit(3);
-		} finally {
-//			if (verbose) System.out.println("Killing rogue junit threads");
-//			Core.killStillRunningJUnitTestcaseThreads();
+			System.exit(300);
+		} catch (Exception e) {
+			System.err.println("An unexpected exception occurred");
+			System.err.println(ExceptionUtils.getFullStackTrace(e));
+			System.exit(400);
+		} catch (Error e) {
+			System.err.println("An unexpected error occurred");
+			System.err.println(ExceptionUtils.getFullStackTrace(e));
+			System.exit(500);
 		}
+		System.exit(0);
+		//finally {
+			//if (verbose) System.out.println("Killing rogue junit threads");
+			//Core.killStillRunningJUnitTestcaseThreads();
+		//}
 	}
 	
 	private static boolean verifyDirectory(String dir) {
