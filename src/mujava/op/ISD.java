@@ -109,7 +109,7 @@ public class ISD extends Mutator {
 		String currentName;
 		if (current instanceof FieldAccess) {
 			currentName = ((FieldAccess) current).getName();
-			List<Variable> reachableVars = getReachableVariables((ParseTreeObject) current).get(currentType);
+			List<Variable> reachableVars = getReachableVariables((ParseTreeObject) current, ALLOW_FINAL).get(currentType);
 			for (Variable var : reachableVars) {
 				String varName = var.toString();
 				if (compareNamesWithoutPackage(currentName, varName)) {

@@ -248,7 +248,7 @@ public class BEE extends Mutator {
 	
 	private List<Object> getBooleanExpressions(ParseTreeObject from) throws OJClassNotFoundException, ParseTreeException {
 		List<Object> booleanExpressions = new LinkedList<>();
-		Map<OJClass, List<Variable>> reachableVars = getReachableVariables(from);
+		Map<OJClass, List<Variable>> reachableVars = getReachableVariables(from, ALLOW_FINAL);
 		for (OJClass key : reachableVars.keySet()) {
 			if (key.getSimpleName().toLowerCase().compareTo("boolean") == 0) {
 				booleanExpressions.addAll(reachableVars.get(key));
