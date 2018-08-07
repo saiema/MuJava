@@ -10,7 +10,6 @@ import java.util.Stack;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
-
 import java.util.Comparator;
 
 import mujava.api.Api;
@@ -261,7 +260,19 @@ public class PRVO extends mujava.op.util.Mutator {
 	 * this option is enabled by default
 	 */
 	public static final String ALLOW_STATIC_FROM_NON_STATIC_EXPRESSIONS = "prvo_allow_static_fromr_non_static_expressions";
-	
+	/**
+	 * Option to enable/disable ignoring methods and final vars and fields when mutating an unary expression using
+	 * an arithmetic shortcut operator
+	 * <p>
+	 * this option is disabled by default
+	 */
+	public static final String SMART_MODE_WITH_ARITHMETIC_OP_SHORTCUTS = "prvo_smart_with_arith_op_shortcuts";
+	/**
+	 * Option to enable/disable ignoring final fields and vars to be used at the left hand side of an assignment
+	 * <p>
+	 * this option is disabled by default
+	 */
+	public static final String SMART_MODE_WITH_ASSIGNMENTS = "prvo_smart_assignments";
 	
 	//ParseTreeObject parent = null;
 
@@ -286,6 +297,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	private boolean refinedMode = false;
 	private Stack<Boolean> refModeAllowNullStack = new Stack<Boolean>();
 	private Stack<Expression> refModeComplyTypeStack = new Stack<Expression>();
+	private Stack<Boolean> fromUnaryArithmeticShortcut = new Stack<Boolean>();
 	//private boolean smartMode;
 	private MutationOperator op;
 	
@@ -609,7 +621,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	 * This method does not alter {@code v} node
 	 */
 	private Expression fixStupidVariable(Variable v) throws ParseTreeException {
-		Map<OJClass, List<Variable>> reachableVars = getReachableVariables(v.getParent());
+		Map<OJClass, List<Variable>> reachableVars = getReachableVariables(v.getParent(), ALLOW_FINAL);
 		boolean found = false;
 		OJClass vType = getType(v);
 		for (List<Variable> vars : reachableVars.values()) {
@@ -672,7 +684,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 	}
 
-	private List<Object> fieldAndMethods(ParseTreeObject limit, Object elem, boolean forceIgnoreVars) throws ParseTreeException{
+	private List<Object> fieldAndMethods(ParseTreeObject limit, Object elem, boolean forceIgnoreVars, boolean allowFinal) throws ParseTreeException{
 		boolean ignoreVars = forceIgnoreVars || limit == null;
 		OJClass t = null;
 		OJClass self = getSelfType();
@@ -693,7 +705,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		int options = 0;
 		options += ignoreVars?0:VARIABLES;
-		options += this.allowFinalMembers()?ALLOW_FINAL:0;
+		options += (this.allowFinalMembers() && allowFinal)?ALLOW_FINAL:0;
 		options += this.allowInheritedElements()?ALLOW_PROTECTED_INHERITED:0;
 		boolean useOnlyStatic = false;
 		if (elem instanceof FieldAccess) {
@@ -706,6 +718,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		options += (useOnlyStatic || this.useStaticForNonStaticExpressions())?ALLOW_STATIC:0;
 		if (elem != null && t.getName().compareTo(self.getName()) == 0) {
 			options += TARGET_IS_MUTATED_CLASS_OBJECT;
+			options += ALLOW_PRIVATE;
 		}
 //		if (t.isInSamePackage(self) || isInnerClassOf(self, t, 0)) {
 //			options += ALLOW_PACKAGED;
@@ -815,7 +828,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			}
 		}
 		if (addVariables) {
-			Map<OJClass, List<Variable>> reachableVars = getReachableVariables(limit);
+			Map<OJClass, List<Variable>> reachableVars = getReachableVariables(limit, ALLOW_FINAL);
 			for (Entry<OJClass, List<Variable>> vars : reachableVars.entrySet()) {
 				for (Variable v : vars.getValue()) {
 					if (!fnm.contains(v)) fnm.add(v);
@@ -940,8 +953,19 @@ public class PRVO extends mujava.op.util.Mutator {
 	private void sameLength(NonLeaf orig, Expression e1, Expression e2, boolean lor, boolean refined) throws ParseTreeException {
 		OJClass ltype = getType(e1);
 		OJClass rtype = getType(e2);
+		boolean allowFinal = true;
 		boolean methodApplicable = (lor && !(e1 instanceof Literal)) || (!lor && (e2 instanceof Variable || e2 instanceof FieldAccess || e2 instanceof MethodCall || e2 instanceof Literal || e2 instanceof AllocationExpression));
 		if (methodApplicable && this.allowSameLengthMutations()) {
+			if (beSmartAboutFinalObjectsAtLeftHandSideOfAssignments()) {
+				Statement from = (Statement) getStatement((ParseTreeObject)(lor?e1:e2));
+				if (from != null && (from instanceof ExpressionStatement) && ((ExpressionStatement)from).getExpression() instanceof AssignmentExpression) {
+					AssignmentExpression fromAE = (AssignmentExpression) ((ExpressionStatement)from).getExpression();
+					if (lor && fromAE.getLeft().equals(e1)) allowFinal = false;
+				}
+			}
+			if (!fromUnaryArithmeticShortcut.isEmpty() && fromUnaryArithmeticShortcut.peek()) {
+				allowFinal = false;
+			}
 			Expression current = lor?e1:e2;
 			Expression prev = null;
 			Expression next = null;
@@ -949,7 +973,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			if (!lor && (e2 instanceof Variable || e2 instanceof AllocationExpression || e2 instanceof ArrayAllocationExpression) && compatibleAssignTypeRelaxed(ltype, null) && this.allowLiteralNull() && ((refined && this.refModeAllowNullStack.peek()) || !refined)) outputToFile((ParseTreeObject)(lor?e1:e2), Literal.constantNull());
 			do {
 				prev = getPreviousExpression(current);
-				java.util.List<Object> fnm = fieldAndMethods(orig, prev, false); //this.smartMode?fieldAndMethods(orig, prev, false):fieldAndMethods(prev, (ParseTreeObject) (lor?e1:e2));
+				java.util.List<Object> fnm = fieldAndMethods(orig, prev, false, (next != null || allowFinal)); //this.smartMode?fieldAndMethods(orig, prev, false):fieldAndMethods(prev, (ParseTreeObject) (lor?e1:e2));
 				for (Object m : fnm) {
 					boolean fieldSpecialCase = prev == null && m instanceof OJMember;
 					if (!fieldSpecialCase && ((m instanceof OJMember && ((OJMember)m).getName().compareTo(convertExpressionToString(current,false))==0)
@@ -975,6 +999,7 @@ public class PRVO extends mujava.op.util.Mutator {
 					if (retType.isPrimitive() && next != null) continue;
 					if (lor && prev==null && !getType(current).isPrimitive() && retType.isPrimitive()) continue;
 					//m = nodeCopyOf((ParseTreeObject) m);
+					if (!fromUnaryArithmeticShortcut.isEmpty() && fromUnaryArithmeticShortcut.peek() && next == null && m instanceof OJMethod) continue;
 					if ((next == null) && (lor?compatibleTypes(retType, rtype):compatibleTypes(ltype, retType, !refined))) {
 						Expression prevCopy = prev==null?null:((Expression) nodeCopyOf((ParseTreeObject) prev));//prev.makeRecursiveCopy_keepOriginalID());
 						ParseTreeObject mutantNode = null;
@@ -1082,7 +1107,18 @@ public class PRVO extends mujava.op.util.Mutator {
 		OJClass ltype = getType(e1);
 		OJClass rtype = getType(e2);
 		boolean methodIsApplicable = ((lor && ((e1 instanceof FieldAccess) || (e1 instanceof MethodCall))) || (!lor && ((e2 instanceof FieldAccess) || (e2 instanceof MethodCall)))); 
+		boolean allowFinal = true;
 		if (methodIsApplicable && this.allowDecreaseLengthMutations()) {
+			if (beSmartAboutFinalObjectsAtLeftHandSideOfAssignments()) {
+				Statement from = (Statement) getStatement((ParseTreeObject)(lor?e1:e2));
+				if (from != null && (from instanceof ExpressionStatement) && ((ExpressionStatement)from).getExpression() instanceof AssignmentExpression) {
+					AssignmentExpression fromAE = (AssignmentExpression) ((ExpressionStatement)from).getExpression();
+					if (lor && fromAE.getLeft().equals(e1)) allowFinal = false;
+				}
+			}
+			if (!fromUnaryArithmeticShortcut.isEmpty() && fromUnaryArithmeticShortcut.peek()) {
+				allowFinal = false;
+			}
 			//decrease by 1
 			Expression current = lor?e1:e2; //e1 it's an expression like xs.x, current will first take x value and try to eliminate it and then move throug xs doing the same
 			Expression prev = null;
@@ -1102,7 +1138,12 @@ public class PRVO extends mujava.op.util.Mutator {
 				if (next == null) {
 					boolean leftEndCheck = (lor && !(prev instanceof MethodCall)) || !lor;
 					boolean prevIsNotNull = prev != null;
-					if (prevIsNotNull && leftEndCheck && compatibleTypes(ltype, getType(prev)) && compatibleTypes(getType(prev), rtype)) {
+					boolean finalCheck = !isFinal(prev) || allowFinal;
+					boolean unaryExprCheck = true;
+					if (!fromUnaryArithmeticShortcut.isEmpty() && fromUnaryArithmeticShortcut.peek() && prev instanceof MethodCall) {
+						unaryExprCheck = false;
+					}
+					if (unaryExprCheck && finalCheck && prevIsNotNull && leftEndCheck && compatibleTypes(ltype, getType(prev)) && compatibleTypes(getType(prev), rtype)) {
 						Expression prevCopy = (Expression) nodeCopyOf((ParseTreeObject) prev); //prev.makeRecursiveCopy_keepOriginalID();
 						ParseTreeObject mutantNode = null;
 						if (isPrimitiveToObjectAssignment((lor?getType(prev):ltype), (lor?rtype:getType(prev)))) {
@@ -1124,7 +1165,7 @@ public class PRVO extends mujava.op.util.Mutator {
 							if (prev == null) {
 								boolean thisCheck = true;
 								if (/*this.smartMode && */current instanceof SelfAccess && !((SelfAccess)current).isSuperAccess()) {
-									Map<OJClass, List<Variable>> reachableVars = getReachableVariables(orig);
+									Map<OJClass, List<Variable>> reachableVars = getReachableVariables(orig, ALLOW_FINAL);
 									for (List<Variable> vars : reachableVars.values()) {
 										for (Variable var : vars) {
 											if (var.toString().compareTo(current.toString())==0) {
@@ -1170,7 +1211,7 @@ public class PRVO extends mujava.op.util.Mutator {
 						}
 					} else {
 						//this line should never be reached
-						//throw an excepcion maybe
+						//throw an exception maybe
 					}
 				}
 				if (rightPart != null && current != null) {
@@ -1366,6 +1407,20 @@ public class PRVO extends mujava.op.util.Mutator {
 		return true;
 	}
 	
+	private boolean beSmartAboutUnaryExpressionsWithASOps() {
+		if (Configuration.argumentExist(SMART_MODE_WITH_ARITHMETIC_OP_SHORTCUTS)) {
+			return (Boolean) Configuration.getValue(SMART_MODE_WITH_ARITHMETIC_OP_SHORTCUTS);
+		}
+		return false;
+	}
+	
+	private boolean beSmartAboutFinalObjectsAtLeftHandSideOfAssignments() {
+		if (Configuration.argumentExist(SMART_MODE_WITH_ASSIGNMENTS)) {
+			return (Boolean) Configuration.getValue(SMART_MODE_WITH_ASSIGNMENTS);
+		}
+		return false;
+	}
+	
 	/**
 	 *	This method will check if an expression should be preceded by a {@code this} or a {@code super}
 	 *	expression. And if it should then it will add a {@code this} or a {@code super} accordingly
@@ -1447,14 +1502,25 @@ public class PRVO extends mujava.op.util.Mutator {
 		boolean methodIsApplicableLor = !(e1 instanceof Literal) && (e1 instanceof Variable) || (e1 instanceof MethodCall) || (e1 instanceof FieldAccess);
 		boolean methodIsApplicableNLor = !(e2 instanceof Literal) && (e2 instanceof Variable) || (e2 instanceof MethodCall) || (e2 instanceof FieldAccess);
 		boolean methodIsApplicable = (lor && methodIsApplicableLor) || (!lor && methodIsApplicableNLor);
+		boolean allowFinal = true;
 		if (methodIsApplicable && this.allowIncreaseLengthMutations()) {
+			if (beSmartAboutFinalObjectsAtLeftHandSideOfAssignments()) {
+				Statement from = (Statement) getStatement((ParseTreeObject)(lor?e1:e2));
+				if (from != null && (from instanceof ExpressionStatement) && ((ExpressionStatement)from).getExpression() instanceof AssignmentExpression) {
+					AssignmentExpression fromAE = (AssignmentExpression) ((ExpressionStatement)from).getExpression();
+					if (lor && fromAE.getLeft().equals(e1)) allowFinal = false;
+				}
+			}
+			if (!fromUnaryArithmeticShortcut.isEmpty() && fromUnaryArithmeticShortcut.peek()) {
+				allowFinal = false;
+			}
 			Expression current = lor?e1:e2;
 			Expression next = null;
 			Expression rightPart = null;
 			boolean stop = false;
 			do {
 				stop = current == null;
-				java.util.List<Object> fnm = fieldAndMethods(orig, current, false);//this.smartMode?fieldAndMethods(orig, current, false):fieldAndMethods(current, (ParseTreeObject) (lor?e1:e2));
+				java.util.List<Object> fnm = fieldAndMethods(orig, current, false, (rightPart != null || allowFinal));//this.smartMode?fieldAndMethods(orig, current, false):fieldAndMethods(current, (ParseTreeObject) (lor?e1:e2));
 				for (Object m : fnm) {
 					//m = boundedRecursiveCopyOf((ParseTreeObject) m, COPY_SCOPE.NODE, false);
 					OJClass retType = null;
@@ -1474,6 +1540,9 @@ public class PRVO extends mujava.op.util.Mutator {
 					if (next == null) {
 						nextTypeCheck = true;
 						methodCheck = !(m instanceof OJMethod) || !lor;
+						if (methodCheck && !fromUnaryArithmeticShortcut.isEmpty() && fromUnaryArithmeticShortcut.peek() && m instanceof OJMethod) {
+							methodCheck = false;
+						}
 						retTypeCheck = lor? compatibleTypes(retType, rtype):compatibleTypes(ltype, retType);
 					} else {
 						methodCheck = true;
@@ -1542,8 +1611,19 @@ public class PRVO extends mujava.op.util.Mutator {
 	private void replaceTwoByOne(NonLeaf orig, Expression e1, Expression e2, boolean lor) throws ParseTreeException {
 		OJClass ltype = getType(e1);
 		OJClass rtype = getType(e2);
+		boolean allowFinal = true;
 		boolean methodIsApplicable = (lor && !((e1 instanceof Literal) || (e1 instanceof Variable))) || ((!lor && (e2 instanceof FieldAccess || e2 instanceof MethodCall)));
 		if (methodIsApplicable && this.generateTwoByOneMutations()) {
+			if (beSmartAboutFinalObjectsAtLeftHandSideOfAssignments()) {
+				Statement from = (Statement) getStatement((ParseTreeObject)(lor?e1:e2));
+				if (from != null && (from instanceof ExpressionStatement) && ((ExpressionStatement)from).getExpression() instanceof AssignmentExpression) {
+					AssignmentExpression fromAE = (AssignmentExpression) ((ExpressionStatement)from).getExpression();
+					if (lor && fromAE.getLeft().equals(e1)) allowFinal = false;
+				}
+			}
+			if (!fromUnaryArithmeticShortcut.isEmpty() && fromUnaryArithmeticShortcut.peek()) {
+				allowFinal = false;
+			}
 			Expression current = lor?e1:e2;
 			Expression next = null;
 			Expression prev = null;
@@ -1551,11 +1631,12 @@ public class PRVO extends mujava.op.util.Mutator {
 			do {
 				prev = getPreviousExpression(current);
 				Expression prevPrev = getPreviousExpression(prev);
-				java.util.List<Object> fnm = fieldAndMethods(orig, prevPrev, false);//this.smartMode?fieldAndMethods(orig, prevPrev, false):fieldAndMethods(prevPrev, (ParseTreeObject) (lor?e1:e2));
+				java.util.List<Object> fnm = fieldAndMethods(orig, prevPrev, false, (next != null || allowFinal));//this.smartMode?fieldAndMethods(orig, prevPrev, false):fieldAndMethods(prevPrev, (ParseTreeObject) (lor?e1:e2));
 				for (Object m : fnm) {
 					OJClass retType = null;
 					if (m instanceof OJMethod) {
 						if (lor && next == null) continue;
+						if (!fromUnaryArithmeticShortcut.isEmpty() && fromUnaryArithmeticShortcut.peek() && next == null) continue;
 						retType = ((OJMethod) m).getReturnType();
 					} else if (m instanceof OJField) {
 						retType = ((OJField) m).getType();
@@ -1647,8 +1728,19 @@ public class PRVO extends mujava.op.util.Mutator {
 			methodIsApplicableRight = this.canGetPrev(e2);
 		}
 		boolean methodIsApplicable = methodIsApplicableLeft || methodIsApplicableRight;
+		boolean allowFinal = true;
 		if (methodIsApplicable) {
-			java.util.List<Object> fnm = fieldAndMethods(orig, null, false);//this.smartMode?fieldAndMethods(orig, null, false):fieldAndMethods((Expression)null, (ParseTreeObject) (lor?e1:e2));
+			if (beSmartAboutFinalObjectsAtLeftHandSideOfAssignments()) {
+				Statement from = (Statement) getStatement((ParseTreeObject)(lor?e1:e2));
+				if (from != null && (from instanceof ExpressionStatement) && ((ExpressionStatement)from).getExpression() instanceof AssignmentExpression) {
+					AssignmentExpression fromAE = (AssignmentExpression) ((ExpressionStatement)from).getExpression();
+					if (lor && fromAE.getLeft().equals(e1)) allowFinal = false;
+				}
+			}
+			if (!fromUnaryArithmeticShortcut.isEmpty() && fromUnaryArithmeticShortcut.peek()) {
+				allowFinal = false;
+			}
+			java.util.List<Object> fnm = fieldAndMethods(orig, null, false, allowFinal);//this.smartMode?fieldAndMethods(orig, null, false):fieldAndMethods((Expression)null, (ParseTreeObject) (lor?e1:e2));
 			if (!lor) {
 				this.refModeAllowNullStack.push(Boolean.TRUE);
 				searchForLiteralsInMethod((ParseTreeObject) orig);
@@ -1729,6 +1821,7 @@ public class PRVO extends mujava.op.util.Mutator {
 						continue;
 					}
 				} else if (replacement instanceof OJMethod && !lor) {
+					if (!fromUnaryArithmeticShortcut.isEmpty() && fromUnaryArithmeticShortcut.peek()) continue;
 					OJClass methodType = ((OJMethod)replacement).getReturnType();
 					if (compatibleTypes(ltype, methodType)) {
 						MethodCall mutant = new MethodCall((Expression)null, ((OJMethod)replacement).getName(), new ExpressionList());
@@ -1755,18 +1848,29 @@ public class PRVO extends mujava.op.util.Mutator {
 	private void replaceOneByTwo(NonLeaf orig, Expression e1, Expression e2, boolean lor) throws ParseTreeException {
 		OJClass ltype = getType(e1);
 		OJClass rtype = getType(e2);
+		boolean allowFinal = true;
 		boolean methodIsApplicable = (lor && !(e1 instanceof Literal) && !ltype.isPrimitive()) || (!lor && (e2 instanceof Variable || e2 instanceof FieldAccess || e2 instanceof MethodCall) && !rtype.isPrimitive());
 		if (methodIsApplicable && this.allowOneByTwoMutations()) {
+			if (beSmartAboutFinalObjectsAtLeftHandSideOfAssignments()) {
+				Statement from = (Statement) getStatement((ParseTreeObject)(lor?e1:e2));
+				if (from != null && (from instanceof ExpressionStatement) && ((ExpressionStatement)from).getExpression() instanceof AssignmentExpression) {
+					AssignmentExpression fromAE = (AssignmentExpression) ((ExpressionStatement)from).getExpression();
+					if (lor && fromAE.getLeft().equals(e1)) allowFinal = false;
+				}
+			}
+			if (!fromUnaryArithmeticShortcut.isEmpty() && fromUnaryArithmeticShortcut.peek()) {
+				allowFinal = false;
+			}
 			Expression current = lor?e1:e2;
 			Expression next = null;
 			Expression prev = null;
 			Expression rightPart = null;
 			do {
 				prev = getPreviousExpression(current);
-				java.util.List<Object> fnm = fieldAndMethods(orig, prev, false);//this.smartMode?fieldAndMethods(orig, prev, false):fieldAndMethods(prev, (ParseTreeObject) (lor?e1:e2));
+				java.util.List<Object> fnm = fieldAndMethods(orig, prev, false, true);//this.smartMode?fieldAndMethods(orig, prev, false):fieldAndMethods(prev, (ParseTreeObject) (lor?e1:e2));
 				for (Object m : fnm) {
 					java.util.List<Object> fnm2 = new LinkedList<Object>();
-					fnm2 = fieldAndMethods(null, m, true);
+					fnm2 = fieldAndMethods(null, m, true, (rightPart != null || allowFinal));
 //					if (this.smartMode) {
 //						fnm2 = fieldAndMethods(null, m, true);
 //					} else {
@@ -1776,6 +1880,8 @@ public class PRVO extends mujava.op.util.Mutator {
 						OJClass retType = null;
 						if (m2 instanceof OJMethod) {
 							if (lor && next == null) {
+								retType = null;
+							} else if (!fromUnaryArithmeticShortcut.isEmpty() && fromUnaryArithmeticShortcut.peek() && rightPart == null) {
 								retType = null;
 							} else {
 								retType = ((OJMethod) m2).getReturnType();
@@ -2068,6 +2174,7 @@ public class PRVO extends mujava.op.util.Mutator {
 				}
 			}
 			if (this.left) {
+				if (beSmartAboutFinalObjectsAtLeftHandSideOfAssignments() && isFinal(lexp)) return;
 				binaryVisit(p, lexp, rexp, true);
 			}
 		}
@@ -2080,16 +2187,30 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		Expression lexp = p.getLeft();
 		Expression rexp = p.getRight();
+//		OJClass ltype = getType(lexp);
+//		OJClass rtype = getType(rexp);
+//		OJClass maxType = max(ltype, rtype);
+//		Expression exprToMatchType = null;
+//		if (maxType.getName().compareTo(ltype.getName()) == 0) {
+//			exprToMatchType = lexp;
+//		} else {
+//			exprToMatchType = rexp;
+//		}
+		//TODO: improve this
 		if (this.refinedMode) {
 			pushAllowNull(p, binExprSupportsNull(p.getOperator()));
-			pushComplyType(p, rexp);
+			//pushComplyType(p, rexp);
+			if (useRelaxedTypes()) pushComplyType(p, rexp);
+			else pushComplyType(p, lexp);
 			lexp.accept(this);
 			popAllowNull(p);
 			popComplyType(p);
 		}
 		if (this.refinedMode) {
 			pushAllowNull(p, binExprSupportsNull(p.getOperator()));
-			pushComplyType(p, lexp);
+			//pushComplyType(p, lexp);
+			if (useRelaxedTypes()) pushComplyType(p, lexp);
+			else pushComplyType(p, rexp);
 			rexp.accept(this);
 			popAllowNull(p);
 			popComplyType(p);
@@ -2220,6 +2341,32 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 
 	}
+	
+//	public void visit(VariableDeclaration p) throws ParseTreeException {
+//		if (this.justEvaluating) {
+//			super.visit(p);
+//			return;
+//		}
+//		Expression	rexp = (Expression) p.getInitializer();
+//
+//		if( rexp == null ){
+//			super.visit(p);
+//			return;
+//		}
+//		
+//		if (this.unary && getMutationsLeft(p) > 0) unaryVisit(p,rexp, false);
+//
+//		if (this.unary && this.refinedMode && getMutationsLeft(p) > 0) {
+//			OJClass varType = getType(p.getTypeSpecifier());
+//			if (varType == null) throw new ParseTreeException("Unexpected null class");
+//			pushAllowNull(p, varType==null?false:(compatibleAssignTypeRelaxed(varType, null)));
+//			Variable var = new Variable(p.getVariable());
+//			pushComplyType(p, varType==null?rexp:var);
+//			rexp.accept(this);
+//			popComplyType(p);
+//			popAllowNull(p);
+//		}
+//	}
 
 	public void visit(UnaryExpression p) throws ParseTreeException {
 		if (this.justEvaluating) {
@@ -2229,10 +2376,20 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (!this.refinedMode) return;
 		pushAllowNull(p, false);
 		pushComplyType(p, p);
+		pushFromUnaryArithmeticShortcut(p, beSmartAboutUnaryExpressionsWithASOps() && isUnaryArithmeticShortcutOperator(p.getOperator()));
 		Expression exp = p.getExpression();
 		exp.accept(this);
+		popFromUnaryArithmeticShortcut(p);
 		popComplyType(p);
 		popAllowNull(p);
+	}
+	
+	private boolean isUnaryArithmeticShortcutOperator(int o) {
+		if (o == UnaryExpression.POST_DECREMENT) return true;
+		if (o == UnaryExpression.POST_INCREMENT) return true;
+		if (o == UnaryExpression.PRE_DECREMENT) return true;
+		if (o == UnaryExpression.PRE_INCREMENT) return true;
+		return false;
 	}
 
 	public void visit(MethodCall p) throws ParseTreeException {
@@ -2407,6 +2564,18 @@ public class PRVO extends mujava.op.util.Mutator {
 	private void popAllowNull(ParseTreeObject p) {
 		if (this.refinedMode && getMutationsLeft(p) > 0) {
 			this.refModeAllowNullStack.pop();
+		}
+	}
+	
+	private void pushFromUnaryArithmeticShortcut(ParseTreeObject p, boolean value) {
+		if ((refinedMode || unary) && getMutationsLeft(p) > 0) {
+			fromUnaryArithmeticShortcut.push(value);
+		}
+	}
+	
+	private void popFromUnaryArithmeticShortcut(ParseTreeObject p) {
+		if ((refinedMode || unary) && getMutationsLeft(p) > 0) {
+			fromUnaryArithmeticShortcut.pop();
 		}
 	}
 
