@@ -15,7 +15,6 @@ import mujava.api.Configuration;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.FileEnvironment;
 import openjava.mop.OJClass;
-import openjava.mop.OJField;
 import openjava.ptree.AssignmentExpression;
 import openjava.ptree.BinaryExpression;
 import openjava.ptree.ClassDeclaration;
@@ -41,6 +40,8 @@ import mujava.api.Mutation.PRIORITY;
  */
 
 public class AOIS extends Arithmetic_OP {
+	
+	public static final String AOIS_IGNORE_FINAL = "aois_ignore_final";
 
 	public AOIS(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit) {
 		super( file_env, comp_unit );
@@ -51,6 +52,7 @@ public class AOIS extends Arithmetic_OP {
 		if (	isArithmeticType(p) && (
 				(p.getExpression() instanceof Variable) || 
 				(p.getExpression() instanceof FieldAccess))) {
+			if (isFinal(p) && avoidFinal()) return;
 			Expression original = ((UnaryExpression) p.makeRecursiveCopy_keepOriginalID()).getExpression();
 			int op = p.getOperator();
 			if (	op == UnaryExpression.POST_DECREMENT
@@ -84,8 +86,8 @@ public class AOIS extends Arithmetic_OP {
 	public void visit(Variable p) throws ParseTreeException {
 		
 		if (!(getMutationsLeft(p) > 0)) return;
-		//if (isArithmeticType(p) && !isFinal(p)) {
-		if (isArithmeticType(p)) {
+		if (isArithmeticType(p) && ((!isFinal(p) && avoidFinal()) || !avoidFinal())) {
+		//if (isArithmeticType(p)) {
 			Variable originalCopy = (Variable) nodeCopyOf(p); //p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutantPD = new UnaryExpression(UnaryExpression.POST_DECREMENT, originalCopy);
 			UnaryExpression mutantPI = new UnaryExpression(UnaryExpression.POST_INCREMENT, originalCopy);
@@ -101,8 +103,8 @@ public class AOIS extends Arithmetic_OP {
 	public void visit( FieldAccess p ) throws ParseTreeException {
 
 		if (!(getMutationsLeft(p) > 0)) return;
-		//if (isArithmeticType(p) && !isFinal(p)) {
-		if (isArithmeticType(p)) {
+		if (isArithmeticType(p) && ((!isFinal(p) && avoidFinal()) || !avoidFinal())) {
+		//if (isArithmeticType(p)) {
 			FieldAccess originalCopy = (FieldAccess) nodeCopyOf(p); //p.makeRecursiveCopy_keepOriginalID();
 			UnaryExpression mutantPD = new UnaryExpression(UnaryExpression.POST_DECREMENT, originalCopy);
 			UnaryExpression mutantPI = new UnaryExpression(UnaryExpression.POST_INCREMENT, originalCopy);
@@ -178,7 +180,7 @@ public class AOIS extends Arithmetic_OP {
 			Variable v = (Variable) e;
 			try {
 				OJClass vType = getType(v);
-				Map<OJClass, List<Variable>> localVars = getReachableVariables((ParseTreeObject) e);
+				Map<OJClass, List<Variable>> localVars = getReachableVariables((ParseTreeObject) e, ALLOW_FINAL);
 				if (localVars.containsKey(vType)) {
 					for (Variable lv : localVars.get(vType)) {
 						if (v.toFlattenString().compareTo(lv.toFlattenString()) == 0) {
@@ -196,44 +198,9 @@ public class AOIS extends Arithmetic_OP {
 		return false;
 	}
 	
-	private boolean isFinal(Expression e) {
-		if (e instanceof Variable) {
-			Variable v = (Variable) e;
-			try {
-				OJClass vType = getType(v);
-				Map<OJClass, List<Variable>> localVars = getReachableFinalVariables((ParseTreeObject) e);
-				if (localVars.containsKey(vType)) {
-					for (Variable lv : localVars.get(vType)) {
-						if (v.toFlattenString().compareTo(lv.toFlattenString()) == 0) {
-							return true;
-						}
-					}
-				} else {
-					return false;
-				}
-			} catch (ParseTreeException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		} else if (e instanceof FieldAccess) {
-			FieldAccess fa = (FieldAccess) e;
-			try {
-				OJClass fType = getType(fa);
-				OJField[] finalFields = getAllFields(fType, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED + ALLOW_STATIC + ONLY_FINAL);
-				for (OJField f : finalFields) {
-					String faName = fa.getName();
-					String fName = f.getName();
-					if (faName.compareTo(fName) != 0) continue;
-					OJClass faClass = fa.getReferenceExpr() == null?getSelfType():getType(fa.getReferenceExpr());
-					OJClass fClass = f.getDeclaringClass();
-					if (faClass.isAssignableFrom(fClass)) {
-						return true;
-					}
-				}
-			} catch (ParseTreeException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+	private boolean avoidFinal() {
+		if (Configuration.argumentExist(AOIS_IGNORE_FINAL)) {
+			return (Boolean) Configuration.getValue(AOIS_IGNORE_FINAL);
 		}
 		return false;
 	}
