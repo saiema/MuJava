@@ -11,6 +11,7 @@ import mujava.api.Api;
 import mujava.api.Mutation;
 import mujava.api.MutationOperator;
 import java.io.*;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.TreeMap;
@@ -424,6 +425,12 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 				else
 					return null;
 			}
+			if (parent instanceof ThrowStatement) {
+				if (((ThrowStatement) parent).hasMutGenLimit())
+					return (ThrowStatement) parent;
+				else
+					return null;
+			}
 			if (parent instanceof MethodDeclaration) {
 				if (((MethodDeclaration) parent).hasMutGenLimit())
 					return ((MethodDeclaration) parent);
@@ -453,59 +460,111 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		return null;
 	}
 
-	public Map<OJClass, List<Variable>> getReachableVariables(ParseTreeObject exp) throws ParseTreeException {
+	public Map<OJClass, List<Variable>> getReachableVariables(ParseTreeObject exp, int options) throws ParseTreeException {
 		Statement previousStatement = (Statement)getStatement(exp, -1);
 		Map<OJClass, List<Variable>> variables = new TreeMap<OJClass, List<Variable>>();
 		List<Variable> allVars = new LinkedList<Variable>();
-		getReachableVariables(previousStatement, variables, allVars);
-		getMethodDeclarationVariables(exp, variables, allVars);
+		getReachableVariables(previousStatement, variables, allVars, options);
+		getMethodDeclarationVariables(exp, variables, allVars, options);
 		return variables;
 	}
 		
-	public Map<OJClass, List<Variable>> getReachableVariables(Statement exp) throws ParseTreeException {
+	public Map<OJClass, List<Variable>> getReachableVariables(Statement exp, int options) throws ParseTreeException {
 		Map<OJClass, List<Variable>> variables = new TreeMap<OJClass, List<Variable>>();
 		List<Variable> allVars = new LinkedList<Variable>();
-		getReachableVariables(exp, variables, allVars);
-		getMethodDeclarationVariables((ParseTreeObject) exp, variables, allVars);
+		getReachableVariables(exp, variables, allVars, options);
+		getMethodDeclarationVariables((ParseTreeObject) exp, variables, allVars, options);
 		return variables;
 	}
 	
-	public Map<OJClass, List<Variable>> getReachableFinalVariables(ParseTreeObject exp) throws ParseTreeException {
-		Statement previousStatement = (Statement)getStatement(exp, -1);
-		
-		return getReachableFinalVariables(previousStatement);
-	}
+//	public Map<OJClass, List<Variable>> getReachableFinalVariables(ParseTreeObject exp) throws ParseTreeException {
+//		Statement previousStatement = (Statement)getStatement(exp, -1);
+//		
+//		return getReachableFinalVariables(previousStatement);
+//	}
+//	
+//    public Map<OJClass, List<Variable>> getReachableFinalVariables(Statement exp) throws ParseTreeException {
+//    	Map<OJClass, List<Variable>> variables = new TreeMap<OJClass, List<Variable>>();
+//		List<Variable> allVars = new LinkedList<Variable>();
+//		getReachableFinalVariables(exp, variables, allVars);
+//		getMethodDeclarationVariables((ParseTreeObject) exp, variables, allVars, ONLY_FINAL);
+//		return variables;
+//	}
+//    
+//    private void getReachableFinalVariables(Statement exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars ) throws ParseTreeException {
+//		addForFinalVariables((ParseTreeObject) exp, variables, allVars);
+//		ParseTreeObject current = (ParseTreeObject) exp;
+//		ParseTreeObject limit = current;
+//		while (current != null && !(current instanceof MethodDeclaration)) {
+////			if (current instanceof VariableDeclarator) {
+////				//addVar(variables, allVars, new Variable(((VariableDeclarator) current).getVariable()));
+////				continue;
+////			} else 
+//			if (current instanceof VariableDeclaration) {
+//				VariableDeclaration vd = (VariableDeclaration) current;
+//				if (vd.getModifiers().contains(ModifierList.FINAL)) {
+//					addVar(variables, allVars, new Variable(((VariableDeclaration) current).getVariable()));
+//				}
+//			} else if (current instanceof ForStatement) {
+//				ForStatement fs = (ForStatement) current;
+//				if (fs.isEnhancedFor()) {
+//					String m = ((ForStatement) current).getModifier();
+//					if (m != null && m.contains("final")) {
+//						addVar(variables, allVars, new Variable(((ForStatement) current).getIdentifier()));
+//					}
+//				} else if (true) { //TODO: modify when parser adds modifiers
+//					VariableDeclarator[] vds = fs.getInitDecls();
+//					if (vds != null) {
+//						for (VariableDeclarator vd : vds) {
+//							addVar(variables, allVars, new Variable(vd.getVariable()));
+//						}
+//					}
+//				}
+//			} else if (current instanceof StatementList) {
+//				StatementList stList = (StatementList) current;
+//				for (int s = 0; s < stList.size(); s++) {
+//					Statement cst = stList.get(s);
+//					if (cst == limit) {
+//						break;
+//					}
+//					if (cst instanceof VariableDeclaration) {
+//						VariableDeclaration vd = (VariableDeclaration) cst;
+//						if (!vd.getModifiers().contains(ModifierList.FINAL)) {				
+//							addVar(variables, allVars, new Variable(vd.getVariable()));
+//						}
+//					}
+//				}
+//			}
+//			if (!(current instanceof StatementList))
+//				limit = current;
+//			current = current.getParent();
+//		}
+//	}
 	
-    public Map<OJClass, List<Variable>> getReachableFinalVariables(Statement exp) throws ParseTreeException {
-    	Map<OJClass, List<Variable>> variables = new TreeMap<OJClass, List<Variable>>();
-		List<Variable> allVars = new LinkedList<Variable>();
-		getReachableFinalVariables(exp, variables, allVars);
-		getMethodDeclarationVariables((ParseTreeObject) exp, variables, allVars, ONLY_FINAL);
-		return variables;
-	}
-    
-    private void getReachableFinalVariables(Statement exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars ) throws ParseTreeException {
-		addForFinalVariables((ParseTreeObject) exp, variables, allVars);
+	private void getReachableVariables(Statement exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars, int options ) throws ParseTreeException {
+		boolean onlyFinal = (options & ONLY_FINAL) > 0;
+		boolean allowFinal = (options & ALLOW_FINAL) > 0 || onlyFinal;
+		addForVariables((ParseTreeObject) exp, variables, allVars);
 		ParseTreeObject current = (ParseTreeObject) exp;
 		ParseTreeObject limit = current;
 		while (current != null && !(current instanceof MethodDeclaration)) {
 //			if (current instanceof VariableDeclarator) {
-//				//addVar(variables, allVars, new Variable(((VariableDeclarator) current).getVariable()));
-//				continue;
+//				VariableDeclarator vd = (VariableDeclarator) current;
+//				addVar(variables, allVars, new Variable(((VariableDeclarator) current).getVariable()));
 //			} else 
 			if (current instanceof VariableDeclaration) {
 				VariableDeclaration vd = (VariableDeclaration) current;
-				if (vd.getModifiers().contains(ModifierList.FINAL)) {
-					addVar(variables, allVars, new Variable(((VariableDeclaration) current).getVariable()));
+				if (allowRegardingFinal(vd.getModifiers().getRegular(), onlyFinal, allowFinal)) {
+					addVar(variables, allVars, new Variable(vd.getVariable()));
 				}
 			} else if (current instanceof ForStatement) {
 				ForStatement fs = (ForStatement) current;
 				if (fs.isEnhancedFor()) {
 					String m = ((ForStatement) current).getModifier();
-					if (m != null && m.contains("final")) {
+					if (m != null && allowRegardingFinal(ModifierList.getModifier(m), onlyFinal, allowFinal)) {
 						addVar(variables, allVars, new Variable(((ForStatement) current).getIdentifier()));
 					}
-				} else if (true) { //TODO: modify when parser adds modifiers
+				} else if (!onlyFinal) {
 					VariableDeclarator[] vds = fs.getInitDecls();
 					if (vds != null) {
 						for (VariableDeclarator vd : vds) {
@@ -520,9 +579,11 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 					if (cst == limit) {
 						break;
 					}
-					if (cst instanceof VariableDeclaration) {
+					if (cst instanceof VariableDeclarator) {
+						addVar(variables, allVars, new Variable(((VariableDeclarator) cst).getVariable()));
+					} else if (cst instanceof VariableDeclaration) {
 						VariableDeclaration vd = (VariableDeclaration) cst;
-						if (!vd.getModifiers().contains(ModifierList.FINAL)) {				
+						if (allowRegardingFinal(vd.getModifiers().getRegular(), onlyFinal, allowFinal)) {
 							addVar(variables, allVars, new Variable(vd.getVariable()));
 						}
 					}
@@ -534,47 +595,17 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		}
 	}
 	
-	private void getReachableVariables(Statement exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars ) throws ParseTreeException {
-		addForVariables((ParseTreeObject) exp, variables, allVars);
-		ParseTreeObject current = (ParseTreeObject) exp;
-		ParseTreeObject limit = current;
-		while (current != null && !(current instanceof MethodDeclaration)) {
-			if (current instanceof VariableDeclarator) {
-				addVar(variables, allVars, new Variable(((VariableDeclarator) current).getVariable()));
-			} else if (current instanceof VariableDeclaration) {
-				addVar(variables, allVars, new Variable(((VariableDeclaration) current).getVariable()));
-			} else if (current instanceof ForStatement) {
-				VariableDeclarator[] vds = ((ForStatement) current).getInitDecls();
-				if (vds != null) {
-					for (VariableDeclarator vd : vds) {
-						addVar(variables, allVars, new Variable(vd.getVariable()));
-					}
-				}
-			} else if (current instanceof StatementList) {
-				StatementList stList = (StatementList) current;
-				for (int s = 0; s < stList.size(); s++) {
-					Statement cst = stList.get(s);
-					if (cst == limit) {
-						break;
-					}
-					if (cst instanceof VariableDeclarator) {
-						addVar(variables, allVars, new Variable(
-								((VariableDeclarator) cst).getVariable()));
-					} else if (cst instanceof VariableDeclaration) {
-						addVar(variables, allVars, new Variable(
-								((VariableDeclaration) cst).getVariable()));
-					}
-				}
-			}
-			if (!(current instanceof StatementList))
-				limit = current;
-			current = current.getParent();
+	private boolean allowRegardingFinal(int m, boolean onlyFinal, boolean allowFinal) {
+		if (Modifier.isFinal(m)) {
+			return allowFinal;
+		} else {
+			return !onlyFinal;
 		}
 	}
 	
-	private void getMethodDeclarationVariables(ParseTreeObject exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars) throws ParseTreeException {
-		getMethodDeclarationVariables(exp, variables, allVars, 0);
-	}
+//	private void getMethodDeclarationVariables(ParseTreeObject exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars) throws ParseTreeException {
+//		getMethodDeclarationVariables(exp, variables, allVars, 0);
+//	}
 	
 	private void getMethodDeclarationVariables(ParseTreeObject exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars, int options) throws ParseTreeException {
 		ParseTreeObject methodDeclaration = getMethodDeclaration(exp);
@@ -624,15 +655,15 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		}
 	}
 	
-	private void addForFinalVariables(ParseTreeObject exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars) throws ParseTreeException {
-		ParseTreeObject current = getStatement(exp);
-		if (current instanceof ForStatement) {
-			String m = ((ForStatement) current).getModifier();
-			if (m != null && m.contains("final")) {
-				addVar(variables, allVars, new Variable(((ForStatement) current).getIdentifier()));
-			}
-		}
-	}
+//	private void addForFinalVariables(ParseTreeObject exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars) throws ParseTreeException {
+//		ParseTreeObject current = getStatement(exp);
+//		if (current instanceof ForStatement) {
+//			String m = ((ForStatement) current).getModifier();
+//			if (m != null && m.contains("final")) {
+//				addVar(variables, allVars, new Variable(((ForStatement) current).getIdentifier()));
+//			}
+//		}
+//	}
 
 	private void addVar(Map<OJClass, List<Variable>> map, List<Variable> allVars, Variable var) throws ParseTreeException {
 		if (!find(allVars, var)) {
@@ -960,6 +991,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * <li>TARGET_IS_NULL                  : the expression that is being mutated is null</li>
 	 * <li>TARGET_IS_MUTATED_CLASS_OBJECT  : the expression that is being mutated is the same class under mutation</li>
 	 * <li>ONLY_FINAL                      : will only include final fields</li>
+	 * <li>ALLOW_FINAL					   : will include final fields</li>
 	 * 
 	 * @return all fields in {@code clazz}
 	 */
@@ -971,6 +1003,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		boolean target_is_class_to_mutate = (options & TARGET_IS_MUTATED_CLASS_OBJECT) != 0;
 		boolean allowProtected = target_is_null || target_is_class_to_mutate;
 		boolean onlyFinal = (options & ONLY_FINAL) > 0;
+		boolean allowFinal = ((options & ALLOW_FINAL) > 0) || onlyFinal;
 		OJClass self = null;
 		try {
 			self = getSelfType();
@@ -1001,6 +1034,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 				if ((!sameClass && !isInnerClass) || (isInnerClass && target_is_null)) continue;
 			}
 			if (!f.getModifiers().isFinal() && onlyFinal) continue;
+			if (f.getModifiers().isFinal() && !allowFinal) continue;
 			table.put(f.signature(), f);
 		}
 		OJField[] inheritedFields = getInheritedFields(clazz, options);
@@ -1012,6 +1046,8 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			if (!allowNonStatic && isNonStatic) {
 				continue;
 			}
+			if (!f.getModifiers().isFinal() && onlyFinal) continue;
+			if (f.getModifiers().isFinal() && !allowFinal) continue;
 			if (!table.containsKey(f.signature()))
 				table.put(f.signature(), f);
 		}
@@ -1024,7 +1060,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * @return all fields in {@code clazz} including those with the static modifier
 	 */
 	public OJField[] getAllFields(OJClass clazz) {
-		return getAllFields(clazz, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED + ALLOW_STATIC);
+		return getAllFields(clazz, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED + ALLOW_STATIC + ALLOW_FINAL + ALLOW_PRIVATE);
 	}
 
 	/**
@@ -1130,7 +1166,8 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 * <li>ALLOW_PARAMS     : will include methods with parameters</li>
 	 * <li>ALLOW_NON_STATIC : will include methods and fields without the static modifier</li>
 	 * <li>ALLOW_STATIC     : will include static methods, fields, and vars</li>
-	 * <li>IGNORE_PROTECTED : will ignore methods and fields that are protected coming from a super class</li><p>
+	 * <li>IGNORE_PROTECTED : will ignore methods and fields that are protected coming from a super class</li>
+	 * <li>ALLOW_FINAL		: will allow final variables, fields and methods</li><p>
 	 * @return all methods and fields in {@code clazz}, optionally the result will include declared variables
 	 */
 	public List<Object> fieldsMethodsAndVars(ParseTreeObject limit, OJClass t, int options) throws ParseTreeException {
@@ -1160,7 +1197,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			result.addAll(Arrays.asList(getAllFields(t, options)));
 		}
 		if (!ignoreVars) {
-			for (List<Variable> vars : getReachableVariables(limit).values()) {
+			for (List<Variable> vars : getReachableVariables(limit, options).values()) {
 				result.addAll(vars);
 			}
 		}
@@ -1767,6 +1804,48 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	
 	public final boolean isSelfClass(OJClass a) throws ParseTreeException {
 		return getSelfType().getName().compareTo(a.getName()) == 0;
+	}
+	
+	protected boolean isFinal(Expression e) {
+		if (e instanceof Variable) {
+			Variable v = (Variable) e;
+			try {
+				OJClass vType = getType(v);
+				Map<OJClass, List<Variable>> localVars = getReachableVariables((ParseTreeObject) e, ONLY_FINAL);
+				if (localVars.containsKey(vType)) {
+					for (Variable lv : localVars.get(vType)) {
+						if (v.toFlattenString().compareTo(lv.toFlattenString()) == 0) {
+							return true;
+						}
+					}
+				} else {
+					return false;
+				}
+			} catch (ParseTreeException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		} else if (e instanceof FieldAccess) {
+			FieldAccess fa = (FieldAccess) e;
+			try {
+				OJClass fType = getType(fa);
+				OJField[] finalFields = getAllFields(fType, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED + ALLOW_STATIC + ONLY_FINAL);
+				for (OJField f : finalFields) {
+					String faName = fa.getName();
+					String fName = f.getName();
+					if (faName.compareTo(fName) != 0) continue;
+					OJClass faClass = fa.getReferenceExpr() == null?getSelfType():getType(fa.getReferenceExpr());
+					OJClass fClass = f.getDeclaringClass();
+					if (faClass.isAssignableFrom(fClass)) {
+						return true;
+					}
+				}
+			} catch (ParseTreeException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		return false;
 	}
 	
 }
