@@ -298,11 +298,11 @@ public class SubsumptionAnalysis {
 		}
 		StringBuilder sb = new StringBuilder();
 		for (Entry<MutationOperator, Integer> opData : getDominatorMutantsPerOperator().entrySet()) {
-			if (isPRVO(opData.getKey())) totalDomPRVOMutants++;
-			totalDomMutants++;
-			sb.append(opData.getKey().name()).append("\t:\t").append(opData.getValue()).append("\n");
+			if (isPRVO(opData.getKey())) totalDomPRVOMutants += opData.getValue();
+			totalDomMutants += opData.getValue();
+			sb.append(opData.getKey().name()).append(!isPRVO(opData.getKey())?"\t":"").append("\t:\t").append(opData.getValue()).append("\n");
 		}
-		sb.append("Total dominator mutants\t:\t").append(totalDomMutants).append("\n");
+		sb.append("Total dominator mutants\t\t:\t").append(totalDomMutants).append("\n");
 		sb.append("Total PRVO dominator mutants\t:\t").append(totalDomPRVOMutants).append("\n");
 		try {
 			Files.write(pfile, sb.toString().getBytes());
