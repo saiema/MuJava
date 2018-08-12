@@ -301,9 +301,9 @@ public class PRVO extends mujava.op.util.Mutator {
 	//private boolean smartMode;
 	private MutationOperator op;
 	
-	private String methodUnderConsideration = null;
-	private String[] methodUnderConsiderationParams = null;
-	private OJClass methodUnderConsiderationType = null;
+//	private String methodUnderConsideration = null;
+//	private String[] methodUnderConsiderationParams = null;
+//	private OJClass methodUnderConsiderationType = null;
 
 	private TreeMap<String, java.util.List<Object>> fieldsAndMethodsPerClass = new TreeMap<String, java.util.List<Object>>();
 	
@@ -606,44 +606,6 @@ public class PRVO extends mujava.op.util.Mutator {
 			return false;
 		} else {
 			return findMethod(m, inheritedMethods);
-		}
-	}
-
-	/**
-	 * Sometimes a class field will be stored as a {@code Variable} node instead of a {@code FieldAccess}.
-	 * This method will, given a {@code Variable}, obtain a list of all reachable variables and check if the original one
-	 * is found in that list. If it's not, it will create a {@code FieldAccess}.
-	 * 
-	 * @param v	:	The {@code Variable} to check and eventually fix
-	 * @return an expression that can either be the original {@code Variable} or a {@code FieldAccess}.
-	 * @throws ParseTreeException
-	 * <hr>
-	 * This method does not alter {@code v} node
-	 */
-	private Expression fixStupidVariable(Variable v) throws ParseTreeException {
-		Map<OJClass, List<Variable>> reachableVars = getReachableVariables(v.getParent(), ALLOW_FINAL);
-		boolean found = false;
-		OJClass vType = getType(v);
-		for (List<Variable> vars : reachableVars.values()) {
-			for (Variable var : vars) {
-				String vName = v.toString();
-				String varName = var.toString();
-				if (vName.compareTo(varName)==0) {
-					OJClass varType = getType(var);
-					if (vType.getName().compareTo(varType.getName())==0) {
-						found = true;
-						break;
-					}
-				}
-			}
-			if (found) break;
-		}
-		if (found) {
-			return v;
-		} else {
-			FieldAccess variableFixed = new FieldAccess((Expression)null, v.toString());
-			setParentOf(variableFixed, v);
-			return variableFixed;
 		}
 	}
 
@@ -2230,9 +2192,12 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		if (this.unary && getMutationsLeft(p) > 0) unaryVisit(p,rexp, false);
 
+		MethodDeclaration md = (MethodDeclaration) getMethodDeclaration(p);
+		OJClass returnType = getType(md.getReturnType());
+		
 		if (this.unary && getMutationsLeft(p) > 0 && this.refinedMode && this.canBeReplacedByLiterals(rexp)) {
 			Variable returnAuxVar = Variable.generateUniqueVariable();
-			getEnvironment().bindVariable(returnAuxVar.toString(), getMethodUnderConsiderationType());
+			getEnvironment().bindVariable(returnAuxVar.toString(), returnType);//getMethodUnderConsiderationType());
 			Expression e1 = returnAuxVar;
 			pushAllowNull(p, compatibleAssignTypeRelaxed(getType(e1), null));
 			pushComplyType(p, e1);
@@ -2243,7 +2208,7 @@ public class PRVO extends mujava.op.util.Mutator {
 
 		if (this.unary && this.refinedMode && this.canBeRefined(rexp) && getMutationsLeft(p) > 0) {
 			Variable returnAuxVar = Variable.generateUniqueVariable();
-			getEnvironment().bindVariable(returnAuxVar.toString(), getMethodUnderConsiderationType());
+			getEnvironment().bindVariable(returnAuxVar.toString(), returnType);//getMethodUnderConsiderationType());
 			Expression e1 = returnAuxVar;
 			pushAllowNull(p, compatibleAssignTypeRelaxed(getType(e1), null));
 			pushComplyType(p, e1);
@@ -2304,8 +2269,48 @@ public class PRVO extends mujava.op.util.Mutator {
 				}
 			}
 			args.get(a).accept(this);
+			popComplyType(p);
 			popAllowNull(p);
 		}
+	}
+	
+	public void visit(ArrayAllocationExpression p) throws ParseTreeException {
+		if (this.justEvaluating) {
+			super.visit(p);
+			return;
+		}
+		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
+		ExpressionList sizes = p.getDimExprList();
+		pushAllowNull(p, false);
+		if (sizes != null) {
+			Variable intVar = Variable.generateUniqueVariable();
+			getEnvironment().bindVariable(intVar.toString(), OJSystem.INT);
+			pushComplyType(p, intVar);
+			for (int e = 0; e < sizes.size(); e++) {
+				Expression sizeExpr = sizes.get(e);
+				sizeExpr.accept(this);
+			}
+			popComplyType(p);
+		}
+		popAllowNull(p);
+		
+		ArrayInitializer init = p.getInitializer();
+		if (init != null) {
+			OJClass atype = getType(p.getTypeName());
+			if (!atype.isArray()) throw new ParseTreeException("Not an array type for array allocation " + p.toFlattenString());
+			atype = atype.getComponentType();
+			Variable atypeVar = Variable.generateUniqueVariable();
+			getEnvironment().bindVariable(atypeVar.toString(), atype);
+			pushAllowNull(p, compatibleAssignTypeRelaxed(atype, null));
+			pushComplyType(p, atypeVar);
+			for (int i = 0; i < init.size(); i++) {
+				init.get(i).accept(this);
+			}
+			popAllowNull(p);
+			popComplyType(p);
+		}
+		
+		
 	}
 	
 	public void visit(ExpressionStatement p) throws ParseTreeException {
@@ -2415,6 +2420,7 @@ public class PRVO extends mujava.op.util.Mutator {
 				}
 			}
 			args.get(a).accept(this);
+			popComplyType(p);
 			popAllowNull(p);
 		}
 	}
@@ -2583,69 +2589,69 @@ public class PRVO extends mujava.op.util.Mutator {
 
 
 
-	private OJClass getMethodUnderConsiderationType() throws ParseTreeException {
-		if (this.methodUnderConsiderationType != null && !methodUnderConsiderationChanged()) {
-			return this.methodUnderConsiderationType;
-		}
-		OJClass methodType = null;
-		String muc = Api.getMethodUnderConsideration();
-		String[] args = Api.getExpectedArguments();
-		for (OJMethod m : getSelfType().getAllMethods()) {
-			if (m.getName().equals(muc)) {
-				if (args != null) {
-					OJClass[] paramTypes = m.getParameterTypes();
-					if (paramTypes == null || paramTypes.length != args.length) continue;
-					int p = 0;
-					boolean mismatch = false;
-					for (OJClass pType : paramTypes) {
-						if (pType.getName().compareTo(args[p]) != 0) {
-							mismatch = true;
-							break;
-						}
-						p++;
-					}
-					if (mismatch) continue;
-				}
-				methodType = m.getReturnType();
-				break;
-			}
-		}
-		this.methodUnderConsideration = muc;
-		this.methodUnderConsiderationParams = args;
-		this.methodUnderConsiderationType = methodType;
-		return methodType;
-	}
+//	private OJClass getMethodUnderConsiderationType() throws ParseTreeException {
+//		if (this.methodUnderConsiderationType != null && !methodUnderConsiderationChanged()) {
+//			return this.methodUnderConsiderationType;
+//		}
+//		OJClass methodType = null;
+//		String muc = Api.getMethodUnderConsideration();
+//		String[] args = Api.getExpectedArguments();
+//		for (OJMethod m : getSelfType().getAllMethods()) {
+//			if (m.getName().equals(muc)) {
+//				if (args != null) {
+//					OJClass[] paramTypes = m.getParameterTypes();
+//					if (paramTypes == null || paramTypes.length != args.length) continue;
+//					int p = 0;
+//					boolean mismatch = false;
+//					for (OJClass pType : paramTypes) {
+//						if (pType.getName().compareTo(args[p]) != 0) {
+//							mismatch = true;
+//							break;
+//						}
+//						p++;
+//					}
+//					if (mismatch) continue;
+//				}
+//				methodType = m.getReturnType();
+//				break;
+//			}
+//		}
+//		this.methodUnderConsideration = muc;
+//		this.methodUnderConsiderationParams = args;
+//		this.methodUnderConsiderationType = methodType;
+//		return methodType;
+//	}
 	
-	private boolean methodUnderConsiderationChanged() {
-		if (this.methodUnderConsideration == null) {
-			return true;
-		}
-		String currMUC = Api.getMethodUnderConsideration();
-		if (currMUC.compareTo(this.methodUnderConsideration) != 0) {
-			return true;
-		}
-		String[] currMUCParams = Api.getExpectedArguments();
-		if (isNull(this.methodUnderConsiderationParams) != isNull(currMUCParams)) {
-			return true;
-		} else if (!isNull(this.methodUnderConsiderationParams) && !isNull(currMUCParams)) {
-			if (this.methodUnderConsiderationParams.length != currMUCParams.length) {
-				return true;
-			} else {
-				for (int p = 0; p < currMUCParams.length; p++) {
-					if (this.methodUnderConsiderationParams[p].compareTo(currMUCParams[p]) != 0) {
-						return true;
-					}
-				}
-				return false;
-			}
-		} else {
-			return false;
-		}
-	}
+//	private boolean methodUnderConsiderationChanged() {
+//		if (this.methodUnderConsideration == null) {
+//			return true;
+//		}
+//		String currMUC = Api.getMethodUnderConsideration();
+//		if (currMUC.compareTo(this.methodUnderConsideration) != 0) {
+//			return true;
+//		}
+//		String[] currMUCParams = Api.getExpectedArguments();
+//		if (isNull(this.methodUnderConsiderationParams) != isNull(currMUCParams)) {
+//			return true;
+//		} else if (!isNull(this.methodUnderConsiderationParams) && !isNull(currMUCParams)) {
+//			if (this.methodUnderConsiderationParams.length != currMUCParams.length) {
+//				return true;
+//			} else {
+//				for (int p = 0; p < currMUCParams.length; p++) {
+//					if (this.methodUnderConsiderationParams[p].compareTo(currMUCParams[p]) != 0) {
+//						return true;
+//					}
+//				}
+//				return false;
+//			}
+//		} else {
+//			return false;
+//		}
+//	}
 	
-	private boolean isNull(Object o) {
-		return o == null;
-	}
+//	private boolean isNull(Object o) {
+//		return o == null;
+//	}
 	
 
 
@@ -2656,7 +2662,9 @@ public class PRVO extends mujava.op.util.Mutator {
 			e1 = new Variable(((VariableDeclarator) p).getVariable());
 		} else if (p instanceof ReturnStatement) {
 			Variable returnAuxVar = Variable.generateUniqueVariable();
-			getEnvironment().bindVariable(returnAuxVar.toString(), getMethodUnderConsiderationType());
+			MethodDeclaration md = (MethodDeclaration) getMethodDeclaration(p);
+			OJClass returnType = getType(md.getReturnType());
+			getEnvironment().bindVariable(returnAuxVar.toString(), returnType);//getMethodUnderConsiderationType());
 			e1 = returnAuxVar;
 		}
 		if (e1 == null && refined) {
