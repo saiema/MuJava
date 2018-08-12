@@ -461,20 +461,46 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	}
 
 	public Map<OJClass, List<Variable>> getReachableVariables(ParseTreeObject exp, int options) throws ParseTreeException {
+		Statement enclosingStatement = (Statement) getStatement(exp);
+//		if (enclosingStatement != null && enclosingStatement instanceof ForStatement) {
+//			
+//		}
+		//TODO: previous code should be extended to only add for variables if the node (exp) is after these variables
 		Statement previousStatement = (Statement)getStatement(exp, -1);
+		boolean skipFors = !isInsideFor(enclosingStatement, 1);
+		while (skipFors && previousStatement != null && previousStatement instanceof ForStatement) {
+			//if previous statement is a ForStatement then it should be skipped since we have something like
+			//ForStatement
+			//Statement <-current
+			//and any variables declared by the ForStatement will not be accessible by current
+			previousStatement = (Statement) getStatement((ParseTreeObject) previousStatement, -1);
+		}
 		Map<OJClass, List<Variable>> variables = new TreeMap<OJClass, List<Variable>>();
 		List<Variable> allVars = new LinkedList<Variable>();
 		getReachableVariables(previousStatement, variables, allVars, options);
 		getMethodDeclarationVariables(exp, variables, allVars, options);
 		return variables;
 	}
-		
+	
+	private boolean isInsideFor(Statement st, int depth) {
+		ParseTreeObject current = (ParseTreeObject) st;
+		int currDepth = 0;
+		while (current != null) {
+			if (current != st && current instanceof ForStatement) return true;
+			if (current instanceof StatementList) currDepth++;
+			if (currDepth > depth) break;
+			if (current instanceof MethodDeclaration) break;
+			current = current.getParent();
+		}
+		return false;
+	}
+	
 	public Map<OJClass, List<Variable>> getReachableVariables(Statement exp, int options) throws ParseTreeException {
-		Map<OJClass, List<Variable>> variables = new TreeMap<OJClass, List<Variable>>();
-		List<Variable> allVars = new LinkedList<Variable>();
-		getReachableVariables(exp, variables, allVars, options);
-		getMethodDeclarationVariables((ParseTreeObject) exp, variables, allVars, options);
-		return variables;
+//		Map<OJClass, List<Variable>> variables = new TreeMap<OJClass, List<Variable>>();
+//		List<Variable> allVars = new LinkedList<Variable>();
+//		getReachableVariables(exp, variables, allVars, options);
+//		getMethodDeclarationVariables((ParseTreeObject) exp, variables, allVars, options);
+		return getReachableVariables((ParseTreeObject)exp, options);
 	}
 	
 //	public Map<OJClass, List<Variable>> getReachableFinalVariables(ParseTreeObject exp) throws ParseTreeException {
@@ -645,9 +671,21 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 				}
 			}
 			if (!found) {
-				VariableDeclarator[] vds = ((((ForStatement) current).getInitDecls()));
+				ForStatement fst = (ForStatement) current;
+				TypeName initType = fst.getInitDeclType();
+				VariableDeclarator[] vds = fst.getInitDecls();
+				OJClass bindedClass = null;
+				boolean binded = initType == null;
 				if (vds != null) {
 					for (VariableDeclarator vd : vds) {
+						if (!binded) {
+							bindedClass = getEnvironment().lookupBind(vd.getVariable());
+							if (bindedClass == null) {
+								bindedClass = getType(initType);
+								if (bindedClass != null) getEnvironment().bindVariable(vd.getVariable(), bindedClass);
+							}
+							binded = true;
+						}
 						addVar(variables, allVars, new Variable(vd.getVariable()));
 					}
 				}
@@ -736,6 +774,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			return p.unwrappedPrimitive().getName().compareTo(c.unwrappedPrimitive().getName()) == 0;
 		}
 		if (c.isPrimitive() && !p.isPrimitive()) {
+			if (!allowWrappers) return false;
 			c = c.primitiveWrapper();
 		}
 		return p.getName().compareTo(c.getName())==0;
@@ -1806,7 +1845,51 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		return getSelfType().getName().compareTo(a.getName()) == 0;
 	}
 	
+	/**
+	 * Sometimes a class field will be stored as a {@code Variable} node instead of a {@code FieldAccess}.
+	 * This method will, given a {@code Variable}, obtain a list of all reachable variables and check if the original one
+	 * is found in that list. If it's not, it will create a {@code FieldAccess}.
+	 * 
+	 * @param v	:	The {@code Variable} to check and eventually fix
+	 * @return an expression that can either be the original {@code Variable} or a {@code FieldAccess}.
+	 * @throws ParseTreeException
+	 * <hr>
+	 * This method does not alter {@code v} node
+	 */
+	protected Expression fixStupidVariable(Variable v) throws ParseTreeException {
+		Map<OJClass, List<Variable>> reachableVars = getReachableVariables(v.getParent(), ALLOW_FINAL);
+		boolean found = false;
+		OJClass vType = getType(v);
+		for (List<Variable> vars : reachableVars.values()) {
+			for (Variable var : vars) {
+				String vName = v.toString();
+				String varName = var.toString();
+				if (vName.compareTo(varName)==0) {
+					OJClass varType = getType(var);
+					if (vType.getName().compareTo(varType.getName())==0) {
+						found = true;
+						break;
+					}
+				}
+			}
+			if (found) break;
+		}
+		if (found) {
+			return v;
+		} else {
+			FieldAccess variableFixed = new FieldAccess((Expression)null, v.toString());
+			setParentOf(variableFixed, v);
+			return variableFixed;
+		}
+	}
+	
 	protected boolean isFinal(Expression e) {
+		try {
+			e = (e instanceof Variable)?fixStupidVariable((Variable)e):e;
+		} catch (ParseTreeException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
 		if (e instanceof Variable) {
 			Variable v = (Variable) e;
 			try {
@@ -1828,8 +1911,8 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		} else if (e instanceof FieldAccess) {
 			FieldAccess fa = (FieldAccess) e;
 			try {
-				OJClass fType = getType(fa);
-				OJField[] finalFields = getAllFields(fType, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED + ALLOW_STATIC + ONLY_FINAL);
+				OJClass fType = getSelfType();//getType(fa);
+				OJField[] finalFields = getAllFields(fType, ALLOW_NON_STATIC + ALLOW_PROTECTED_INHERITED + ALLOW_STATIC + ONLY_FINAL + ALLOW_PRIVATE);
 				for (OJField f : finalFields) {
 					String faName = fa.getName();
 					String fName = f.getName();
