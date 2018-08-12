@@ -455,6 +455,11 @@ public class ConfigReader {
 				return "mutation.advanced.ror.replaceWithFalse";
 			}
 		},
+		ROR_SMART_LITERAL_REPLACE {
+			public String getKey() {
+				return "mutation.advanced.ror.smartLiteralReplacement";
+			}
+		},
 		//MUTATION ADVANCED ROR
 		//MUTATION ADVANCED COR
 		COR_USE_AND_OP {
@@ -667,6 +672,7 @@ public class ConfigReader {
 			if (isDefined(GENERATIONS)) conf.generation(getIntArgument(GENERATIONS)); else conf.generation(1);
 			if (isDefined(ROR_REPLACE_WITH_TRUE)) conf.rorReplaceWithTrue(getBooleanArgument(ROR_REPLACE_WITH_TRUE));
 			if (isDefined(ROR_REPLACE_WITH_FALSE)) conf.rorReplaceWithFalse(getBooleanArgument(ROR_REPLACE_WITH_FALSE));
+			if (isDefined(ROR_SMART_LITERAL_REPLACE)) conf.rorSmartLiteralReplace(getBooleanArgument(ROR_SMART_LITERAL_REPLACE));
 			if (isDefined(COR_USE_AND_OP)) conf.corUseAndOp(getBooleanArgument(COR_USE_AND_OP));
 			if (isDefined(COR_USE_OR_OP)) conf.corUseOrOp(getBooleanArgument(COR_USE_OR_OP));
 			if (isDefined(COR_USE_XOR_OP)) conf.corUseXorOp(getBooleanArgument(COR_USE_XOR_OP));
@@ -907,6 +913,7 @@ public class ConfigReader {
 			case MUTATION_SCORE:
 			case ROR_REPLACE_WITH_TRUE:
 			case ROR_REPLACE_WITH_FALSE:
+			case ROR_SMART_LITERAL_REPLACE:
 			case COR_USE_AND_OP:
 			case COR_USE_OR_OP:
 			case COR_USE_XOR_OP:

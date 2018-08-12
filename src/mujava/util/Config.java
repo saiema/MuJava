@@ -71,6 +71,7 @@ public class Config {
 	private boolean aodsSkipExpressionStatements;
 	private boolean rorReplaceWithTrue;
 	private boolean rorReplaceWithFalse;
+	private boolean rorSmartLiteralReplace;
 	private boolean corUseAndOp;
 	private boolean corUseOrOp;
 	private boolean corUseXorOp;
@@ -198,6 +199,7 @@ public class Config {
 	private void intitializeROROptions() {
 		rorReplaceWithTrue(true);
 		rorReplaceWithFalse(true);
+		rorSmartLiteralReplace(false);
 	}
 
 	private void initializePRVOOptions() {
@@ -605,6 +607,14 @@ public class Config {
 	
 	public void rorReplaceWithFalse(boolean b) {
 		this.rorReplaceWithFalse = b;
+	}
+	
+	public boolean rorSmartLiteralReplace() {
+		return rorSmartLiteralReplace;
+	}
+	
+	public void rorSmartLiteralReplace(boolean v) {
+		rorSmartLiteralReplace = v;
 	}
 	
 	public void corUseAndOp(boolean b) {

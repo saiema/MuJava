@@ -30,6 +30,7 @@ import mujava.op.BEE;
 import mujava.op.PRVO;
 import mujava.op.basic.AODS;
 import mujava.op.basic.AOIS;
+import mujava.op.basic.ROR;
 import mujava.op.util.MutantCodeWriter;
 import mujava.util.Config;
 import mujava.util.ConfigReader;
@@ -653,6 +654,14 @@ public class Main {
 			} else {
 				Configuration.add(Configuration.REPLACE_WITH_FALSE, Boolean.FALSE);
 				if (config.fullVerboseMode()) System.out.println("ROR replacement with false disabled");
+			}
+			
+			if (config.rorSmartLiteralReplace()) {
+				Configuration.add(ROR.SMART_LITERAL_REPLACE, Boolean.TRUE);
+				if (config.fullVerboseMode()) System.out.println("ROR smart literal replacement enabled");
+			} else {
+				Configuration.add(ROR.SMART_LITERAL_REPLACE, Boolean.FALSE);
+				if (config.fullVerboseMode()) System.out.println("ROR smart literal replacement disabled (WARNING: this will generate non-compiling mutants)");
 			}
 		
 			//COR CONFIG
