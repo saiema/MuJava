@@ -273,6 +273,32 @@ public class PRVO extends mujava.op.util.Mutator {
 	 * this option is disabled by default
 	 */
 	public static final String SMART_MODE_WITH_ASSIGNMENTS = "prvo_smart_assignments";
+	/**
+	 * Option to enable/disable the mutation of literals
+	 * <p>
+	 * this option is enabled by default
+	 */
+	public static final String ENABLE_LITERAL_MUTATION = "prvo_enable_literal_mutation";
+	/**
+	 * Option to enable/disable the mutation of {@code new} expressions
+	 * <p>
+	 * this option is enabled by default
+	 */
+	public static final String ENABLE_NEW_MUTATION = "prvo_enable_new_mutation";
+	/**
+	 * Option to enable/disable the mutation of array allocation expressions
+	 * <p>
+	 * this option is enabled by default
+	 */
+	public static final String ENABLE_ARRAY_ALLOCATION_MUTATION = "prvo_enable_array_allocation_mutation";
+	/**
+	 * Option to enable/disable the mutation of expression that don't involve an access operator
+	 * <p>
+	 * this option is enabled by default
+	 * <hr>
+	 * <b>When this option is disabled it will override other options</b>
+	 */
+	public static final String ENABLE_NON_NAVIGATION_EXPRESSION__MUTATION = "prvo_enable_non_navigation_expression_mutation";
 	
 	//ParseTreeObject parent = null;
 
@@ -681,6 +707,27 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (elem != null && t.getName().compareTo(self.getName()) == 0) {
 			options += TARGET_IS_MUTATED_CLASS_OBJECT;
 			options += ALLOW_PRIVATE;
+		} else if (limit != null) {
+			MethodDeclaration md = (MethodDeclaration) getMethodDeclaration(limit);
+			if (md != null) {
+				ClassDeclaration cd = (ClassDeclaration) getClassDeclaration(md);
+				if (cd != null && t.getName().compareTo(cd.getName()) == 0) {
+					options += ALLOW_PRIVATE;
+				} else if (cd != null) {
+					try {
+						CompilationUnit cu = getCompilationUnit(cd);
+						OJClass elemContextClass = OJClass.forName(cu.getPackage()+"."+cd.getName());
+						if (	   t.getName().compareTo(elemContextClass.getName()) == 0 
+								|| isInnerClassOf(elemContextClass, t, ALLOW_PRIVATE)
+								|| isInnerClassOf(t, elemContextClass, ALLOW_PRIVATE)) {
+							options += ALLOW_PRIVATE;
+						}
+					} catch (OJClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 //		if (t.isInSamePackage(self) || isInnerClassOf(self, t, 0)) {
 //			options += ALLOW_PACKAGED;
@@ -725,7 +772,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		boolean canUseProtectedAndDefault = tPackageSameAsThisPackage || tIsInnerClassOfThis;
 		publicCheck += canUseProtectedAndDefault?1:0;
 		boolean onlyPublic = !canUseProtectedAndDefault;
-		boolean isSameClassAsSelf = isSelfClass(t);
+		boolean isSameClassAsSelf = isSelfClass(t) || isInnerClassOf(getSelfType(), t, ALLOW_PRIVATE) ||  isInnerClassOf(t, getSelfType(), ALLOW_PRIVATE);
 		boolean allowPrivate = isSameClassAsSelf;
 		boolean selfClassExtendsT = inherits(getSelfType(), t); //compatibleAssignType(t, getSelfType());
 		if (this.fieldsAndMethodsPerClass.containsKey(t.getName()+addVariables+publicCheck)) {
@@ -1311,6 +1358,34 @@ public class PRVO extends mujava.op.util.Mutator {
 			return (Boolean) Configuration.getValue(ENABLE_ALL_BY_ONE_MUTANTS_LEFT);
 		}
 		return false;
+	}
+	
+	private boolean allowLiteralMutations() {
+		if (Configuration.argumentExist(ENABLE_LITERAL_MUTATION)) {
+			return (Boolean) Configuration.getValue(ENABLE_LITERAL_MUTATION);
+		}
+		return true;
+	}
+	
+	private boolean allowNewExpressionMutations() {
+		if (Configuration.argumentExist(ENABLE_NEW_MUTATION)) {
+			return (Boolean) Configuration.getValue(ENABLE_NEW_MUTATION);
+		}
+		return true;
+	}
+	
+	private boolean allowArrayAllocationMutations() {
+		if (Configuration.argumentExist(ENABLE_ARRAY_ALLOCATION_MUTATION)) {
+			return (Boolean) Configuration.getValue(ENABLE_ARRAY_ALLOCATION_MUTATION);
+		}
+		return true;
+	}
+	
+	private boolean allowNonNavigationExpressionMutations() {
+		if (Configuration.argumentExist(ENABLE_NON_NAVIGATION_EXPRESSION__MUTATION)) {
+			return (Boolean) Configuration.getValue(ENABLE_NON_NAVIGATION_EXPRESSION__MUTATION);
+		}
+		return true;
 	}
 	
 	private boolean allowNumberLiteralsVariations() {
@@ -1923,6 +1998,11 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 
 	private void binaryVisit(NonLeaf orig, Expression e1, Expression e2, boolean lor) throws ParseTreeException {
+		Expression e = lor?e1:e2;
+		if (e instanceof Literal && !allowLiteralMutations()) return;
+		if (e instanceof AllocationExpression && !allowNewExpressionMutations()) return;
+		if (e instanceof ArrayAllocationExpression && !allowArrayAllocationMutations()) return;
+		if (!isNavigationalExpression(e) && !allowNonNavigationExpressionMutations()) return;
 		sameLength(orig, e1, e2, lor, false);
 		decreaseLenght(orig, e1, e2, lor);
 		increaseLenght(orig, e1, e2, lor);
@@ -2162,7 +2242,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (this.refinedMode) {
 			pushAllowNull(p, binExprSupportsNull(p.getOperator()));
 			//pushComplyType(p, rexp);
-			if (useRelaxedTypes()) pushComplyType(p, rexp);
+			if (useRelaxedTypes() || isNull(lexp)) pushComplyType(p, rexp);
 			else pushComplyType(p, lexp);
 			lexp.accept(this);
 			popAllowNull(p);
@@ -2171,7 +2251,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (this.refinedMode) {
 			pushAllowNull(p, binExprSupportsNull(p.getOperator()));
 			//pushComplyType(p, lexp);
-			if (useRelaxedTypes()) pushComplyType(p, lexp);
+			if (useRelaxedTypes() || isNull(rexp)) pushComplyType(p, lexp);
 			else pushComplyType(p, rexp);
 			rexp.accept(this);
 			popAllowNull(p);
@@ -2251,6 +2331,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
+		if (!allowNewExpressionMutations()) return;
 		boolean addAllocationToTypeStack = this.refModeComplyTypeStack.empty();
 		if (addAllocationToTypeStack) pushComplyType(p, p);
 		unaryVisit(p, p, true);
@@ -2280,6 +2361,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
+		if (!allowArrayAllocationMutations()) return;
 		ExpressionList sizes = p.getDimExprList();
 		pushAllowNull(p, false);
 		if (sizes != null) {
@@ -2432,7 +2514,10 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
 		pushAllowNull(p, false);
-		pushComplyType(p, p);
+		//pushComplyType(p, p);
+		Variable intVar = Variable.generateUniqueVariable();
+		getEnvironment().bindVariable(intVar.toString(), OJSystem.INT);
+		pushComplyType(p, intVar);
 		p.getIndexExpr().accept(this);
 		popComplyType(p);
 		popAllowNull(p);
@@ -2476,6 +2561,7 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
+		if (!allowNonNavigationExpressionMutations()) return;
 //		//Prototype fix to wrong type compliance in mutations on constructor arguments+++
 //		Expression surroundingAllocationExpression = surroundingAllocationExpression(p);
 //		if (surroundingAllocationExpression != null) {
@@ -2511,6 +2597,8 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
+		if (!allowLiteralMutations()) return;
+		if (!allowNonNavigationExpressionMutations()) return;
 //		//Prototype fix to wrong type compliance in mutations on constructor arguments+++
 //		Expression surroundingAllocationExpression = surroundingAllocationExpression(p);
 //		if (surroundingAllocationExpression != null) {
@@ -2657,6 +2745,10 @@ public class PRVO extends mujava.op.util.Mutator {
 
 	private void unaryVisit(NonLeaf p, Expression rexp, boolean refined) throws ParseTreeException {
 		if (rexp==null) throw new IllegalArgumentException("rexp is null in PRVO.unaryVisit invokation.");		
+		if (rexp instanceof Literal && !allowLiteralMutations()) return;
+		if (rexp instanceof AllocationExpression && !allowNewExpressionMutations()) return;
+		if (rexp instanceof ArrayAllocationExpression && !allowArrayAllocationMutations()) return;
+		if (!isNavigationalExpression(rexp) && !allowNonNavigationExpressionMutations()) return;
 		Expression e1 = null;
 		if (p instanceof VariableDeclarator) {
 			e1 = new Variable(((VariableDeclarator) p).getVariable());
@@ -2982,6 +3074,7 @@ public class PRVO extends mujava.op.util.Mutator {
 	}
 
 	private void outputToFile(ParseTreeObject original, ParseTreeObject mutant) {
+		if (original.toFlattenString().compareTo(mutant.toFlattenString()) == 0) return;
 		Expression modifiedMutant = (Expression) mutant.makeCopy_keepOriginalID();
 		try {
 			if (!allowSuper()) {
