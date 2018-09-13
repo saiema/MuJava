@@ -84,6 +84,10 @@ public class Config {
 	private boolean prvoTwoByOne;
 	private boolean prvoAllByOneLeft;
 	private boolean prvoAllByOneRight;
+	private boolean prvoLiteralMutations;
+	private boolean prvoAllocationMutations;
+	private boolean prvoArrayAllocationMutations;
+	private boolean prvoNonNavigationExpressionMutations;
 	private boolean prvoUseSuper;
 	private boolean prvoUseThis;
 	private boolean prvoReplacementWithLiterals;
@@ -210,6 +214,10 @@ public class Config {
 		prvoTwoByOne(true);
 		prvoAllByOneLeft(false);
 		prvoAllByOneRight(false);
+		prvoLiteralMutations(true);
+		prvoAllocationMutations(true);
+		prvoArrayAllocationMutations(true);
+		prvoNonNavigationExpressionMutations(true);
 		prvoUseSuper(true);
 		prvoUseThis(true);
 		prvoReplacementWithLiterals(true);
@@ -654,31 +662,68 @@ public class Config {
 	}
 	
 	public void prvoTwoByOne(boolean b) {
-		this.prvoTwoByOne = b;
+		prvoTwoByOne = b;
 	}
 	
 	public void prvoAllByOneLeft(boolean b) {
-		this.prvoAllByOneLeft = b;
+		prvoAllByOneLeft = b;
 	}
 	
 	public void prvoAllByOneRight(boolean b) {
-		this.prvoAllByOneRight = b;
+		prvoAllByOneRight = b;
+	}
+	
+	public void prvoLiteralMutations(boolean b) {
+		prvoLiteralMutations = b;
+	}
+	
+	public boolean prvoLiteralMutations() {
+		return prvoLiteralMutations;
+	}
+	
+	public boolean prvoAllocationMutations() {
+		return prvoAllocationMutations;
+	}
+	
+	public void prvoAllocationMutations(boolean b) {
+		prvoAllocationMutations = b;
+	}
+	
+	public boolean prvoArrayAllocationMutations() {
+		return prvoArrayAllocationMutations;
+	}
+	
+	public void prvoArrayAllocationMutations(boolean b) {
+		prvoArrayAllocationMutations = b;
+	}
+	
+	public boolean prvoNonNavigationExpressionMutations() {
+		return prvoNonNavigationExpressionMutations;
+	}
+	
+	public void prvoNonNavigationExpressionMutations(boolean b) {
+		prvoNonNavigationExpressionMutations = b;
+		if (!b) {
+			prvoAllocationMutations(false);
+			prvoLiteralMutations(false);
+			prvoArrayAllocationMutations(false);
+		}
 	}
 	
 	public void prvoUseSuper(boolean b) {
-		this.prvoUseSuper = b;
+		prvoUseSuper = b;
 	}
 	
 	public void prvoUseThis(boolean b) {
-		this.prvoUseThis = b;
+		prvoUseThis = b;
 	}
 	
 	public void prvoReplacementWithLiterals(boolean b) {
-		this.prvoReplacementWithLiterals = b;
+		prvoReplacementWithLiterals = b;
 	}
 	
 	public void prvoUseNullLiteral(boolean b) {
-		this.prvoUseNullLiteral = b;
+		prvoUseNullLiteral = b;
 	}
 	
 	public void prvoUseTrueLiteral(boolean b) {

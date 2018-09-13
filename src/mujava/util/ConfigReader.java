@@ -334,6 +334,26 @@ public class ConfigReader {
 				return "mutation.advanced.prvo.enableAllByOneRight";
 			}
 		},
+		PRVO_ENABLE_LITERAL_MUTATIONS {
+			public String getKey() {
+				return "mutation.advanced.prvo.enableLiteralMutations";
+			}
+		},
+		PRVO_ENABLE_OBJECT_ALLOCATION_MUTATIONS {
+			public String getKey() {
+				return "mutation.advanced.prvo.enableObjectAllocationMutations";
+			}
+		},
+		PRVO_ENABLE_ARRAY_ALLOCATION_MUTATIONS {
+			public String getKey() {
+				return "mutation.advanced.prvo.enableArrayAllocationMutations";
+			}
+		},
+		PRVO_ENABLE_NON_NAVIGATION_EXPRESSION_MUTATIONS {
+			public String getKey() {
+				return "mutation.advanced.prvo.enableNonNavigationExpressionMutations";
+			}
+		},
 		PRVO_ENABLE_SUPER {
 			public String getKey() {
 				return "mutation.advanced.prvo.enableSuper";
@@ -685,6 +705,13 @@ public class ConfigReader {
 			if (isDefined(PRVO_ENABLE_TWO_BY_ONE)) conf.prvoTwoByOne(getBooleanArgument(PRVO_ENABLE_TWO_BY_ONE));
 			if (isDefined(PRVO_ENABLE_ALL_BY_ONE_LEFT)) conf.prvoAllByOneLeft(getBooleanArgument(PRVO_ENABLE_ALL_BY_ONE_LEFT));
 			if (isDefined(PRVO_ENABLE_ALL_BY_ONE_RIGHT)) conf.prvoAllByOneRight(getBooleanArgument(PRVO_ENABLE_ALL_BY_ONE_RIGHT));
+			if (isDefined(PRVO_ENABLE_LITERAL_MUTATIONS)) conf.prvoLiteralMutations(getBooleanArgument(PRVO_ENABLE_LITERAL_MUTATIONS));
+			if (isDefined(PRVO_ENABLE_OBJECT_ALLOCATION_MUTATIONS)) conf.prvoAllocationMutations(getBooleanArgument(PRVO_ENABLE_OBJECT_ALLOCATION_MUTATIONS));
+			if (isDefined(PRVO_ENABLE_ARRAY_ALLOCATION_MUTATIONS)) conf.prvoArrayAllocationMutations(getBooleanArgument(PRVO_ENABLE_ARRAY_ALLOCATION_MUTATIONS));
+			
+			//THIS ONE MUST BE THE LAST TO LOAD
+			if (isDefined(PRVO_ENABLE_NON_NAVIGATION_EXPRESSION_MUTATIONS)) conf.prvoNonNavigationExpressionMutations(getBooleanArgument(PRVO_ENABLE_NON_NAVIGATION_EXPRESSION_MUTATIONS));
+			
 			if (isDefined(PRVO_ENABLE_SUPER)) conf.prvoUseSuper(getBooleanArgument(PRVO_ENABLE_SUPER));
 			if (isDefined(PRVO_ENABLE_THIS)) conf.prvoUseThis(getBooleanArgument(PRVO_ENABLE_THIS));
 			if (isDefined(PRVO_ENABLE_REPLACEMENT_WITH_LITERALS)) conf.prvoReplacementWithLiterals(getBooleanArgument(PRVO_ENABLE_REPLACEMENT_WITH_LITERALS));
@@ -892,6 +919,10 @@ public class ConfigReader {
 			case PRVO_ENABLE_TWO_BY_ONE:
 			case PRVO_ENABLE_ALL_BY_ONE_LEFT:
 			case PRVO_ENABLE_ALL_BY_ONE_RIGHT:
+			case PRVO_ENABLE_LITERAL_MUTATIONS:
+			case PRVO_ENABLE_OBJECT_ALLOCATION_MUTATIONS:
+			case PRVO_ENABLE_ARRAY_ALLOCATION_MUTATIONS:
+			case PRVO_ENABLE_NON_NAVIGATION_EXPRESSION_MUTATIONS:
 			case PRVO_ENABLE_SUPER:
 			case PRVO_ENABLE_THIS:
 			case PRVO_ENABLE_REPLACEMENT_WITH_LITERALS:

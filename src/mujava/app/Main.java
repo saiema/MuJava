@@ -510,6 +510,39 @@ public class Main {
 				if (config.fullVerboseMode()) System.out.println("PRVO all by one right disabled");
 			}
 			
+			//NON NAVIGATION EXPRESSION MUTATIONS
+			if (config.prvoNonNavigationExpressionMutations()) {
+				Configuration.add(PRVO.ENABLE_NON_NAVIGATION_EXPRESSION__MUTATION, Boolean.TRUE);
+				if (config.fullVerboseMode()) System.out.println("PRVO Non Navigation Expression mutations enabled");
+			} else {
+				Configuration.add(PRVO.ENABLE_NON_NAVIGATION_EXPRESSION__MUTATION, Boolean.FALSE);
+				if (config.fullVerboseMode()) System.out.println("PRVO Non Navigation Expression mutations disabled (this overrides other options)");
+			}
+			
+			if (config.prvoLiteralMutations()) {
+				Configuration.add(PRVO.ENABLE_LITERAL_MUTATION, Boolean.TRUE);
+				if (config.fullVerboseMode()) System.out.println("PRVO literal mutations enabled");
+			} else {
+				Configuration.add(PRVO.ENABLE_LITERAL_MUTATION, Boolean.FALSE);
+				if (config.fullVerboseMode()) System.out.println("PRVO literal mutations disabled");
+			}
+			
+			if (config.prvoAllocationMutations()) {
+				Configuration.add(PRVO.ENABLE_NEW_MUTATION, Boolean.TRUE);
+				if (config.fullVerboseMode()) System.out.println("PRVO Object Allocation mutations enabled");
+			} else {
+				Configuration.add(PRVO.ENABLE_NEW_MUTATION, Boolean.FALSE);
+				if (config.fullVerboseMode()) System.out.println("PRVO Object Allocation mutations disabled");
+			}
+			
+			if (config.prvoArrayAllocationMutations()) {
+				Configuration.add(PRVO.ENABLE_ARRAY_ALLOCATION_MUTATION, Boolean.TRUE);
+				if (config.fullVerboseMode()) System.out.println("PRVO Array Allocation mutations enabled");
+			} else {
+				Configuration.add(PRVO.ENABLE_ARRAY_ALLOCATION_MUTATION, Boolean.FALSE);
+				if (config.fullVerboseMode()) System.out.println("PRVO Array Allocation mutations disabled");
+			}
+			
 			if (config.prvoUseSuper()) {
 				Configuration.add(Configuration.ENABLE_SUPER, Boolean.TRUE);
 				if (config.fullVerboseMode()) System.out.println("PRVO super use enabled");
