@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -268,19 +269,28 @@ public class SubsumptionAnalysis {
 		return pfile.getFileName();
 	}
 	
-	public Map<MutationOperator, Integer> getDominatorMutantsPerOperator() {
+	public Map<String, Integer> getDominatorMutantsPerOperator() {
 		analyse();
-		Map<MutationOperator, Integer> res = new TreeMap<>();
+		Map<String, Integer> res = new TreeMap<>();
 		for (SubsumptionNode d : getDominatorNodes()) {
-			Set<MutationOperator> alreadySeen = new TreeSet<>();
+			Set<MutationOperator> alreadySeen = new TreeSet<>(new Comparator<MutationOperator>() {
+
+				@Override
+				public int compare(MutationOperator o1, MutationOperator o2) {
+					if (isPRVO(o1) && isPRVO(o2)) return 0;
+					return o1.compareTo(o2);
+				}
+				
+			});
 			for (MutantInfo m : d.getMutants()) {
 				MutationOperator op = m.getOpUsed();
+				String opName = isPRVO(op)?"PRVO":op.toString();
 				if (alreadySeen.add(op)) {
-					if (res.containsKey(op)) {
-						Integer cv = res.get(op);
-						res.put(op, cv + 1);
+					if (res.containsKey(opName)) {
+						Integer cv = res.get(opName);
+						res.put(opName, cv + 1);
 					} else {
-						res.put(op, 1);
+						res.put(opName, 1);
 					}
 				}
 			}
@@ -290,20 +300,26 @@ public class SubsumptionAnalysis {
 	
 	public boolean writeDominatorMutantsPerOperator(String file) {
 		Path pfile = Paths.get(file);
-		int totalDomMutants = 0;
-		int totalDomPRVOMutants = 0;
+//		int totalDomMutants = 0;
+//		int totalDomPRVOMutants = 0;
 		if (Files.exists(pfile)) {
 			System.err.println(pfile.toString() + " already exists");
 			return true;
 		}
+		int dominatorNodes = getDominatorNodes().size();
 		StringBuilder sb = new StringBuilder();
-		for (Entry<MutationOperator, Integer> opData : getDominatorMutantsPerOperator().entrySet()) {
-			if (isPRVO(opData.getKey())) totalDomPRVOMutants += opData.getValue();
-			totalDomMutants += opData.getValue();
-			sb.append(opData.getKey().name()).append(!isPRVO(opData.getKey())?"\t":"").append("\t:\t").append(opData.getValue()).append("\n");
+		sb.append("Total dominator nodes\t:\t").append(dominatorNodes).append("\n");
+		for (Entry<String, Integer> opData : getDominatorMutantsPerOperator().entrySet()) {
+			float dominationRation = ((float)opData.getValue()/(float)dominatorNodes)*100.0f;
+//			if (isPRVO(opData.getKey())) totalDomPRVOMutants += opData.getValue();
+//			totalDomMutants += opData.getValue();
+			sb.append(opData.getKey())
+			.append("\t[Dominator nodes involved: ").append(opData.getValue()).append("]")
+			.append("\t[Domination ratio: ").append(dominationRation).append("%]")
+			.append("\n");
 		}
-		sb.append("Total dominator mutants\t\t:\t").append(totalDomMutants).append("\n");
-		sb.append("Total PRVO dominator mutants\t:\t").append(totalDomPRVOMutants).append("\n");
+//		sb.append("Total dominator mutants\t\t:\t").append(totalDomMutants).append("\n");
+//		sb.append("Total PRVO dominator mutants\t:\t").append(totalDomPRVOMutants).append("\n");
 		try {
 			Files.write(pfile, sb.toString().getBytes());
 			return true;
@@ -325,6 +341,10 @@ public class SubsumptionAnalysis {
 			case PRVOU_SMART: return true;
 			default: return false;
 		}
+	}
+	
+	private boolean isPRVO(String opName) {
+		return opName.compareTo("PRVO") == 0;
 	}
 
 }
