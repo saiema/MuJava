@@ -286,9 +286,25 @@ public class Core {
 		if (!f.exists() || !f.isFile()) return false;
 		File[] files = f.getParentFile().listFiles();
 		String name = f.getName().substring(0, f.getName().indexOf("."));
+		int internalSymbol = name.indexOf("$");
+		if (internalSymbol > 0) {
+			name = name.substring(0, internalSymbol);
+		}
 		for (File file : files) {
 			String fname = file.getName().substring(0, file.getName().indexOf("."));
-			if (file.isFile() && fname.startsWith(name) && !file.renameTo(new File(file.getAbsolutePath()+".bak")))
+			if (file.isFile()
+				&&
+					(
+						fname.equals(name)
+						||
+						(
+							fname.startsWith(name)
+							&&
+							fname.contains("$")
+						)
+					)
+				&&
+				!file.renameTo(new File(file.getAbsolutePath()+".bak")))
 				return false;
 		}
 		return true;
