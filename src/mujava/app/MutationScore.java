@@ -72,6 +72,13 @@ public class MutationScore {
 	
 	public CompilationResult compile(String path) {
 		System.out.println("Compiling with classpath: " + getCurrentClasspath());
+		if (path.contains("$")) {
+			System.out.println("\tDealing with an internal class, obtaining main class file");
+			int internalSymbol = path.indexOf("$");
+			path = path.substring(0, internalSymbol) + ".java";
+			System.out.println("\tMain class obtained: " + path);
+			return compile(path);
+		}
 		File fileToCompile = new File(/*mutantsSourceFolder+*/path);
 		if (!fileToCompile.exists() || !fileToCompile.isFile() || !fileToCompile.getName().endsWith(".java")) {
 			return new CompilationResult(new Exception("Error in file : " + fileToCompile.getAbsolutePath()));
