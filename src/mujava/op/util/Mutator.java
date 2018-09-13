@@ -161,13 +161,20 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	 *         {@code boolean}
 	 */
 	protected boolean isInnerClassOf(OJClass a, OJClass b, int options) {
-		boolean ignorePrivateClasses = (ALLOW_PRIVATE & options) == 0;
-		OJClass[] aClasses = a.getDeclaredClasses();
-		for (OJClass ac : aClasses) {
-			if (((ignorePrivateClasses && !ac.getModifiers().isPrivate() || !ignorePrivateClasses))
-					&& ac.getName().compareTo(b.getName()) == 0) {
-				return true;
-			}
+//		boolean ignorePrivateClasses = (ALLOW_PRIVATE & options) == 0;
+//		OJClass[] aClasses = a.getDeclaredClasses();
+//		for (OJClass ac : aClasses) {
+//			if (((ignorePrivateClasses && !ac.getModifiers().isPrivate() || !ignorePrivateClasses))
+//					&& ac.getName().compareTo(b.getName()) == 0) {
+//				return true;
+//			}
+//		}
+//		return false;
+		String aname = a.getName();
+		String bname = b.getName();
+		int internalSymbol = bname.lastIndexOf('$');
+		if (internalSymbol > 0) {
+			return bname.substring(0, internalSymbol).startsWith(aname);
 		}
 		return false;
 	}
@@ -635,13 +642,15 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	
 	private void getMethodDeclarationVariables(ParseTreeObject exp, Map<OJClass, List<Variable>> variables, List<Variable> allVars, int options) throws ParseTreeException {
 		ParseTreeObject methodDeclaration = getMethodDeclaration(exp);
-		boolean onlyFinals = (ONLY_FINAL & options) != 0;
+		boolean onlyFinal = (ONLY_FINAL & options) > 0;
+		boolean allowFinal = ((ALLOW_FINAL & options) > 0 || onlyFinal);
 		if (methodDeclaration != null) {
 			ParameterList params = ((MethodDeclaration) methodDeclaration)
 					.getParameters();
 			for (int p = 0; p < params.size(); p++) {
 				Parameter param = params.get(p);
-				if (onlyFinals && !param.getModifiers().contains(ModifierList.FINAL)) continue;
+				if (!allowRegardingFinal(param.getModifiers().getRegular(), onlyFinal, allowFinal)) continue;
+				//if (onlyFinals && !param.getModifiers().contains(ModifierList.FINAL)) continue;
 				addVar(variables, allVars, new Variable(param.getVariable()));
 			}
 		}
@@ -1217,7 +1226,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		List<Object> result = new LinkedList<Object>();
 		if (t != null) {
 			if (!ignoreVoidMethods && !ignoreMethodsWithParams) {
-				result.addAll(Arrays.asList(getAllMethods(t, options)));
+				result.addAll(Arrays.asList(filterAccessMembers(getAllMethods(t, options))));
 			} else {
 				OJMethod[] allMethods = getAllMethods(t, options);
 				for (OJMethod m : allMethods) {
@@ -1233,7 +1242,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 					result.add(m);
 				}
 			}
-			result.addAll(Arrays.asList(getAllFields(t, options)));
+			result.addAll(Arrays.asList(filterAccessMembers(getAllFields(t, options))));
 		}
 		if (!ignoreVars) {
 			for (List<Variable> vars : getReachableVariables(limit, options).values()) {
@@ -1348,7 +1357,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	}
 	
 	private boolean isMemberAllowed_usingList(OJMember m) {
-		String declaringClass = m.getDeclaringClass().getName();
+		String declaringClass = m.getDeclaringClass().getName().replaceAll("\\$", ".");
 		String memberName = m.getName();
 		String fullName = declaringClass+"#"+memberName;
 		for (Pattern pf : allowedMethodsAndFields) {
@@ -1662,6 +1671,19 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		}
 	}
 	
+	public static ParseTreeObject getClassDeclaration(ParseTreeObject node) {
+		ParseTreeObject nodeAsStatement = getStatement(node);
+		ParseTreeObject current = nodeAsStatement;
+		while (current != null && !(current instanceof ClassDeclaration)) {
+			current = current.getParent();
+		}
+		if (current != null) {
+			return current;
+		} else {
+			return null;
+		}
+	}
+	
 	protected static final boolean isSameObject(ParseTree p, ParseTree q) {
 		if (p == null && q == null)
 			return true;
@@ -1843,6 +1865,29 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 	
 	public final boolean isSelfClass(OJClass a) throws ParseTreeException {
 		return getSelfType().getName().compareTo(a.getName()) == 0;
+	}
+	
+	public boolean isNull(Expression e) {
+		if (e instanceof Literal) {
+			return e.toFlattenString().compareTo(Literal.constantNull().toFlattenString()) == 0;
+		}
+		return false;
+	}
+	
+	public boolean isNavigationalExpression(Expression e) {
+		if (e instanceof Literal) return false;
+		if (e instanceof Variable) return false;
+		if (e instanceof ArrayAllocationExpression) return false;
+		if (e instanceof AllocationExpression) return false;
+		if (e instanceof MethodCall) {
+			MethodCall mc = (MethodCall) e;
+			return mc.getReferenceExpr() != null;
+		}
+		if (e instanceof FieldAccess) {
+			FieldAccess fa = (FieldAccess) e;
+			return fa.getReferenceExpr() != null;
+		}
+		return false;
 	}
 	
 	/**
