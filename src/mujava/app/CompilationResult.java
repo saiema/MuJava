@@ -17,7 +17,8 @@ public class CompilationResult {
 	private CompilationResult(Exception error, boolean compilationSuccessful, String warnings) {
 		this.error = error;
 		this.compilationSuccessful = compilationSuccessful;
-		this.warnings = warnings;
+		if (warnings != null && warnings.trim().isEmpty()) this.warnings = null;
+		else this.warnings = warnings;
 	}
 	
 	public boolean compilationSuccessful() {
