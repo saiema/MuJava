@@ -342,9 +342,5 @@ public class SubsumptionAnalysis {
 			default: return false;
 		}
 	}
-	
-	private boolean isPRVO(String opName) {
-		return opName.compareTo("PRVO") == 0;
-	}
 
 }
