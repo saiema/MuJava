@@ -1226,7 +1226,7 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		List<Object> result = new LinkedList<Object>();
 		if (t != null) {
 			if (!ignoreVoidMethods && !ignoreMethodsWithParams) {
-				result.addAll(Arrays.asList(filterAccessMembers(getAllMethods(t, options))));
+				result.addAll(filterAccessMembers(getAllMethods(t, options)));
 			} else {
 				OJMethod[] allMethods = getAllMethods(t, options);
 				for (OJMethod m : allMethods) {
@@ -1242,7 +1242,9 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 					result.add(m);
 				}
 			}
-			result.addAll(Arrays.asList(filterAccessMembers(getAllFields(t, options))));
+			OJField[] allFields = getAllFields(t, options);
+			Set<OJField> filteredFields = filterAccessMembers(allFields);
+			result.addAll(filteredFields);
 		}
 		if (!ignoreVars) {
 			for (List<Variable> vars : getReachableVariables(limit, options).values()) {
@@ -1707,6 +1709,24 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 			//should never reach this point
 			//throw an exception maybe
 			return null;
+		}
+	}
+	
+	public static boolean hasPreviousExpression(Expression e) {
+		if (e instanceof MethodCall) {
+			return ((MethodCall) e).getReferenceExpr() != null;
+		} else if (e instanceof FieldAccess) {
+			return ((FieldAccess) e).getReferenceExpr() != null;
+		} else if (e instanceof Variable) {
+			return false;
+		} else if (e instanceof Literal) {
+			return false;
+		} else if (e instanceof ArrayAccess) {
+			return hasPreviousExpression( ((ArrayAccess)e).getReferenceExpr() );
+		} else {
+			//should never reach this point
+			//throw an exception maybe
+			return false;
 		}
 	}
 	
