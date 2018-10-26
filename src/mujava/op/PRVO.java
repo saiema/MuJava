@@ -676,7 +676,10 @@ public class PRVO extends mujava.op.util.Mutator {
 		boolean ignoreVars = forceIgnoreVars || limit == null;
 		OJClass t = null;
 		OJClass self = getSelfType();
-		if (elem instanceof MethodCall || elem instanceof FieldAccess || elem instanceof Variable) {
+		if (elem instanceof MethodCall
+				|| elem instanceof FieldAccess
+				|| elem instanceof Variable
+				|| elem instanceof ArrayAccess) {
 			t = getType((Expression) elem);
 			ignoreVars = true;
 		} else if (elem instanceof OJMethod) {
@@ -702,7 +705,13 @@ public class PRVO extends mujava.op.util.Mutator {
 				useOnlyStatic = true;
 			}
 		}
-		options += this.allowNonStatic?ALLOW_NON_STATIC:0;
+		if (this.allowNonStatic) {
+			options += ALLOW_NON_STATIC;
+		} else if (elem instanceof Expression && hasPreviousExpression((Expression) elem)) {
+			options += ALLOW_NON_STATIC;
+		}
+		//options += this.allowNonStatic?ALLOW_NON_STATIC:0; //TODO: FIX HERE
+		
 		options += (useOnlyStatic || this.useStaticForNonStaticExpressions())?ALLOW_STATIC:0;
 		if (elem != null && t.getName().compareTo(self.getName()) == 0) {
 			options += TARGET_IS_MUTATED_CLASS_OBJECT;
@@ -723,7 +732,6 @@ public class PRVO extends mujava.op.util.Mutator {
 							options += ALLOW_PRIVATE;
 						}
 					} catch (OJClassNotFoundException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -2029,6 +2037,8 @@ public class PRVO extends mujava.op.util.Mutator {
 		} else {
 			if (md.getModifiers().contains(ModifierList.STATIC)) {
 				this.allowNonStatic = false;
+			} else {
+				this.allowNonStatic = true;
 			}
 			this.justEvaluating = true;
 			Api.disableClassesVerification();
@@ -2485,7 +2495,15 @@ public class PRVO extends mujava.op.util.Mutator {
 			return;
 		}
 		if (!this.refinedMode || getMutationsLeft(p) <= 0) return;
-		boolean parentIsStatement = p.getParent() instanceof Statement;
+		boolean parentIsStatement = p.getParent() instanceof Statement
+									&&
+									(!(p.getParent() instanceof IfStatement))
+									&&
+									(!(p.getParent() instanceof WhileStatement))
+									&&
+									(!(p.getParent() instanceof DoWhileStatement))
+									&&
+									(!(p.getParent() instanceof ForStatement));
 		if (!parentIsStatement) unaryVisit(p, p, true);
 		if (parentIsStatement && !allowRefinementInMethodCallStatements()) return;
 		ExpressionList args = p.getArguments();
