@@ -352,7 +352,7 @@ public class Core {
 			}
 			boolean killed = false;
 			List<TestResult> results = ms.runTestsWithMutants(Arrays.asList(testClasses), mut);
-			Map<String, boolean[]> testsSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<>():null;
+			Map<String, boolean[]> testsSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<String, boolean[]>():null;
 			if (results == null) {
 				System.out.println("An error ocurred while running tests for mutants");
 				System.out.println(ms.getLastError()!=null?ms.getLastError().toString():"no exception to display, contact your favorite mujava++ developer");
@@ -435,7 +435,7 @@ public class Core {
 			}
 			int runnedTestsCount = 0;
 			int totalFailures = 0;
-			Map<String, boolean[]> testSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<>():null;
+			Map<String, boolean[]> testSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<String, boolean[]>():null;
 			for (TestResult tr : r.testResults().testResults()) {
 				if (dynamicSubsumptionAnalysis()) testSimpleResults.put(tr.getTestClassRunned().getName(), tr.testResultsAsArray());
 				System.out.println(tr.toString()+"\n");
@@ -625,7 +625,7 @@ public class Core {
 			}
 			int runnedTestsCount = 0;
 			int totalFailures = 0;
-			Map<String, boolean[]> testSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<>():null;
+			Map<String, boolean[]> testSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<String, boolean[]>():null;
 			for (TestResult r : testResults.testResults()) {
 				if (dynamicSubsumptionAnalysis()) testSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
 				System.out.println(r.toString()+"\n");
