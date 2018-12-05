@@ -2374,12 +2374,17 @@ public class PRVO extends mujava.op.util.Mutator {
 		if (!allowArrayAllocationMutations()) return;
 		ExpressionList sizes = p.getDimExprList();
 		pushAllowNull(p, false);
+		boolean explicitSizes = true;
 		if (sizes != null) {
 			Variable intVar = Variable.generateUniqueVariable();
 			getEnvironment().bindVariable(intVar.toString(), OJSystem.INT);
 			pushComplyType(p, intVar);
 			for (int e = 0; e < sizes.size(); e++) {
 				Expression sizeExpr = sizes.get(e);
+				if (sizeExpr == null) {
+					explicitSizes = false;
+					break;
+				}
 				sizeExpr.accept(this);
 			}
 			popComplyType(p);
@@ -2389,10 +2394,21 @@ public class PRVO extends mujava.op.util.Mutator {
 		ArrayInitializer init = p.getInitializer();
 		if (init != null) {
 			OJClass atype = getType(p.getTypeName());
-			if (!atype.isArray()) throw new ParseTreeException("Not an array type for array allocation " + p.toFlattenString());
-			atype = atype.getComponentType();
 			Variable atypeVar = Variable.generateUniqueVariable();
-			getEnvironment().bindVariable(atypeVar.toString(), atype);
+			if (!explicitSizes && atype.isArray()) {
+				throw new ParseTreeException("Array type but no explicit sizes for array allocation " + p.toFlattenString());
+			} else if (explicitSizes && !atype.isArray()) {
+				throw new ParseTreeException("Not an array type for array allocation " + p.toFlattenString());
+			} else if (explicitSizes) {
+				getEnvironment().bindVariable(atypeVar.toString(), atype.getComponentType());
+			} else {
+				getEnvironment().bindVariable(atypeVar.toString(), atype);
+			}
+//			OJClass atype = getType(p.getTypeName());
+//			if (!atype.isArray()) throw new ParseTreeException("Not an array type for array allocation " + p.toFlattenString());
+//			atype = atype.getComponentType();
+//			Variable atypeVar = Variable.generateUniqueVariable();
+//			getEnvironment().bindVariable(atypeVar.toString(), atype);
 			pushAllowNull(p, compatibleAssignTypeRelaxed(atype, null));
 			pushComplyType(p, atypeVar);
 			for (int i = 0; i < init.size(); i++) {
