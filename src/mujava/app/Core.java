@@ -291,6 +291,7 @@ public class Core {
 			name = name.substring(0, internalSymbol);
 		}
 		for (File file : files) {
+			if (!file.getName().endsWith(".class")) continue;
 			String fname = file.getName().substring(0, file.getName().indexOf("."));
 			if (file.isFile()
 				&&
