@@ -18,12 +18,14 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import mujava.api.MutationOperator;
+import static mujava.api.MutationOperator.*;
 
 public class SubsumptionAnalysis {
 	
 	public static boolean fullPrint = false;
 	private List<SubsumptionNode> nodes = new LinkedList<>();
 	private List<SubsumptionNode> dominatorNodes = null;
+	private List<SubsumptionNode> pureDominatorNodes = null;
 	private boolean dataChanged = false;
 	private static enum AnalisisType {EQUIVALENT, SUBSUMING};
 	private boolean analyzed = false;
@@ -97,13 +99,51 @@ public class SubsumptionAnalysis {
 		return dominatorNodes;
 	}
 	
-	public List<SubsumptionNode> getNonDominatorNodes() {
+	public List<SubsumptionNode> getDominatorNodes(boolean includePure) {
+		analyse();
+		List<SubsumptionNode> dominators = new LinkedList<>();
+		for (SubsumptionNode n : getDominatorNodes()) {
+			if (!includePure && n.isPure()) continue;
+			dominators.add(n);
+		}
+		return dominators;
+	}
+	
+	public List<SubsumptionNode> getPureDominatorNodes() {
+		analyse();
+		List<SubsumptionNode> pureDominators;
+		if (!dataChanged && pureDominatorNodes != null) {
+			return pureDominatorNodes;
+		} else if (dataChanged || pureDominatorNodes == null) {
+			pureDominators = new LinkedList<>();
+			for (SubsumptionNode n : nodes) {
+				if (n.isDominator() && n.isPure()) pureDominators.add(n);
+			}
+			pureDominatorNodes = pureDominators;
+		}
+		dataChanged = false;
+		return pureDominatorNodes;
+	}
+	
+	public List<SubsumptionNode> getNonDominatorNodes(boolean includeLeafs) {
 		analyse();
 		List<SubsumptionNode> nondominators = new LinkedList<>();
 		for (SubsumptionNode n : nodes) {
-			if (!n.isDominator()) nondominators.add(n);
+			if (!n.isDominator()) {
+				if (n.isLeaf() && !includeLeafs) continue;
+				nondominators.add(n);
+			}
 		}
 		return nondominators;
+	}
+	
+	public List<SubsumptionNode> getLeafNodes() {
+		analyse();
+		List<SubsumptionNode> leafs = new LinkedList<>();
+		for (SubsumptionNode n : nodes) {
+			if (n.isLeaf()) leafs.add(n);
+		}
+		return leafs;
 	}
 	
 	@Override
@@ -150,8 +190,19 @@ public class SubsumptionAnalysis {
 		sb.append(indent).append("page=\"15,15\"\n");
 		sb.append(indent).append("ratio=\"auto\";\n");
 		sb.append(indent).append("ranksep=\"1.5 equally\";\n");
-		sb.append(indent).append("node [shape = doubleoctagon fontsize = 30];");
-		Iterator<SubsumptionNode> it = getDominatorNodes().iterator();
+		if (!getPureDominatorNodes().isEmpty()) {
+			sb.append(indent).append("node [shape = ellipse fontsize = 30 style=filled fillcolor = gray];");
+			Iterator<SubsumptionNode> it = getPureDominatorNodes().iterator();
+			boolean pureDominatorsFound = false;
+			while (it.hasNext()) {
+				sb.append(it.next().shortNodeName());
+				if (it.hasNext()) sb.append(" ");
+				pureDominatorsFound = true;
+			}
+			if (pureDominatorsFound) sb.append(";").append("\n");
+		}
+		sb.append(indent).append("node [shape = ellipse fontsize = 30 style=solid fillcolor = none];");
+		Iterator<SubsumptionNode> it = getDominatorNodes(false).iterator();
 		boolean dominatorsFound = false;
 		while (it.hasNext()) {
 			sb.append(it.next().shortNodeName());
@@ -160,7 +211,28 @@ public class SubsumptionAnalysis {
 		}
 		if (dominatorsFound) sb.append(";");
 		sb.append("\n");
-		sb.append(indent).append("node [shape = rectangle fontsize = 30];\n");
+		sb.append(indent).append("node [shape = ellipse fontsize = 30 style=dashed fillcolor = none];\n");
+		Iterator<SubsumptionNode> nodomnoleafIterator = getNonDominatorNodes(false).iterator();
+		boolean nonleafsfound = false;
+		while (nodomnoleafIterator.hasNext()) {
+			SubsumptionNode node = nodomnoleafIterator.next();
+			if (node.isEquivalentToOriginal()) continue;
+			sb.append(node.shortNodeName());
+			if (nodomnoleafIterator.hasNext()) sb.append(" ");
+			nonleafsfound = true;
+		}
+		if (nonleafsfound) sb.append(";");
+		sb.append("\n");
+		sb.append(indent).append("node [shape = ellipse fontsize = 30 style=dotted fillcolor = none];\n");
+		Iterator<SubsumptionNode> leafsIt = getLeafNodes().iterator();
+		boolean leafsFound = false;
+		while (leafsIt.hasNext()) {
+			sb.append(leafsIt.next().shortNodeName());
+			if (leafsIt.hasNext()) sb.append(" ");
+			leafsFound = true;
+		}
+		if (leafsFound) sb.append(";");
+		sb.append("\n");
 		it = nodes.iterator();
 		while (it.hasNext()) {
 			SubsumptionNode n = it.next();
@@ -174,14 +246,10 @@ public class SubsumptionAnalysis {
 				Iterator<SubsumptionNode> itsubsumed = n.getSubsumedNodes().iterator();
 				while (itsubsumed.hasNext()) {
 					SubsumptionNode nsub = itsubsumed.next();
-//					URL nsref = saveNodeToFile(parent, nsub);
-//					if (nsref == null) return;
 					sb.append(indent)
 						.append(n.shortNodeName())
-//						.append("[\"").append("HREF=").append(nref.toString()).append("\"]")
 							.append(" -> ")
 						.append(nsub.shortNodeName())
-//						.append("[\"").append("HREF=").append(nsref.toString()).append("\"]")
 					.append(";\n");
 				}
 			}
@@ -298,6 +366,23 @@ public class SubsumptionAnalysis {
 		return res;
 	}
 	
+	public Map<String, Integer> getPureDominatorMutantsPerOperator() {
+		analyse();
+		Map<String, Integer> res = new TreeMap<>();
+		for (SubsumptionNode d : getDominatorNodes()) {
+			if (!d.isPure()) continue;
+			MutationOperator op = d.getMutants().get(0).getOpUsed();
+			String opName = isPRVO(op)?"PRVO":op.toString();
+			if (res.containsKey(opName)) {
+				Integer cv = res.get(opName);
+				res.put(opName, cv + 1);
+			} else {
+				res.put(opName, 1);
+			}
+		}
+		return res;
+	}
+	
 	public boolean writeDominatorMutantsPerOperator(String file) {
 		Path pfile = Paths.get(file);
 //		int totalDomMutants = 0;
@@ -309,13 +394,18 @@ public class SubsumptionAnalysis {
 		int dominatorNodes = getDominatorNodes().size();
 		StringBuilder sb = new StringBuilder();
 		sb.append("Total dominator nodes\t:\t").append(dominatorNodes).append("\n");
+		Map<String, Integer> pureDominators = getPureDominatorMutantsPerOperator();
 		for (Entry<String, Integer> opData : getDominatorMutantsPerOperator().entrySet()) {
 			float dominationRation = ((float)opData.getValue()/(float)dominatorNodes)*100.0f;
+			Integer opDominatorNodes = opData.getValue();
+			Integer opPureDominatorNodes = pureDominators.containsKey(opData.getKey())?pureDominators.get(opData.getKey()):0;
+			float purenessRatio = ((float)opPureDominatorNodes/(float)opDominatorNodes)*100.0f;
 //			if (isPRVO(opData.getKey())) totalDomPRVOMutants += opData.getValue();
 //			totalDomMutants += opData.getValue();
 			sb.append(opData.getKey())
 			.append("\t[Dominator nodes involved: ").append(opData.getValue()).append("]")
 			.append("\t[Domination ratio: ").append(dominationRation).append("%]")
+			.append("\t[Pureness ratio: ").append(purenessRatio).append("%]")
 			.append("\n");
 		}
 //		sb.append("Total dominator mutants\t\t:\t").append(totalDomMutants).append("\n");
@@ -329,18 +419,18 @@ public class SubsumptionAnalysis {
 		}
 	}
 	
-	private boolean isPRVO(MutationOperator op) {
-		switch (op) {
-			case PRVOL:
-			case PRVOL_SMART:
-			case PRVOR:
-			case PRVOR_REFINED:
-			case PRVOR_SMART:
-			case PRVOU:
-			case PRVOU_REFINED:
-			case PRVOU_SMART: return true;
-			default: return false;
-		}
-	}
+//	private boolean isPRVO(MutationOperator op) {
+//		switch (op) {
+//			case PRVOL:
+//			case PRVOL_SMART:
+//			case PRVOR:
+//			case PRVOR_REFINED:
+//			case PRVOR_SMART:
+//			case PRVOU:
+//			case PRVOU_REFINED:
+//			case PRVOU_SMART: return true;
+//			default: return false;
+//		}
+//	}
 
 }
