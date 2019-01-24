@@ -691,6 +691,10 @@ public class PRVO extends mujava.op.util.Mutator {
 		} else if (elem instanceof SelfAccess) {
 			t = getType((Expression) elem);
 			ignoreVars = true;
+		} else if (elem instanceof AllocationExpression) {
+			AllocationExpression aexp = (AllocationExpression) elem;
+			t = getType(aexp.getClassType());
+			ignoreVars = true;
 		} else if (elem == null) {
 			t = self;
 		}
@@ -3079,6 +3083,8 @@ public class PRVO extends mujava.op.util.Mutator {
 				constructorType = new TypeName("java.lang.Long");
 			} else if (primitiveClass.getSimpleName().compareTo(openjava.mop.OJSystem.FLOAT.getSimpleName()) == 0) {
 				constructorType = new TypeName("java.lang.Float");
+			} else if (primitiveClass.getSimpleName().compareTo(openjava.mop.OJSystem.DOUBLE.getSimpleName()) == 0) {
+				constructorType = new TypeName("java.lang.Double");
 			}
 			AllocationExpression wrappedExpression = new AllocationExpression(constructorType, null); //params not added
 			setParentOf(wrappedExpression, originalExpression, true);
