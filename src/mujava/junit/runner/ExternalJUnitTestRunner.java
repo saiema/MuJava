@@ -7,8 +7,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -29,7 +27,7 @@ import mujava.app.TestResult;
  * @version 0.1
  */
 public class ExternalJUnitTestRunner {
-	private static final String VERSION = "0.1.6";
+	private static final String VERSION = "0.2.0";
 	private static final boolean VERBOSE_DEFAULT = true;
 	
 	/**
@@ -44,6 +42,8 @@ public class ExternalJUnitTestRunner {
 	 * <li>104 : Test class doesn't exist</li>
 	 * <li>105 : Mutant path doesn't exist</li>
 	 * <li>106 : Timeout is a negative value</li>
+	 * <li>107 : Discard timeout is a negative value</li>
+	 * <li>108 : Discard timeout is less or equal to Timeout</li>
 	 * <li>199 : Incorrect arguments</li>
 	 * <li>201 : Error running mutation analysis (ClassNotFoundException | IllegalArgumentException)</li>
 	 * <li>202 : Error running mutation analysis (Throwable)</li>
@@ -90,6 +90,11 @@ public class ExternalJUnitTestRunner {
 		timeoutOption.setArgs(1);
 		timeoutOption.setType(Long.class);
 		
+		Option discardOption = new Option("I", "discardTimeout", true, "discard timeout");
+		discardOption.setRequired(false);
+		discardOption.setArgs(1);
+		discardOption.setType(Long.class);
+		
 		Option quickDeathOption = new Option("q", "quickDeath", false, "stop tests at first fail");
 		quickDeathOption.setRequired(false);
 		
@@ -121,6 +126,7 @@ public class ExternalJUnitTestRunner {
 		options.addOption(toughnessOption);
 		options.addOption(socketOption);
 		options.addOption(timeoutOption);
+		options.addOption(discardOption);
 		
 		CommandLineParser parser = new DefaultParser();
 		boolean verbose = VERBOSE_DEFAULT;
@@ -212,32 +218,24 @@ public class ExternalJUnitTestRunner {
 				if (verbose) System.out.println("Default timeout set to : " + timeout);
 			}
 			
+			long discardTimeout = 0;
+			if (cmd.hasOption(discardOption.getOpt())) {
+				discardTimeout = Long.parseLong(cmd.getOptionValue(discardOption.getOpt()));
+				if (discardTimeout < 0) {
+					System.err.println("Discard timeout cannot be a negative value");
+					System.exit(107);
+				}
+				if (discardTimeout <= timeout) {
+					System.err.println("Discard timeout must be greater than test timeout");
+					System.exit(108);
+				}
+				if (verbose) System.out.println("Discard timeout set to : " + discardTimeout);
+			}
+			
 			boolean toughness = cmd.hasOption(toughnessOption.getOpt());
 			boolean dynamic = cmd.hasOption(dynamicOption.getOpt());
 			boolean quickDeath = (toughness||dynamic)?false:cmd.hasOption(quickDeathOption.getOpt());
 			
-			
-			
-			List<TestResult> testResults = new LinkedList<TestResult>();
-			for (String test : tclasses) {
-				Class<?> testToRun;
-				try {
-					testToRun = Class.forName(test);
-					MuJavaJunitTestRunnerBuilder mjTestRunner = new MuJavaJunitTestRunnerBuilder(testToRun, quickDeath/*, dynamic*/, timeout);
-					Result testResult = mjTestRunner.run();
-					TestResult tresult = new TestResult(testResult, testToRun, mjTestRunner.getSimpleResults());
-					testResults.add(tresult);
-					if (!testResult.wasSuccessful() && quickDeath) {
-						break;
-					}
-				} catch (ClassNotFoundException | IllegalArgumentException e) { //| MuJavaTestRunnerException e) { //| InitializationError e) { //changed to support junit 3.8
-					System.err.println(ExceptionUtils.getFullStackTrace(e));
-					System.exit(201);
-				} catch (Throwable e) {
-					System.err.println(ExceptionUtils.getFullStackTrace(e));
-					System.exit(202);
-				}
-			}
 			ObjectOutputStream out = null;
 			Socket sc = null;
 			if (useSocket) {
@@ -250,10 +248,37 @@ public class ExternalJUnitTestRunner {
 			} else {
 				out = new ObjectOutputStream(System.out);
 			}
-	        for (TestResult tr : testResults) {
-	        	if (verbose) System.out.println(tr.toString());
-	            out.writeObject(tr);
-	        }
+			
+			//List<TestResult> testResults = new LinkedList<TestResult>();
+			for (String test : tclasses) {
+				Class<?> testToRun;
+				try {
+					testToRun = Class.forName(test);
+					MuJavaJunitTestRunnerBuilder mjTestRunner = new MuJavaJunitTestRunnerBuilder(testToRun, quickDeath/*, dynamic*/, timeout, discardTimeout);
+					Result testResult = mjTestRunner.run();
+					TestResult tresult = new TestResult(testResult, testToRun, mjTestRunner.getSimpleResults());
+					//testResults.add(tresult);
+					if (verbose) System.out.println(tresult.toString());
+					out.writeObject(tresult);
+					if (!testResult.wasSuccessful() && quickDeath) {
+						break;
+					}
+					if (tresult.wasDiscarded()) {
+						break;
+					}
+				} catch (ClassNotFoundException | IllegalArgumentException e) { //| MuJavaTestRunnerException e) { //| InitializationError e) { //changed to support junit 3.8
+					System.err.println(ExceptionUtils.getFullStackTrace(e));
+					System.exit(201);
+				} catch (Throwable e) {
+					System.err.println(ExceptionUtils.getFullStackTrace(e));
+					System.exit(202);
+				}
+			}
+			
+//	        for (TestResult tr : testResults) {
+//	        	if (verbose) System.out.println(tr.toString());
+//	            out.writeObject(tr);
+//	        }
 	        out.flush();
 	        //Core.killStillRunningJUnitTestcaseThreads();
 	        if (useSocket) sc.close();
@@ -273,12 +298,12 @@ public class ExternalJUnitTestRunner {
 			System.err.println("An unexpected error occurred");
 			System.err.println(ExceptionUtils.getFullStackTrace(e));
 			System.exit(500);
-		}
+		} 
+//		finally {
+//			if (verbose) System.out.println("Killing rogue junit threads");
+//			Core.killStillRunningJUnitTestcaseThreads();
+//		}
 		System.exit(0);
-		//finally {
-			//if (verbose) System.out.println("Killing rogue junit threads");
-			//Core.killStillRunningJUnitTestcaseThreads();
-		//}
 	}
 	
 	private static boolean verifyDirectory(String dir) {
