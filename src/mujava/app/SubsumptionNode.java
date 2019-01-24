@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import mujava.api.MutationOperator;
+import static mujava.api.MutationOperator.*;
 import mujava.util.JustCodeDigest;
 
 public class SubsumptionNode implements Comparable<SubsumptionNode>{
@@ -95,10 +96,6 @@ public class SubsumptionNode implements Comparable<SubsumptionNode>{
 			}
 		}
 		return subsumesAtLeastOne;
-	}
-	
-	public boolean isDominator() {
-		return subsumingNodes.isEmpty() && !subsumedNodes.isEmpty();
 	}
 	
 	public boolean mergeIfEquivalent(SubsumptionNode other) {
@@ -219,6 +216,8 @@ public class SubsumptionNode implements Comparable<SubsumptionNode>{
 	public String toString() {
 		StringBuilder sb = new StringBuilder(nodeName());
 		if (isDominator()) sb.append("-DOMINATOR");
+		if (isPure()) sb.append("-PURE");
+		if (isLeaf()) sb.append("-LEAF");
 		if (SubsumptionNode.fullPrint) {
 			sb.append("\n");
 			Iterator<Entry<String, boolean[]>> it = failedTestsPerClass.entrySet().iterator();
@@ -275,6 +274,30 @@ public class SubsumptionNode implements Comparable<SubsumptionNode>{
 		int value = failingTests + (subsumed - subsuming);
 		int ovalue = ofailingTests + (osubsumed - osubsuming);
 		return value - ovalue;
+	}
+	
+	public boolean isDominator() {
+		return subsumingNodes.isEmpty() && !subsumedNodes.isEmpty();
+	}
+	
+	public boolean isPure() {
+		MutationOperator first = null;
+		for (MutantInfo m : mutants) {
+			if (first == null) {
+				first = m.getOpUsed();
+			} else if (isPRVO(first) && !isPRVO(m.getOpUsed())) {
+				return false;
+			} else if (!isPRVO(first) && isPRVO(m.getOpUsed())) {
+				return false;
+			} else if (first.compareTo(m.getOpUsed()) != 0) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public boolean isLeaf() {
+		return subsumedNodes.isEmpty() && !subsumingNodes.isEmpty();
 	}
 	
 }
