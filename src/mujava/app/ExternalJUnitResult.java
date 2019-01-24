@@ -4,6 +4,7 @@ import java.util.List;
 
 public class ExternalJUnitResult {
 	private List<TestResult> testResults;
+	private boolean discarded;
 	private Exception error;
 	
 	public ExternalJUnitResult(Exception error) {
@@ -17,10 +18,16 @@ public class ExternalJUnitResult {
 	private ExternalJUnitResult(List<TestResult> testResults, Exception error) {
 		this.testResults = testResults;
 		this.error = error;
+		for (TestResult r : testResults) {
+			if (r.wasDiscarded()) {
+				discarded = true;
+				break;
+			}
+		}
 	}
 	
 	public boolean testsRunSuccessful() {
-		return this.error == null;
+		return this.error == null && !discarded;
 	}
 	
 	public Exception error() {
@@ -29,6 +36,10 @@ public class ExternalJUnitResult {
 	
 	public List<TestResult> testResults() {
 		return this.testResults;
+	}
+	
+	public boolean wasDiscarded() {
+		return discarded;
 	}
 	
 	
