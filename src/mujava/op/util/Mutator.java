@@ -1712,11 +1712,47 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		}
 	}
 	
+	public static TypeName getReferenceType(Expression e) {
+		if (e instanceof MethodCall) {
+			return ((MethodCall) e).getReferenceType();
+		} else if (e instanceof FieldAccess) {
+			return ((FieldAccess) e).getReferenceType();
+		} else if (e instanceof Variable) {
+			return null;
+		} else if (e instanceof Literal) {
+			return null;
+		} else if (e instanceof ArrayAccess) {
+			return getReferenceType( ((ArrayAccess)e).getReferenceExpr() );
+		} else {
+			//should never reach this point
+			//throw an exception maybe
+			return null;
+		}
+	}
+	
 	public static boolean hasPreviousExpression(Expression e) {
 		if (e instanceof MethodCall) {
 			return ((MethodCall) e).getReferenceExpr() != null;
 		} else if (e instanceof FieldAccess) {
 			return ((FieldAccess) e).getReferenceExpr() != null;
+		} else if (e instanceof Variable) {
+			return false;
+		} else if (e instanceof Literal) {
+			return false;
+		} else if (e instanceof ArrayAccess) {
+			return hasPreviousExpression( ((ArrayAccess)e).getReferenceExpr() );
+		} else {
+			//should never reach this point
+			//throw an exception maybe
+			return false;
+		}
+	}
+	
+	public static boolean hasReferenceType(Expression e) {
+		if (e instanceof MethodCall) {
+			return ((MethodCall) e).getReferenceType() != null;
+		} else if (e instanceof FieldAccess) {
+			return ((FieldAccess) e).getReferenceType() != null;
 		} else if (e instanceof Variable) {
 			return false;
 		} else if (e instanceof Literal) {
