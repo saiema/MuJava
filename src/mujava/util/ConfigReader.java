@@ -147,6 +147,11 @@ public class ConfigReader {
 				return "mutation.advanced.timeout";
 			}
 		},
+		DISCARD_TIMEOUT {
+			public String getKey() {
+				return "mutation.advanced.discardTimeout";
+			}
+		},
 		ALLOWED_MEMBERS {
 			public String getKey() {
 				return "mutation.advanced.allowedMembers";
@@ -782,6 +787,7 @@ public class ConfigReader {
 		if (conf.runMutationScore() && conf.dynamicSubsumption()) conf.dynamicSubsumptionOutput(getStringArgument(DYNAMIC_SUBSUMPTION_FOLDER));
 		if (conf.runMutationScore() && conf.dynamicSubsumption()) conf.reduceDynamicSubsumptionGraph(getBooleanArgument(DYNAMIC_SUBSUMPTION_REDUCE_GRAPH));
 		if (conf.runMutationScore() && isDefined(TEST_TIMEOUT)) conf.testTimeout(getLongArgument(TEST_TIMEOUT));
+		if (conf.runMutationScore() && isDefined(DISCARD_TIMEOUT)) conf.discardTimeout(getLongArgument(DISCARD_TIMEOUT));
 		if (!useExternalMutants && conf.runMutationScore()) conf.outputMutationsInfo(getBooleanArgument(OUPUT_MUTANT_MUTATIONS));	
 		String e = loadInheritedBasicConfig(junitPathDefined, hamcrestPathDefined, conf);
 		if (e != null) throw new IllegalStateException("Bad inherited configuration : " + e);
@@ -982,6 +988,7 @@ public class ConfigReader {
 	public boolean isLongKey(Config_key key) {
 		switch (key) {
 			case TEST_TIMEOUT : return true;
+			case DISCARD_TIMEOUT : return true;
 			default : return false;
 		}
 	}

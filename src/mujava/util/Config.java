@@ -53,6 +53,7 @@ public class Config {
 	
 	//advanced mutation options
 	private long testTimeout;
+	private long discardTimeout;
 	private boolean fullVerboseMode;
 	private boolean allowClassMutations;
 	private boolean allowFieldMutations;
@@ -157,6 +158,7 @@ public class Config {
 		hamcrestPath = null;
 		externalClassesToMutate = null;
 		testTimeout(0);
+		discardTimeout(0);
 		useExternalMutants(false);
 		useSockets(false);
 		writePrologue(false);
@@ -259,6 +261,14 @@ public class Config {
 
 	public void testTimeout(long testTimeout) {
 		this.testTimeout = testTimeout;
+	}
+	
+	public long discardTimeout() {
+		return discardTimeout;
+	}
+	
+	public void discardTimeout(long discardTimeout) {
+		this.discardTimeout = discardTimeout;
 	}
 
 	public String originalSourceDir() {
@@ -1122,6 +1132,9 @@ public class Config {
 		
 		if (!prototypeMode) if (!getClassesInOriginalBinDir().contains(this.classToMutate)) return "Class " + classToMutate + " can't be found inside " + originalBinDir;
 		if (runMutationScore && testTimeout() < 0) return "Timeout can't be a negative value";
+		if (runMutationScore && discardTimeout() < 0) return "Discard timeout can't be a negative value";
+		if (runMutationScore && discardTimeout() <= testTimeout()) return "Discard timeout must be greater than test timeout";
+		if (runMutationScore && discardTimeout() > 0 && !useExternalJUnitRunner) return "Cannot use discard timeout without using the External JUnit Runner";
 		if (runMutationScore && (testClasses == null || testClasses.isEmpty())) return "Mutation score is enabled but no test classes has been selected";
 		if (runMutationScore && !prototypeMode) {
 			for (String t : testClasses) {
