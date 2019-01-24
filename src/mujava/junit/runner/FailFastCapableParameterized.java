@@ -24,8 +24,8 @@ public class FailFastCapableParameterized extends Suite {
 
 		private final List<Object[]> fParameterList;
 
-		FailFastTestClassRunnerForParameters(Class<?> type, List<Object[]> parameterList, int i, boolean failFast, long timeout) throws InitializationError {
-			super(type, failFast, timeout);
+		FailFastTestClassRunnerForParameters(Class<?> type, List<Object[]> parameterList, int i, boolean failFast, long timeout, long discard) throws InitializationError {
+			super(type, failFast, timeout, discard);
 			fParameterList = parameterList;
 			fParameterSetNumber = i;
 		}
@@ -74,14 +74,14 @@ public class FailFastCapableParameterized extends Suite {
 	/**
 	 * Only called reflectively. Do not use programmatically.
 	 */
-	public FailFastCapableParameterized(Class<?> klass, boolean failFast, long timeout) throws Throwable {
+	public FailFastCapableParameterized(Class<?> klass, boolean failFast, long timeout, long discard) throws Throwable {
 		super(klass, Collections.<Runner> emptyList());
 		//System.out.println(this.getClass().getCanonicalName() + ".<init>");
 		FailFastCapableBlockJUnit4ClassRunner.ignore = false;
 		List<Object[]> parametersList = getParametersList(getTestClass());
 		if (hasTimeoutRule(getTestClass())) timeout = 0L;
 		for (int i = 0; i < parametersList.size(); i++)
-			runners.add(new FailFastTestClassRunnerForParameters(getTestClass().getJavaClass(), parametersList, i, failFast, timeout));
+			runners.add(new FailFastTestClassRunnerForParameters(getTestClass().getJavaClass(), parametersList, i, failFast, timeout, discard));
 	}
 
 	@Override

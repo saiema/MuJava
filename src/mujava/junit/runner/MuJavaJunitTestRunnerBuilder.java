@@ -26,14 +26,19 @@ public class MuJavaJunitTestRunnerBuilder {
 	private JUnitCore core = new JUnitCore();
 	private Map<String, Boolean> testsSimpleResults;
 	private long timeout;
+	private long discard;
 	public static boolean verbose = false;
 	
-	
 	public MuJavaJunitTestRunnerBuilder(Class<?> testToRun, boolean failFast/*, boolean dynamicSubsumption*/, long timeout) throws IllegalArgumentException, MuJavaTestRunnerException {
+		this(testToRun, failFast, timeout, 0);
+	}
+	
+	public MuJavaJunitTestRunnerBuilder(Class<?> testToRun, boolean failFast/*, boolean dynamicSubsumption*/, long timeout, long discard) throws IllegalArgumentException, MuJavaTestRunnerException {
 		this.failFast = failFast;
 		this.testToRun = testToRun;
 		//this.dynamicSubsumption = dynamicSubsumption;
 		this.timeout = timeout;
+		this.discard = discard;
 		try {
 			testRunner = retrieveTestRunner(testToRun);
 			//if (this.dynamicSubsumption) {
@@ -62,10 +67,12 @@ public class MuJavaJunitTestRunnerBuilder {
 			if (verbose) System.out.println("runWith annotation found");
 			if (runWithAnnotation.value().equals(Parameterized.class)) {
 				if (verbose) System.out.println("runWith Parameterized.class");
-				return new FailFastCapableParameterized(testToRun, failFast, timeout);
+				if (verbose) System.out.println("Using FailFastCapableParameterized(" + testToRun.getCanonicalName() +", " + failFast +", " + timeout + ", " + discard +")");
+				return new FailFastCapableParameterized(testToRun, failFast, timeout, discard);
 			}  else if (runWithAnnotation.value().equals(Suite.class)) {
 				if (verbose) System.out.println("runWith Suite.class");
-				return new Suite(testToRun, new FailFastCapableRunnerBuilder(failFast, timeout));
+				if (verbose) System.out.println("Using new Suite("+ testToRun.getCanonicalName() + ", new FailFastCapableRunnerBuilder(" + failFast +", " + timeout + ", " + discard +"))");
+				return new Suite(testToRun, new FailFastCapableRunnerBuilder(failFast, timeout, discard));
 			}
 		} else if (TestCase.class.isAssignableFrom(testToRun)) {
 			if (verbose) System.out.println("Test class extends TestCase");
@@ -83,7 +90,8 @@ public class MuJavaJunitTestRunnerBuilder {
 		} else if (hasTestMethod(testToRun)) {
 			if (verbose) System.out.println("Test method found");
 			if (failFast) FailFastCapableBlockJUnit4ClassRunner.ignore = false;
-			return new FailFastCapableBlockJUnit4ClassRunner(testToRun, failFast, timeout);
+			if (verbose) System.out.println("Using FailFastCapableBlockJUnit4ClassRunner(" + testToRun.getCanonicalName() +", " + failFast +", " + timeout + ", " + discard +")");
+			return new FailFastCapableBlockJUnit4ClassRunner(testToRun, failFast, timeout, discard);
 		} else {
 			throw new IllegalArgumentException("Class : " + testToRun.toString() + " is not a valid junit test");
 		}

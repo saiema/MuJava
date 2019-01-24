@@ -1,7 +1,6 @@
 package mujava.junit.runner;
 
 import java.util.concurrent.TimeUnit;
-
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
@@ -18,13 +17,16 @@ import org.junit.runners.model.Statement;
 public class FailFastCapableBlockJUnit4ClassRunner extends BlockJUnit4ClassRunner {
 	
 	protected static boolean ignore = false;
+	private static final boolean verbose = MuJavaJunitTestRunnerBuilder.verbose;
 	private boolean failFast;
 	protected long timeout;
+	protected long discard;
 
-	public FailFastCapableBlockJUnit4ClassRunner(Class<?> klass, boolean failFast, long timeout) throws InitializationError {
+	public FailFastCapableBlockJUnit4ClassRunner(Class<?> klass, boolean failFast, long timeout, long discard) throws InitializationError {
 		super(klass);
 		this.failFast = failFast;
 		this.timeout = timeout;
+		this.discard = discard;
 	}
 	
 	
@@ -34,10 +36,13 @@ public class FailFastCapableBlockJUnit4ClassRunner extends BlockJUnit4ClassRunne
 		boolean methodHasTimeout = false;
 		Test ann = method.getAnnotation(Test.class);
 		if (ann != null) methodHasTimeout = ann.timeout() > 0;
-		if (timeout > 0 && !methodHasTimeout) 
+		if (timeout > 0 && !methodHasTimeout) {
+			//System.out.println("RUNNING WITH TIMEOUT: " + timeout);
 			return FailOnTimeout.builder()
 		               .withTimeout(timeout, TimeUnit.MILLISECONDS)
+		               .withLookingForStuckThread(true)
 		               .build(next);
+		}
 		return super.withPotentialTimeout(method, test, next);
 	}
 
@@ -52,16 +57,35 @@ public class FailFastCapableBlockJUnit4ClassRunner extends BlockJUnit4ClassRunne
 		}
 
 		eachNotifier.fireTestStarted();
+		long startTime = 0, endTime = 0;
 		try {
-			if (!failFast || !FailFastCapableBlockJUnit4ClassRunner.ignore) methodBlock(method).evaluate();
+			if (verbose) System.out.println("About to run test : " + method.getName());
+			startTime = System.currentTimeMillis();
+			if (!FailFastCapableBlockJUnit4ClassRunner.ignore) methodBlock(method).evaluate();
 		} catch (AssumptionViolatedException e) {
+			if (verbose) System.out.println("Test : " + method.getName() + " violated an assumption");
 			eachNotifier.addFailedAssumption(e);
-			FailFastCapableBlockJUnit4ClassRunner.ignore = true;
+			if (failFast) FailFastCapableBlockJUnit4ClassRunner.ignore = true;
 		} catch (Throwable e) {
+			if (verbose) System.out.println("Test : " + method.getName() + " throwed an exception");
 			eachNotifier.addFailure(e);
-			FailFastCapableBlockJUnit4ClassRunner.ignore = true;
+			if (failFast) FailFastCapableBlockJUnit4ClassRunner.ignore = true;
 		} finally {
 			eachNotifier.fireTestFinished();
+			endTime = System.currentTimeMillis();
+			long testTime = endTime - startTime;
+			if (verbose) System.out.println("Test : " + method.getName() + " took " + testTime);
+			if (verbose) {
+				System.out.println("ignore : " + FailFastCapableBlockJUnit4ClassRunner.ignore);
+				System.out.println("testTime : " + testTime);
+			}
+			if (!FailFastCapableBlockJUnit4ClassRunner.ignore && startTime > 0 && endTime > 0 && discard > 0) {
+				if (testTime > discard) {
+					if (verbose) System.out.println("Test : " + method.getName() + " discarded");
+					FailFastCapableBlockJUnit4ClassRunner.ignore = true;
+					eachNotifier.addFailure(new DiscardedException("[DISCARDED]Discard timeout was " + discard + " and test took " + testTime));
+				}
+			}
 		}
 	}
 	
