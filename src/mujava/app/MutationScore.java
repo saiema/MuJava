@@ -15,7 +15,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
@@ -40,6 +39,7 @@ public class MutationScore {
 	private Exception lastError = null;
 	private static Reloader reloader;
 	public static long timeout;
+	public static long discardTimeout;
 	public static Set<String> allowedPackages = null;
 	public static boolean quickDeath;
 	public static boolean dynamicSubsumption;
@@ -194,6 +194,7 @@ public class MutationScore {
 		int optionalFlags = (MutationScore.quickDeath || Core.toughnessAnalysis())?1:0;
 		if (MutationScore.dynamicSubsumption) optionalFlags += 1;
 		if (MutationScore.timeout > 0) optionalFlags += 2;
+		if (MutationScore.discardTimeout > 0) optionalFlags += 2;
 		int libsSize = libs.length;
 		String[] args = new String[testClasses.size() /*tests*/ + 5 + (useSockets?1:0) + /*flags*/ + (libs.length==0?0:1) /*libs flag*/ + 4 + (useSockets?1:0) + /*args*/ + 4 /*command*/ + optionalFlags + libsSize];
 		args[0] = "java";
@@ -225,10 +226,16 @@ public class MutationScore {
 			}
 			if (timeout > 0) {
 				int initialIdx = 12;
-				//if ((optionalFlags-2) == 0) initialIdx = 12;
-				if ((optionalFlags-2) == 1) initialIdx = 13;
-				if ((optionalFlags-2) == 2) initialIdx = 14;
+				if ((MutationScore.quickDeath || Core.toughnessAnalysis())) initialIdx++;
+				if (MutationScore.dynamicSubsumption) initialIdx++;
 				args[initialIdx+i] = "-i"; args[(initialIdx+1)+i] = Long.toString(timeout);
+			}
+			if (discardTimeout > 0) {
+				int initialIdx = 12;
+				if (timeout > 0) initialIdx+=2;
+				if ((MutationScore.quickDeath || Core.toughnessAnalysis())) initialIdx++;
+				if (MutationScore.dynamicSubsumption) initialIdx++;
+				args[initialIdx+i] = "-I"; args[(initialIdx+1)+i] = Long.toString(discardTimeout);
 			}
 		}
 		int j = 1;

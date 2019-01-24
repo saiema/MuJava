@@ -788,6 +788,10 @@ public class Main {
 			if (config.fullVerboseMode()) System.out.println("Default test timeout set to : " + config.testTimeout());
 			MutationScore.timeout = config.testTimeout();
 		}
+		if (config.runMutationScore() && config.discardTimeout() > 0) {
+			if (config.fullVerboseMode()) System.out.println("Discard timeout set to : " + config.discardTimeout());
+			MutationScore.discardTimeout = config.discardTimeout();
+		}
 		//=====================================================================================//
 		
 		

@@ -521,9 +521,11 @@ public class Core {
 	
 	private float calculateMutationScoreUsingExternalRunner_sequential(String[] testClasses) {
 		List<String> survivingMutantsPaths = new LinkedList<>();
+		List<String> discardedMutantsPaths = new LinkedList<>();
 		int failedToCompile = 0;
 		int mutantsKilled = 0;
 		int mutants = 0;
+		int discarded = 0;
 		int timedOut = 0;
 		int socketPort = Core.useSockets?1024:-1;
 		for (MutantInfo mut : this.lastGeneration) {
@@ -538,56 +540,63 @@ public class Core {
 			
 			ExternalJUnitResult results = ms.runTestsWithMutantsUsingExternalRunner(Arrays.asList(testClasses), mut, socketPort);
 			if (Core.useSockets) socketPort++;
-			if (!results.testsRunSuccessful()) {
+			if (results.wasDiscarded()) {
+				System.out.println("Mutant " + mut.getPath() + " was discarded after " + MutationScore.discardTimeout + "ms");
+				discarded++;
+				discardedMutantsPaths.add(mut.getPath());
+			} else if (!results.testsRunSuccessful()) {
 				System.out.println("An error ocurred while running tests for mutants");
 				System.out.println(results.error()!=null?results.error().toString():"no exception to display, contact your favorite mujava++ developer");
 				return -1;
 			}
-			int runnedTestsCount = 0;
-			int totalFailures = 0;
-			Map<String, boolean[]> testSimpleResults = new TreeMap<>();
-			for (TestResult r : results.testResults()) {
-				testSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
-				System.out.println(r.toString()+"\n");
-				runnedTestsCount += r.getRunnedTestsCount();
-				totalFailures += r.getTotalFailures();
-				if (!r.wasSuccessful()) {
-					if (r.getTimedoutTests() > 0) timedOut++;
-					for (Failure f : r.getFailures()) {
-						if (Core.fullVerbose) System.out.println("test : " + f.getTestHeader());
-						if (Core.fullVerbose) System.out.println("failure description: " + f.getDescription());
-						if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
-						if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
+			if (!results.wasDiscarded()) {
+				int runnedTestsCount = 0;
+				int totalFailures = 0;
+				Map<String, boolean[]> testSimpleResults = new TreeMap<>();
+				for (TestResult r : results.testResults()) {
+					testSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
+					System.out.println(r.toString()+"\n");
+					runnedTestsCount += r.getRunnedTestsCount();
+					totalFailures += r.getTotalFailures();
+					if (!r.wasSuccessful()) {
+						if (r.getTimedoutTests() > 0) timedOut++;
+						for (Failure f : r.getFailures()) {
+							if (Core.fullVerbose) System.out.println("test : " + f.getTestHeader());
+							if (Core.fullVerbose) System.out.println("failure description: " + f.getDescription());
+							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
+							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
+						}
 					}
+					if (!killed && !r.wasSuccessful()) killed = true;
 				}
-				if (!killed && !r.wasSuccessful()) killed = true;
-			}
-			SubsumptionNode snode = new SubsumptionNode(mut, testSimpleResults);
-			subsumptionAnalysis.add(snode);
-			if (toughnessAnalysis()) {
-				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
-				this.addToughnessValue(toughness);
-				System.out.println("Toughness: " + toughness + " [failed : " + totalFailures + " | total : " + runnedTestsCount + "]");
-				if (killed) {
-					this.addKilledMutantsToughnessValue(toughness);
+				SubsumptionNode snode = new SubsumptionNode(mut, testSimpleResults);
+				subsumptionAnalysis.add(snode);
+				if (toughnessAnalysis()) {
+					float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
+					this.addToughnessValue(toughness);
+					System.out.println("Toughness: " + toughness + " [failed : " + totalFailures + " | total : " + runnedTestsCount + "]");
+					if (killed) {
+						this.addKilledMutantsToughnessValue(toughness);
+					}
+					System.out.println();
 				}
-				System.out.println();
+				if (killed) mutantsKilled++;
+				if (!killed && Core.showSurvivingMutants) {
+					survivingMutantsPaths.add(pathToFile);
+				}
 			}
-			if (killed) mutantsKilled++;
-			if (!killed && Core.showSurvivingMutants) {
-				survivingMutantsPaths.add(pathToFile);
-			}
-			
 		}
-		return mutationAnalysisResults(mutants, failedToCompile, mutantsKilled, timedOut, survivingMutantsPaths);
+		return mutationAnalysisResults(mutants, failedToCompile, mutantsKilled, timedOut, discarded, survivingMutantsPaths, discardedMutantsPaths);
 	}
 	
 	private float calculateMutationScoreUsingExternalRunner_parallel(String[] testClasses) {
 		List<String> survivingMutantsPaths = new LinkedList<>();
+		List<String> discardedMutantsPaths = new LinkedList<>();
 		int failedToCompile = 0;
 		int mutantsKilled = 0;
 		int mutants = 0;
 		int timedOut = 0;
+		int discarded = 0;
 		int port = Core.useSockets?1024:-1;
 		List<Future<ExternalJUnitRunnerResult>> junitExternalRunnerTasks = new LinkedList<>();
 		ExecutorService es = Executors.newFixedThreadPool(Core.parallelJUnitRunnerThreads);
@@ -619,50 +628,56 @@ public class Core {
 			}
 			boolean killed = false;
 			ExternalJUnitResult testResults = externalJPRResults.testResults();
-			if (!testResults.testsRunSuccessful()) {
+			if (testResults.wasDiscarded()) {
+				System.out.println("Mutant " + externalJPRResults.getMutant().getPath() + " was discarded after " + MutationScore.discardTimeout + "ms");
+				discarded++;
+				discardedMutantsPaths.add(externalJPRResults.getMutant().getPath());
+			} else if (!testResults.testsRunSuccessful()) {
 				System.err.println("An error ocurred while running tests for mutants");
 				System.err.println(testResults.error().getMessage());
 				return -1;
 			}
-			int runnedTestsCount = 0;
-			int totalFailures = 0;
-			Map<String, boolean[]> testSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<String, boolean[]>():null;
-			for (TestResult r : testResults.testResults()) {
-				if (dynamicSubsumptionAnalysis()) testSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
-				System.out.println(r.toString()+"\n");
-				runnedTestsCount += r.getRunnedTestsCount();
-				totalFailures += r.getTotalFailures();
-				if (!r.wasSuccessful()) {
-					if (r.getTimedoutTests() > 0) timedOut++;
-					for (Failure f : r.getFailures()) {
-						if (Core.fullVerbose) System.out.println("test : " + f.getTestHeader());
-						if (Core.fullVerbose) System.out.println("failure description: " + f.getDescription());
-						if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
-						if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
+			if (!testResults.wasDiscarded()) {
+				int runnedTestsCount = 0;
+				int totalFailures = 0;
+				Map<String, boolean[]> testSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<String, boolean[]>():null;
+				for (TestResult r : testResults.testResults()) {
+					if (dynamicSubsumptionAnalysis()) testSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
+					System.out.println(r.toString()+"\n");
+					runnedTestsCount += r.getRunnedTestsCount();
+					totalFailures += r.getTotalFailures();
+					if (!r.wasSuccessful()) {
+						if (r.getTimedoutTests() > 0) timedOut++;
+						for (Failure f : r.getFailures()) {
+							if (Core.fullVerbose) System.out.println("test : " + f.getTestHeader());
+							if (Core.fullVerbose) System.out.println("failure description: " + f.getDescription());
+							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
+							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
+						}
 					}
+					if (!killed && !r.wasSuccessful()) killed = true;
 				}
-				if (!killed && !r.wasSuccessful()) killed = true;
-			}
-			if (dynamicSubsumptionAnalysis()) {
-				SubsumptionNode snode = new SubsumptionNode(externalJPRResults.getMutant(), testSimpleResults);
-				subsumptionAnalysis.add(snode);
-			}
-			if (toughnessAnalysis()) {
-				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
-				this.addToughnessValue(toughness);
-				System.out.println("Toughness: " + toughness + " [failed : " + totalFailures + " | total : " + runnedTestsCount + "]");
-				if (killed) {
-					this.addKilledMutantsToughnessValue(toughness);
+				if (dynamicSubsumptionAnalysis()) {
+					SubsumptionNode snode = new SubsumptionNode(externalJPRResults.getMutant(), testSimpleResults);
+					subsumptionAnalysis.add(snode);
 				}
-				System.out.println();
-			}
-			if (killed) mutantsKilled++;
-			if (!killed && Core.showSurvivingMutants) {
-				survivingMutantsPaths.add(externalJPRResults.getMutant().getPath());
+				if (toughnessAnalysis()) {
+					float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
+					this.addToughnessValue(toughness);
+					System.out.println("Toughness: " + toughness + " [failed : " + totalFailures + " | total : " + runnedTestsCount + "]");
+					if (killed) {
+						this.addKilledMutantsToughnessValue(toughness);
+					}
+					System.out.println();
+				}
+				if (killed) mutantsKilled++;
+				if (!killed && Core.showSurvivingMutants) {
+					survivingMutantsPaths.add(externalJPRResults.getMutant().getPath());
+				}
 			}
 		}
 		es.shutdown();
-		return mutationAnalysisResults(mutants, failedToCompile, mutantsKilled, timedOut, survivingMutantsPaths);
+		return mutationAnalysisResults(mutants, failedToCompile, mutantsKilled, timedOut, discarded, survivingMutantsPaths, discardedMutantsPaths);
 		
 	}
 	
@@ -728,20 +743,44 @@ public class Core {
 	}
 	
 	private float mutationAnalysisResults(int mutants, int failedToCompile, int mutantsKilled, int timedOut, List<String> survivingMutantsPaths) {
-		System.out.println("Mutants : "+ mutants + " | didn't compile : " + failedToCompile + " | mutants killed by tests : "+ mutantsKilled + " | surviving mutants : " + (mutants-failedToCompile-mutantsKilled) + " | total tests that timedout : " + timedOut + " | mutation score : "+((mutantsKilled+failedToCompile)*100.0)/mutants+ " | mutation score (only compiling mutants) : " + (mutantsKilled*100.0)/(mutants-failedToCompile) + '\n');
+		return mutationAnalysisResults(mutants, failedToCompile, mutantsKilled, timedOut, 0, survivingMutantsPaths, null);
+	}
+	
+	private float mutationAnalysisResults(int mutants, int failedToCompile, int mutantsKilled, int timedOut, int discarded, List<String> survivingMutantsPaths, List<String> discardedMutantsPaths) {
+		int nonDiscardedMutants = mutants - discarded;
+		float mutationScore = ((mutantsKilled+failedToCompile)*(float)100.0)/nonDiscardedMutants;
+		float mutationScoreOnlyCompiling = ((mutantsKilled)*(float)100.0)/(nonDiscardedMutants-failedToCompile);
+		StringBuilder sb = new StringBuilder();
+		sb.append("Mutants : ").append(mutants);
+		sb.append(" | ").append("didn't compile : ").append(failedToCompile);
+		sb.append(" | ").append("discarded : ").append(discarded);
+		sb.append(" | ").append("mutants killed by tests : ").append(mutantsKilled);
+		sb.append(" | ").append("surviving mutants : ").append(mutants-failedToCompile-mutantsKilled-discarded);
+		sb.append(" | ").append("total tests that timedout : ").append(timedOut);
+		sb.append(" | ").append("mutation score : ").append(mutationScore);
+		sb.append(" | ").append("mutation score (only compiling mutants) : ").append(mutationScoreOnlyCompiling);
+		sb.append("\n");
+		
+		System.out.println(sb.toString());
 		if (Core.showSurvivingMutants) {
 			System.out.println("Surviving mutants paths:\n");
 			for (String sm : survivingMutantsPaths) {
 				System.out.println(sm);
 			}
 		}
+		if (discardedMutantsPaths != null && !discardedMutantsPaths.isEmpty()) {
+			System.out.println("Discarded mutants paths:\n");
+			for (String dm : discardedMutantsPaths) {
+				System.out.println(dm);
+			}
+		}
 		if (toughnessAnalysis()) {
 			System.out.println("Average toughness : " + this.averageToughness());
 			System.out.println("Average killed mutants toughness : " + this.averageKilledMutantsToughness());
 		}
-		return ((mutantsKilled+failedToCompile)*(float)100.0)/mutants;
+		return ((mutantsKilled+failedToCompile)*(float)100.0)/nonDiscardedMutants;
 	}
-	
+		
 	public static boolean toughnessAnalysis() {
 		if (Configuration.argumentExist(ENABLE_TOUGHNESS)) {
 			return (Boolean) Configuration.getValue(ENABLE_TOUGHNESS);
