@@ -8,6 +8,8 @@ import java.util.Map.Entry;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 
+import mujava.junit.runner.DiscardedException;
+
 public class TestResult implements Serializable {
 
 	/**
@@ -15,6 +17,7 @@ public class TestResult implements Serializable {
 	 */
 	private static final long serialVersionUID = -3718457180972664524L;
 	private Result result;
+	private boolean discarded;
 //	private MutantInfo analyzedMutant;
 	private Class<?> testClassRunned;
 	private Map<String, Boolean> simpleTestResults;
@@ -38,6 +41,7 @@ public class TestResult implements Serializable {
 	}
 	
 	public void refresh() {
+		if (discarded) return;
 		this.totalTests = 0;
 		this.assertFailingTests = 0;
 		this.totalFailures = 0;
@@ -48,6 +52,10 @@ public class TestResult implements Serializable {
 		this.totalTests = this.result.getRunCount();
 		List<Failure> failures = this.result.getFailures();
 		for (Failure f : failures) {
+			if (wasDiscarded(f)) {
+				this.discarded = true;
+				break;
+			}
 			if (isTimeoutFailure(f)) {
 				this.timeoutFailures++;
 			} else if (f.getException() != null && f.getException() instanceof AssertionError) {
@@ -57,6 +65,14 @@ public class TestResult implements Serializable {
 			}
 		}
 		this.passingTests = this.totalTests - this.totalFailures;
+	}
+	
+	private boolean wasDiscarded(Failure f) {
+		if (f.getException() == null) return false;
+		if (f.getException().getClass().getCanonicalName().compareTo(DiscardedException.class.getCanonicalName()) == 0) {
+			return true;
+		}
+		return false;
 	}
 	
 	private boolean isTimeoutFailure(Failure f) {
@@ -122,17 +138,25 @@ public class TestResult implements Serializable {
 		return failedTests;
 	}
 	
+	public boolean wasDiscarded() {
+		return discarded;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("");
-		sb.append("Test class runned       : ").append(testClassRunned.getName()).append("\n");
-		sb.append("Total tests             : ").append(totalTests).append("\n");
-		sb.append("Passing tests           : ").append(passingTests).append("\n");
-		sb.append("Runned tests            : ").append(result.getRunCount()).append("\n");
-		sb.append("Failing tests           : ").append(totalFailures).append("\n");
-		sb.append("Timed out tests         : ").append(timeoutFailures).append("\n");
-		sb.append("Exception failing tests : ").append(exceptionFailures).append("\n");
-		sb.append("Assert failing tests    : ").append(assertFailingTests);
+		if (discarded) {
+			sb.append("Discarded!\n");
+		} else {
+			sb.append("Test class runned       : ").append(testClassRunned.getName()).append("\n");
+			sb.append("Total tests             : ").append(totalTests).append("\n");
+			sb.append("Passing tests           : ").append(passingTests).append("\n");
+			sb.append("Runned tests            : ").append(result.getRunCount()).append("\n");
+			sb.append("Failing tests           : ").append(totalFailures).append("\n");
+			sb.append("Timed out tests         : ").append(timeoutFailures).append("\n");
+			sb.append("Exception failing tests : ").append(exceptionFailures).append("\n");
+			sb.append("Assert failing tests    : ").append(assertFailingTests);
+		}
 		return sb.toString();
 	}
 	
