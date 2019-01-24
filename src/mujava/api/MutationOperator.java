@@ -49,5 +49,20 @@ public enum MutationOperator {
 	SOR,
 	NPER,
 	MULTI, //used for mutants generated with several mutations
-	NONE   //used when no operator has been used (no mutation applied)
+	NONE;  //used when no operator has been used (no mutation applied)
+	
+		public static boolean isPRVO(MutationOperator op) {
+			switch (op) {
+			case PRVOL:
+			case PRVOL_SMART:
+			case PRVOR:
+			case PRVOR_REFINED:
+			case PRVOR_SMART:
+			case PRVOU:
+			case PRVOU_REFINED:
+			case PRVOU_SMART: return true;
+			default: return false;
+		}
+	}
+	
 }
