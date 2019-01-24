@@ -16,6 +16,7 @@ public class TestResultCollector implements Callable<List<TestResult>> {
 	private List<TestResult> results;
 	private MutantInfo forMutant;
 	private ServerSocket sc;
+	private Socket client;
 	
 	public TestResultCollector(int port, MutantInfo forMutant) throws IOException {
 		this.forMutant = forMutant;
@@ -33,13 +34,12 @@ public class TestResultCollector implements Callable<List<TestResult>> {
 
 	@Override
 	public List<TestResult> call() throws Exception {
-		Socket client = sc.accept();
+		client = sc.accept();
 		InputStream is = client.getInputStream();
 		results.addAll(parseResultsFromInputStream(is, forMutant));
 		sc.close();
 		return results;
 	}
-	
 	
 	private Collection<? extends TestResult> parseResultsFromInputStream(InputStream is, MutantInfo mi) throws ClassNotFoundException, IOException {
 		List<TestResult> results = new LinkedList<>();
