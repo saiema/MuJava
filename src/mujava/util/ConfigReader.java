@@ -152,6 +152,11 @@ public class ConfigReader {
 				return "mutation.advanced.discardTimeout";
 			}
 		},
+		RUN_TESTS_IN_SEPARATE_PROCESSES {
+			public String getKey() {
+				return "mutation.advanced.runTestsInSeparateProcesses";
+			}
+		},
 		ALLOWED_MEMBERS {
 			public String getKey() {
 				return "mutation.advanced.allowedMembers";
@@ -744,6 +749,7 @@ public class ConfigReader {
 		if (isDefined(USE_EXTERNAL_JUNIT_RUNNER)) conf.useExternalJUnitRunner(getBooleanArgument(USE_EXTERNAL_JUNIT_RUNNER));
 		if (isDefined(USE_PARALLEL_JUNIT_RUNNER)) conf.useParallelExternalJUnitRunner(getBooleanArgument(USE_PARALLEL_JUNIT_RUNNER));
 		if (isDefined(PARALLEL_JUNIT_RUNNER_THREADS)) conf.parallelExternalJUnitRunnerThreads(getIntArgument(PARALLEL_JUNIT_RUNNER_THREADS));
+		if (isDefined(RUN_TESTS_IN_SEPARATE_PROCESSES)) conf.runTestsInSeparateProcesses(getBooleanArgument(RUN_TESTS_IN_SEPARATE_PROCESSES));
 		if (isDefined(USE_SOCKETS)) conf.useSockets(getBooleanArgument(USE_SOCKETS));
 		boolean junitPathDefined = false;
 		boolean hamcrestPathDefined = false;
@@ -964,6 +970,7 @@ public class ConfigReader {
 			case USE_EXTERNAL_JUNIT_RUNNER:
 			case USE_PARALLEL_JUNIT_RUNNER:	
 			case USE_EXTERNAL_MUTANTS:
+			case RUN_TESTS_IN_SEPARATE_PROCESSES:
 			case USE_SOCKETS:
 			case WRITE_PROLOGUE:
 			case BEE_SKIP_EQUIVALENT_MUTATION:

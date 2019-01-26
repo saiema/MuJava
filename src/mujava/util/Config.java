@@ -54,6 +54,7 @@ public class Config {
 	//advanced mutation options
 	private long testTimeout;
 	private long discardTimeout;
+	private boolean runTestsInSeparateProcesses;
 	private boolean fullVerboseMode;
 	private boolean allowClassMutations;
 	private boolean allowFieldMutations;
@@ -159,6 +160,7 @@ public class Config {
 		externalClassesToMutate = null;
 		testTimeout(0);
 		discardTimeout(0);
+		runTestsInSeparateProcesses(false);
 		useExternalMutants(false);
 		useSockets(false);
 		writePrologue(false);
@@ -269,6 +271,14 @@ public class Config {
 	
 	public void discardTimeout(long discardTimeout) {
 		this.discardTimeout = discardTimeout;
+	}
+	
+	public boolean runTestsInSeparateProcesses() {
+		return runTestsInSeparateProcesses;
+	}
+	
+	public void runTestsInSeparateProcesses(boolean runTestsInSeparateProcesses) {
+		this.runTestsInSeparateProcesses = runTestsInSeparateProcesses;
 	}
 
 	public String originalSourceDir() {
@@ -1131,9 +1141,12 @@ public class Config {
 		if (testsBinDir == null && runMutationScore) return "Mutation score is enabled but no tests binary folder has been selected";
 		
 		if (!prototypeMode) if (!getClassesInOriginalBinDir().contains(this.classToMutate)) return "Class " + classToMutate + " can't be found inside " + originalBinDir;
+		boolean usingTimeout = testTimeout() > 0;
+		boolean usingDiscard = discardTimeout() > 0;
+		if (runMutationScore && runTestsInSeparateProcesses && !useExternalJUnitRunner) return "Can't run tests in separate processes if not using external JUnit Runner";
 		if (runMutationScore && testTimeout() < 0) return "Timeout can't be a negative value";
 		if (runMutationScore && discardTimeout() < 0) return "Discard timeout can't be a negative value";
-		if (runMutationScore && discardTimeout() <= testTimeout()) return "Discard timeout must be greater than test timeout";
+		if (runMutationScore && usingDiscard && discardTimeout() <= testTimeout()) return "Discard timeout must be greater than test timeout";
 		if (runMutationScore && discardTimeout() > 0 && !useExternalJUnitRunner) return "Cannot use discard timeout without using the External JUnit Runner";
 		if (runMutationScore && (testClasses == null || testClasses.isEmpty())) return "Mutation score is enabled but no test classes has been selected";
 		if (runMutationScore && !prototypeMode) {
