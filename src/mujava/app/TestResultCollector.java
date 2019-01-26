@@ -22,6 +22,15 @@ public class TestResultCollector implements Callable<List<TestResult>> {
 		this.forMutant = forMutant;
 		results = new LinkedList<>();
 		sc = new ServerSocket(port);
+		sc.setReuseAddress(true);
+	}
+	
+	public TestResultCollector(MutantInfo forMutant) throws IOException {
+		this(0, forMutant);
+	}
+	
+	public int getPort() {
+		return sc.getLocalPort();
 	}
 	
 	/**
