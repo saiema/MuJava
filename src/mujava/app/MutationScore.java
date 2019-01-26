@@ -40,6 +40,7 @@ public class MutationScore {
 	private static Reloader reloader;
 	public static long timeout;
 	public static long discardTimeout;
+	public static boolean runTestsInSeparateProcesses = false;
 	public static Set<String> allowedPackages = null;
 	public static boolean quickDeath;
 	public static boolean dynamicSubsumption;
@@ -175,9 +176,73 @@ public class MutationScore {
 		return testResults;
 	}
 	
+	public ExternalJUnitResult runTestsWithMutantsUsingExternalRunner(List<String> testClasses, MutantInfo mut, int port, boolean separateTestsInDifferentProcesses) {
+		ExternalJUnitResult res = null;
+		if (!separateTestsInDifferentProcesses) {
+			return runTestsWithMutantsUsingExternalRunner(testClasses, mut, port);
+		} else {
+			List<String> tests = new LinkedList<String>();
+			for (String test : testClasses) {
+				tests.clear();
+				tests.add(test);
+				ExternalJUnitResult singleResult = runTestsWithMutantsUsingExternalRunner(tests, mut, port);
+				if (!singleResult.testsRunSuccessful()) {
+					res = singleResult;
+					break;
+				}
+				if (res == null) {
+					res = singleResult;
+				} else {
+					res.merge(singleResult);
+				}
+			}
+		}
+		return res;
+	}
+	
 	public ExternalJUnitResult runTestsWithMutantsUsingExternalRunner(List<String> testClasses, MutantInfo mut, int port) {
 		Exception error = null;
 		List<TestResult> testResults = new LinkedList<>();
+		boolean useSockets = port>0;
+		ExecutorService es = Executors.newSingleThreadExecutor();
+		try {
+			TestResultCollector testResultsCollector = new TestResultCollector(mut);//new TestResultCollector(port, mut);
+			String[] args = getExternalJUnitRunnerCommand(testClasses, mut, testResultsCollector.getPort());
+			ProcessBuilder pb = new ProcessBuilder(args);
+			//File errorLog = new File("externalError_" + port + ".log");
+			File errorLog = new File("externalError.log");
+			pb.redirectError(Redirect.appendTo(errorLog));
+			if (useSockets) {
+				//File outputLog = new File("externalOutput_" + port + ".log");
+				File outputLog = new File("externalOutput.log");
+				pb.redirectOutput(Redirect.appendTo(outputLog));
+			}
+			Future<List<TestResult>> testResultsCollectorTask = es.submit(testResultsCollector);
+			Process p = pb.start();
+			int exitCode = p.waitFor();
+			//TODO: manage errors in the result
+			if (exitCode != 0) {
+				System.err.println("External JUnit runner for mutant " + mut.getPath() + " failed with code " + exitCode);
+				testResultsCollector.closeSocket();
+			} else {
+				testResults.addAll(testResultsCollectorTask.get());
+			}
+		} catch (IOException | InterruptedException | ExecutionException e) {
+			e.printStackTrace();
+			error = e;
+		} finally {
+			es.shutdown();
+		}
+		ExternalJUnitResult res = null;
+		if (error == null) {
+			res = new ExternalJUnitResult(testResults);
+		} else {
+			res = new ExternalJUnitResult(error);
+		}
+		return res;
+	}
+	
+	private String[] getExternalJUnitRunnerCommand(List<String> testClasses, MutantInfo mut, int port) {
 		String classpath = MutationScore.originalBinFolder+":"+MutationScore.testsBinFolder;
 		classpath += ":"+junitPath+":"+hamcrestPath;
 		classpath += ":"+cleanClasspath(getCurrentClasspath());
@@ -252,49 +317,7 @@ public class MutationScore {
 			args[currentIndex] = "-s";
 			args[currentIndex+1] = Integer.toString(port);
 		}
-		ProcessBuilder pb = new ProcessBuilder(args);
-		//File errorLog = new File("externalError_" + port + ".log");
-		File errorLog = new File("externalError.log");
-		pb.redirectError(Redirect.appendTo(errorLog));
-		if (useSockets) {
-			//File outputLog = new File("externalOutput_" + port + ".log");
-			File outputLog = new File("externalOutput.log");
-			pb.redirectOutput(Redirect.appendTo(outputLog));
-		}
-		ExecutorService es = Executors.newSingleThreadExecutor();
-		try {
-			TestResultCollector testResultsCollector = new TestResultCollector(port, mut);
-			Future<List<TestResult>> testResultsCollectorTask = es.submit(testResultsCollector);
-			Process p = pb.start();
-			int exitCode = p.waitFor();
-			//TODO: manage errors in the result
-			if (exitCode != 0) {
-				System.err.println("External JUnit runner for mutant " + mut.getPath() + " failed with code " + exitCode);
-				testResultsCollector.closeSocket();
-			} else {
-				testResults.addAll(testResultsCollectorTask.get());
-//				if (is == null) {
-//					System.err.println("InputStream from external JUnit runner is null");
-//				} else {
-//					//testResults.addAll(parseResultsFromInputStream(is,mut));
-//					
-//					if (!useSockets) is.close();
-//				}
-			}
-//			if (useSockets) sc.close();
-		} catch (IOException | InterruptedException | /*ClassNotFoundException | */ ExecutionException e) {
-			e.printStackTrace();
-			error = e;
-		} finally {
-			es.shutdown();
-		}
-		ExternalJUnitResult res = null;
-		if (error == null) {
-			res = new ExternalJUnitResult(testResults);
-		} else {
-			res = new ExternalJUnitResult(error);
-		}
-		return res;
+		return args;
 	}
 	
 	private String cleanClasspath(String classpath) {
