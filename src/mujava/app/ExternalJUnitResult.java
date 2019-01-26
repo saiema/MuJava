@@ -15,6 +15,23 @@ public class ExternalJUnitResult {
 		this(testResults, null);
 	}
 	
+	public void merge(ExternalJUnitResult other) {
+		if (!testsRunSuccessful() || !other.testsRunSuccessful()) {
+			throw new IllegalArgumentException("Both results must be from successful runs");
+		}
+		if (testResults == null || other.testResults == null) {
+			throw new IllegalArgumentException("Both results must be not null");
+		}
+		for (TestResult tr : testResults) {
+			for (TestResult trother : other.testResults) {
+				if (tr.getTestClassRunned().getName().compareTo(trother.getTestClassRunned().getName()) == 0) {
+					throw new IllegalArgumentException("The same test can't be in both results : " + tr.getTestClassRunned().getName());
+				}
+			}
+		}
+		this.testResults.addAll(other.testResults);
+	}
+	
 	private ExternalJUnitResult(List<TestResult> testResults, Exception error) {
 		this.testResults = testResults;
 		this.error = error;
