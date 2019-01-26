@@ -510,7 +510,7 @@ public class Core {
 				} else if (!cresult.compilationSuccessful()) {
 					exResult = new ExternalJUnitResult(cresult.error());
 			  	} else {
-			  		exResult = ms.runTestsWithMutantsUsingExternalRunner(Arrays.asList(testClasses), mut, socketPort);
+			  		exResult = ms.runTestsWithMutantsUsingExternalRunner(Arrays.asList(testClasses), mut, socketPort, MutationScore.runTestsInSeparateProcesses);
 			  	}
 				if (Core.useSockets) socketPort++;
 				results.add(new ExternalJUnitRunnerResult(cresult, exResult, mut));
@@ -538,7 +538,7 @@ public class Core {
 			}
 			boolean killed = false;
 			
-			ExternalJUnitResult results = ms.runTestsWithMutantsUsingExternalRunner(Arrays.asList(testClasses), mut, socketPort);
+			ExternalJUnitResult results = ms.runTestsWithMutantsUsingExternalRunner(Arrays.asList(testClasses), mut, socketPort, MutationScore.runTestsInSeparateProcesses);
 			if (Core.useSockets) socketPort++;
 			if (results.wasDiscarded()) {
 				System.out.println("Mutant " + mut.getPath() + " was discarded after " + MutationScore.discardTimeout + "ms");
@@ -732,7 +732,7 @@ public class Core {
 			if (cresult == null) {
 				results = new ExternalJUnitResult(new Exception("Compilation error while compiling mutant "+mut.getPath()));
 			} else if (cresult.compilationSuccessful()) {
-				results = ms.runTestsWithMutantsUsingExternalRunner(testClasses, mut, socketPort);
+				results = ms.runTestsWithMutantsUsingExternalRunner(testClasses, mut, socketPort, MutationScore.runTestsInSeparateProcesses);
 		  	}
 			System.out.println("Mutant analysis for : " + mut.getPath() + " finished");
 			return new ExternalJUnitRunnerResult(cresult, results, this.mut);

@@ -445,6 +445,16 @@ public class Main {
 			}
 		}
 		
+		if (config.useExternalJUnitRunner() || config.useParallelExternalJUnitRunner()) {
+			if (config.runTestsInSeparateProcesses()) {
+				System.out.println("Running tests in separate processes");
+				MutationScore.runTestsInSeparateProcesses = true;
+			} else {
+				System.out.println("Running all tests in same process");
+				MutationScore.runTestsInSeparateProcesses = false;
+			}
+		}
+		
 		if (!useExternalMutants && !config.useExternalJUnitRunner() && !config.useParallelExternalJUnitRunner()) {
 		
 			System.out.println("Cleaning Reloader instances after " + config.reloaderInstancesLimit() + " instances");
