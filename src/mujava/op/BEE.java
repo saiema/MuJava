@@ -579,11 +579,12 @@ public class BEE extends Mutator {
 			while (current != null && !(current instanceof MethodDeclaration)) {
 				if (current instanceof VariableDeclaration) {
 					VariableDeclaration vd = (VariableDeclaration) current;
-					if (!vd.getModifiers().contains(ModifierList.FINAL)) continue;
-					if (vd.getVariable().compareTo(v.toString()) != 0) continue;
-					if (vd.getInitializer() instanceof Literal) {
-						Literal l = (Literal) vd.getInitializer();
-						if (l.getLiteralType() == Literal.BOOLEAN) return true;
+					if (vd.getVariable().compareTo(v.toString()) == 0) {
+						if (!vd.getModifiers().contains(ModifierList.FINAL)) return false;
+						if (vd.getInitializer() instanceof Literal) {
+							Literal l = (Literal) vd.getInitializer();
+							if (l.getLiteralType() == Literal.BOOLEAN) return true;
+						}
 					}
 				} else if (current instanceof StatementList) {
 					StatementList stList = (StatementList) current;
@@ -594,11 +595,12 @@ public class BEE extends Mutator {
 						}
 						if (cst instanceof VariableDeclaration) {
 							VariableDeclaration vd = (VariableDeclaration) cst;
-							if (!vd.getModifiers().contains(ModifierList.FINAL)) continue;
-							if (vd.getVariable().compareTo(v.toString()) != 0) continue;
-							if (vd.getInitializer() instanceof Literal) {
-								Literal l = (Literal) vd.getInitializer();
-								if (l.getLiteralType() == Literal.BOOLEAN) return true;
+							if (vd.getVariable().compareTo(v.toString()) == 0) {
+								if (!vd.getModifiers().contains(ModifierList.FINAL)) return false;
+								if (vd.getInitializer() instanceof Literal) {
+									Literal l = (Literal) vd.getInitializer();
+									if (l.getLiteralType() == Literal.BOOLEAN) return true;
+								}
 							}
 						}
 					}
@@ -628,130 +630,6 @@ public class BEE extends Mutator {
 		}
 		return false;
 	}
-	
-	protected boolean isTrue(Object o, ParseTreeObject n) {
-		if (o instanceof Variable) {
-			return isTrue((Variable)o, n);
-		} else if (o instanceof OJField) {
-			try {
-				return isTrue((OJField)o);
-			} catch (CannotAlterException e) {
-				e.printStackTrace();
-			}
-		}
-		return false;
-	}
-	
-	protected boolean isFalse(Object o, ParseTreeObject n) {
-		if (o instanceof Variable) {
-			return isFalse((Variable)o, n);
-		} else if (o instanceof OJField) {
-			try {
-				return isFalse((OJField)o);
-			} catch (CannotAlterException e) {
-				e.printStackTrace();
-			}
-		}
-		return false;
-	}
-	
-	private boolean isTrue(OJField f) throws CannotAlterException {
-		FieldDeclaration fd = f.getSourceCode();
-		VariableInitializer vi = fd.getInitializer();
-		if (vi instanceof Literal) {
-			Literal l = (Literal) vi;
-			if (l.getLiteralType() == Literal.BOOLEAN) return Boolean.valueOf(l.toString());
-		}
-		return false;
-	}
-	
-	private boolean isFalse(OJField f) throws CannotAlterException {
-		FieldDeclaration fd = f.getSourceCode();
-		VariableInitializer vi = fd.getInitializer();
-		if (vi instanceof Literal) {
-			Literal l = (Literal) vi;
-			if (l.getLiteralType() == Literal.BOOLEAN) return !Boolean.valueOf(l.toString());
-		}
-		return false;
-	}
-	
-	private boolean isTrue(Variable v, ParseTreeObject n) {
-		Statement previousStatement = (Statement)getStatement(n, -1);
-		ParseTreeObject current = (ParseTreeObject) previousStatement;
-		ParseTreeObject limit = current;
-		while (current != null && !(current instanceof MethodDeclaration)) {
-			if (current instanceof VariableDeclaration) {
-				VariableDeclaration vd = (VariableDeclaration) current;
-				if (!vd.getModifiers().contains(ModifierList.FINAL)) continue;
-				if (vd.getVariable().compareTo(v.toString()) != 0) continue;
-				if (vd.getInitializer() instanceof Literal) {
-					Literal l = (Literal) vd.getInitializer();
-					if (l.getLiteralType() == Literal.BOOLEAN) return Boolean.valueOf(l.toString());
-				}
-			} else if (current instanceof StatementList) {
-				StatementList stList = (StatementList) current;
-				for (int s = 0; s < stList.size(); s++) {
-					Statement cst = stList.get(s);
-					if (cst == limit) {
-						break;
-					}
-					if (cst instanceof VariableDeclaration) {
-						VariableDeclaration vd = (VariableDeclaration) cst;
-						if (!vd.getModifiers().contains(ModifierList.FINAL)) continue;
-						if (vd.getVariable().compareTo(v.toString()) != 0) continue;
-						if (vd.getInitializer() instanceof Literal) {
-							Literal l = (Literal) vd.getInitializer();
-							if (l.getLiteralType() == Literal.BOOLEAN) return Boolean.valueOf(l.toString());
-						}
-					}
-				}
-			}
-			if (!(current instanceof StatementList))
-				limit = current;
-			current = current.getParent();
-		}
-		return false;
-	}
-	
-	private boolean isFalse(Variable v, ParseTreeObject n) {
-		Statement previousStatement = (Statement)getStatement(n, -1);
-		ParseTreeObject current = (ParseTreeObject) previousStatement;
-		ParseTreeObject limit = current;
-		while (current != null && !(current instanceof MethodDeclaration)) {
-			if (current instanceof VariableDeclaration) {
-				VariableDeclaration vd = (VariableDeclaration) current;
-				if (!vd.getModifiers().contains(ModifierList.FINAL)) continue;
-				if (vd.getVariable().compareTo(v.toString()) != 0) continue;
-				if (vd.getInitializer() instanceof Literal) {
-					Literal l = (Literal) vd.getInitializer();
-					if (l.getLiteralType() == Literal.BOOLEAN) return !Boolean.valueOf(l.toString());
-				}
-			} else if (current instanceof StatementList) {
-				StatementList stList = (StatementList) current;
-				for (int s = 0; s < stList.size(); s++) {
-					Statement cst = stList.get(s);
-					if (cst == limit) {
-						break;
-					}
-					if (cst instanceof VariableDeclaration) {
-						VariableDeclaration vd = (VariableDeclaration) cst;
-						if (!vd.getModifiers().contains(ModifierList.FINAL)) continue;
-						if (vd.getVariable().compareTo(v.toString()) != 0) continue;
-						if (vd.getInitializer() instanceof Literal) {
-							Literal l = (Literal) vd.getInitializer();
-							if (l.getLiteralType() == Literal.BOOLEAN) return !Boolean.valueOf(l.toString());
-						}
-					}
-				}
-			}
-			if (!(current instanceof StatementList))
-				limit = current;
-			current = current.getParent();
-		}
-		return false;
-	}
-	
-	
 	
 	private List<OJField> getFinalFields() throws ParseTreeException, CannotAlterException, OJClassNotFoundException {
 		if (this.finalFieldsCache != null) return this.finalFieldsCache;
