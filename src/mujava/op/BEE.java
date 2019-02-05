@@ -73,6 +73,14 @@ public class BEE extends Mutator {
 	 */
 	public static final String DISABLE_NEUTRAL_CONSTANTS = "bee_disable_neutral_constants";
 	
+	/**
+	 * This option Enables/Disables skipping the same expression as the one being expanded, for example
+	 * {@code P -> P & P} will not be generated.
+	 * <p>
+	 * This option is disabled by defaults
+	 */
+	public static final String SKIP_SAME_EXPRESSION = "bee_skip_same_expression";
+	
 	private List<Object> fieldsMethodsAndVarsCache = null;
 	private List<OJField> finalFieldsCache = null;
 	private String classCache = null;
@@ -190,6 +198,11 @@ public class BEE extends Mutator {
 			boolean disableNeutralAnd = false;
 			boolean disableNeutralOr = false;
 			boolean disableNeutralXor = false;
+			if (skipSameExpression()) {
+				if (o == e) continue;
+				Expression oae = (Expression) o;
+				if (oae.toFlattenString().compareTo(e.toFlattenString()) == 0) continue;
+			}
 			if (o instanceof Literal && ((Literal)o).equals("true")) {
 				disableNeutralAnd = disableNeutralAndOr();
 			} else if (o instanceof Literal && ((Literal)o).equals("false")) {
@@ -343,6 +356,13 @@ public class BEE extends Mutator {
 	private boolean disableNeutralAndOrConstants() {
 		if (Configuration.argumentExist(DISABLE_NEUTRAL_CONSTANTS)) {
 			return (Boolean) Configuration.getValue(DISABLE_NEUTRAL_CONSTANTS);
+		}
+		return false;
+	}
+	
+	private boolean skipSameExpression() {
+		if (Configuration.argumentExist(SKIP_SAME_EXPRESSION)) {
+			return (Boolean) Configuration.getValue(SKIP_SAME_EXPRESSION);
 		}
 		return false;
 	}

@@ -529,6 +529,11 @@ public class ConfigReader {
 				return "mutation.advanced.bee.skipConstants";
 			}
 		},
+		BEE_SKIP_SAME_EXPRESSION {
+			public String getKey() {
+				return "mutation.advanced.bee.skipSameExpression";
+			}
+		},
 		BEE_SCAN_EXPRESSIONS {
 			public String getKey() {
 				return "mutation.advanced.bee.scanExpressions";
@@ -742,6 +747,7 @@ public class ConfigReader {
 			if (isDefined(BEE_SKIP_EQUIVALENT_MUTATION)) conf.beeSkipEquivalentMutations(getBooleanArgument(BEE_SKIP_EQUIVALENT_MUTATION));
 			if (isDefined(BEE_SKIP_CONSTANTS)) conf.beeSkipConstantsWithTrueAndFalse(getBooleanArgument(BEE_SKIP_CONSTANTS));
 			if (isDefined(BEE_SCAN_EXPRESSIONS)) conf.beeScanExpressions(getBooleanArgument(BEE_SCAN_EXPRESSIONS));
+			if (isDefined(BEE_SKIP_SAME_EXPRESSION)) conf.beeSkipSameExpression(getBooleanArgument(BEE_SKIP_SAME_EXPRESSION));
 			if (isDefined(AOIS_SKIP_FINAL)) conf.aoisSkipFinal(getBooleanArgument(AOIS_SKIP_FINAL));
 			if (isDefined(AODS_SKIP_EXPRESSION_STATEMENTS)) conf.aodsSkipExpressionStatements(getBooleanArgument(AODS_SKIP_EXPRESSION_STATEMENTS));
 			if (isDefined(USE_SIMPLE_CLASS_NAMES)) conf.useSimpleClassNames(getBooleanArgument(USE_SIMPLE_CLASS_NAMES));
@@ -976,6 +982,7 @@ public class ConfigReader {
 			case BEE_SKIP_EQUIVALENT_MUTATION:
 			case BEE_SKIP_CONSTANTS:
 			case BEE_SCAN_EXPRESSIONS:
+			case BEE_SKIP_SAME_EXPRESSION:
 			case AOIS_SKIP_FINAL:
 			case AODS_SKIP_EXPRESSION_STATEMENTS:
 			case MUTGENLIMIT: return true;

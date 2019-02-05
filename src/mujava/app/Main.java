@@ -774,6 +774,14 @@ public class Main {
 				if (config.fullVerboseMode()) System.out.println("BEE scan for expressions disabled");
 			}
 			
+			if (config.beeSkipSameExpression()) {
+				Configuration.add(BEE.SKIP_SAME_EXPRESSION, Boolean.TRUE);
+				if (config.fullVerboseMode()) System.out.println("BEE skip same expression enabled");
+			} else {
+				Configuration.add(BEE.SKIP_SAME_EXPRESSION, Boolean.FALSE);
+				if (config.fullVerboseMode()) System.out.println("BEE skip same expression disabled");
+			}
+			
 			//AOIS CONFIG
 			if (config.aoisSkipFinal()) {
 				Configuration.add(AOIS.AOIS_IGNORE_FINAL, Boolean.TRUE);

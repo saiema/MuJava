@@ -114,6 +114,7 @@ public class Config {
 	private boolean beeScanExpressions;
 	private boolean beeSkipEquivalentMutations;
 	private boolean beeSkipConstantsWithTrueAndFalse;
+	private boolean beeSkipSameExpression;
 	//advanced mutation options
 	
 	//mutation score
@@ -245,6 +246,7 @@ public class Config {
 		beeScanExpressions(false);
 		beeSkipEquivalentMutations(false);
 		beeSkipConstantsWithTrueAndFalse(false);
+		beeSkipSameExpression(false);
 	}
 
 	public void classToMutate(String classToMutate) {
@@ -946,6 +948,14 @@ public class Config {
 		this.beeSkipConstantsWithTrueAndFalse = b;
 	}
 	
+	public boolean beeSkipSameExpression() {
+		return beeSkipSameExpression;
+	}
+	
+	public void beeSkipSameExpression(boolean beeSkipSameExpression) {
+		this.beeSkipSameExpression = beeSkipSameExpression;
+	}
+	
 	public int generation() {
 		return this.generation;
 	}
@@ -1142,7 +1152,7 @@ public class Config {
 		
 		if (!prototypeMode) if (!getClassesInOriginalBinDir().contains(this.classToMutate)) return "Class " + classToMutate + " can't be found inside " + originalBinDir;
 		boolean usingTimeout = testTimeout() > 0;
-		boolean usingDiscard = discardTimeout() > 0;
+		boolean usingDiscard = usingTimeout && discardTimeout() > 0;
 		if (runMutationScore && runTestsInSeparateProcesses && !useExternalJUnitRunner) return "Can't run tests in separate processes if not using external JUnit Runner";
 		if (runMutationScore && testTimeout() < 0) return "Timeout can't be a negative value";
 		if (runMutationScore && discardTimeout() < 0) return "Discard timeout can't be a negative value";
