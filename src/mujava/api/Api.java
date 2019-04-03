@@ -85,11 +85,15 @@ public class Api {
 			if (lastParenthesis > 0) {
 				String argsRaw = methodToConsider.substring(firstParenthesis+1, lastParenthesis);
 				String[] args = argsRaw.split(",");
-				Api.arguments = new String[args.length];
-				int a = 0;
-				for (String argRaw : args) {
-					Api.arguments[a] = argRaw.trim().split(" ")[0].trim();
-					a++;
+				if (args.length == 1 && args[0].trim().isEmpty()) {
+					Api.arguments = new String[] {};
+				} else {
+					Api.arguments = new String[args.length];
+					int a = 0;
+					for (String argRaw : args) {
+						Api.arguments[a] = argRaw.trim().split(" ")[0].trim();
+						a++;
+					}
 				}
 			}
 		}
