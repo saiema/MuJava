@@ -64,7 +64,7 @@ public class Core {
 	public static boolean useParallelJUnitRunner = false;
 	public static boolean useSockets = false;
 	public static int parallelJUnitRunnerThreads;
-	public static final int mujavappVersion = 20181207;
+	public static final int mujavappVersion = 20190220;
 	
 	private float totalToughness;
 	private float totalMutants;
