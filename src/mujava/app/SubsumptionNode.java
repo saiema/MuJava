@@ -165,7 +165,7 @@ public class SubsumptionNode implements Comparable<SubsumptionNode>{
 	}
 	
 	public boolean isEquivalentToOriginal() {
-		return subsumedNodes.isEmpty() && subsumingNodes.isEmpty();
+		return !hasFailingTests();
 	}
 	
 	public String getMutantsID() {
@@ -277,7 +277,8 @@ public class SubsumptionNode implements Comparable<SubsumptionNode>{
 	}
 	
 	public boolean isDominator() {
-		return subsumingNodes.isEmpty() && !subsumedNodes.isEmpty();
+		//return subsumingNodes.isEmpty() && !subsumedNodes.isEmpty();
+		return subsumingNodes.isEmpty() && !isEquivalentToOriginal();
 	}
 	
 	public boolean isPure() {
@@ -297,7 +298,7 @@ public class SubsumptionNode implements Comparable<SubsumptionNode>{
 	}
 	
 	public boolean isLeaf() {
-		return subsumedNodes.isEmpty() && !subsumingNodes.isEmpty();
+		return subsumedNodes.isEmpty() && !subsumingNodes.isEmpty() && !isEquivalentToOriginal();
 	}
 	
 }

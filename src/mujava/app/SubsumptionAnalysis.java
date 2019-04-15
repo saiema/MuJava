@@ -161,12 +161,32 @@ public class SubsumptionAnalysis {
 		return sb.toString();
 	}
 	
+	public boolean dumpSubsumptionNodes(String file) {
+		analyse();
+		Path pfile = Paths.get(file);
+		Path parent = pfile.toAbsolutePath().getParent();
+		Path outputDir = parent.resolve("DUMP");
+		try {
+			Files.createDirectories(outputDir);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			return false;
+		}
+		Iterator<SubsumptionNode> it = nodes.iterator();
+		while (it.hasNext()) {
+			SubsumptionNode n = it.next();
+			saveNodeToFile(outputDir, n);
+		}
+		return true;
+	}
+	
 	public boolean generateDotFile(String file) {
 		analyse();
 		Path pfile = Paths.get(file);
 		if (Files.exists(pfile)) {
 			System.err.println(pfile.toString() + " already exists");
-			return true;
+			return false;
 		}
 		Path parent = pfile.toAbsolutePath().getParent();
 		try {
@@ -182,7 +202,6 @@ public class SubsumptionAnalysis {
 			e.printStackTrace();
 			return false;
 		}
-		analyse();
 		String indent = "\t\t";
 		StringBuilder sb = new StringBuilder();
 		sb.append("digraph dynamic_subsumption_graph {\n");
@@ -236,7 +255,7 @@ public class SubsumptionAnalysis {
 		it = nodes.iterator();
 		while (it.hasNext()) {
 			SubsumptionNode n = it.next();
-			if (n.isEquivalentToOriginal() || (n.getSubsumedNodes().isEmpty() && n.getSubsumingNodes().isEmpty())) continue;
+			if (n.isEquivalentToOriginal()) continue;// || (n.getSubsumedNodes().isEmpty() && n.getSubsumingNodes().isEmpty())) continue;
 			Path nref = saveNodeToFile(parent, n);
 			if (nref == null) return false;
 			sb.append(indent)
@@ -385,8 +404,6 @@ public class SubsumptionAnalysis {
 	
 	public boolean writeDominatorMutantsPerOperator(String file) {
 		Path pfile = Paths.get(file);
-//		int totalDomMutants = 0;
-//		int totalDomPRVOMutants = 0;
 		if (Files.exists(pfile)) {
 			System.err.println(pfile.toString() + " already exists");
 			return true;
@@ -418,19 +435,5 @@ public class SubsumptionAnalysis {
 			return false;
 		}
 	}
-	
-//	private boolean isPRVO(MutationOperator op) {
-//		switch (op) {
-//			case PRVOL:
-//			case PRVOL_SMART:
-//			case PRVOR:
-//			case PRVOR_REFINED:
-//			case PRVOR_SMART:
-//			case PRVOU:
-//			case PRVOU_REFINED:
-//			case PRVOU_SMART: return true;
-//			default: return false;
-//		}
-//	}
 
 }
