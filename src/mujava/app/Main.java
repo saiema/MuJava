@@ -332,6 +332,7 @@ public class Main {
 			if (config.reduceDynamicSubsumptionGraph()) {
 				System.out.println("Dynamic subsumption graph will be reduced");
 			}
+			System.out.println("Dynamic subsumption analysis will be stored at: " + config.dynamicSubsumptionOutput());
 		} else {
 			System.out.println("Dynamic subsumption analysis disabled");
 			Configuration.add(Core.DYNAMIC_SUBSUMPTION, Boolean.FALSE);
@@ -886,9 +887,9 @@ public class Main {
 				} else {
 					System.err.println("Error while writting dominator mutants per operator");
 				}
-				
-				//System.out.println(subsumptionAnalysis.toString());
-				
+//				if (subsumptionAnalysis.dumpSubsumptionNodes(domMutantsPerOp.toString())) {
+//					System.out.println("Subsumption nodes dump saved at " + config.dynamicSubsumptionOutput() + "/DUMP");
+//				}
 			}
 		}
 	}

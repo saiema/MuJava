@@ -8,6 +8,7 @@ import org.junit.runner.notification.RunListener;
 
 public class TestInfoRunListener extends RunListener {
 	
+	public static boolean verbose = false;
 	private Map<String, Boolean> testResults;
 	
 	public TestInfoRunListener(Map<String, Boolean> testResults) {
@@ -16,6 +17,7 @@ public class TestInfoRunListener extends RunListener {
 
 	@Override
 	public void testFailure(Failure failure) throws Exception {
+		if (verbose) System.out.println("("+failure.getDescription().getDisplayName() + ", FALSE)");
 		testResults.put(failure.getDescription().getDisplayName(), Boolean.FALSE);
 	}
 
@@ -23,6 +25,7 @@ public class TestInfoRunListener extends RunListener {
 	public void testFinished(Description description) throws Exception {
 		String displayName = description.getDisplayName();
 		if (!testResults.containsKey(displayName)) {
+			if (verbose) System.out.println("("+displayName + ", TRUE)");
 			testResults.put(displayName, Boolean.TRUE);
 		}
 	}

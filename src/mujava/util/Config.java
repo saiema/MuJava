@@ -167,6 +167,7 @@ public class Config {
 		writePrologue(false);
 		outputMutationsInfo(false);
 		useSimpleClassNames(false);
+		dynamicSubsumption(false);
 		initializeAIOSOptions();
 		initializeAODSOptions();
 		initializePRVOOptions();

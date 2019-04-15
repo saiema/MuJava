@@ -8,7 +8,7 @@ public class DummyTestTrue {
 
 	@Test
 	public void test() {
-		assertTrue(true);
+		assertEquals(2.5f, 5 / 2, 0);
 	}
 
 }
