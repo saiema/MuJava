@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,10 +20,6 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
-
-import mujava.junit.runner.MuJavaJunitTestRunnerBuilder;
-import mujava.junit.runner.MuJavaTestRunnerException;
-import mujava.loader.Reloader;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.runner.JUnitCore;
@@ -37,11 +32,9 @@ public class MutationScore {
 	private static String testsBinFolder = null;
 	private static MutationScore instance = null;
 	private Exception lastError = null;
-	private static Reloader reloader;
 	public static long timeout;
 	public static long discardTimeout;
 	public static boolean runTestsInSeparateProcesses = false;
-	public static Set<String> allowedPackages = null;
 	public static boolean quickDeath;
 	public static boolean dynamicSubsumption;
 	public static boolean outputMutationsInfo = true;
@@ -138,54 +131,54 @@ public class MutationScore {
 		return testResults;
 	}
 	
-	public List<TestResult> runTestsWithMutants(List<String> testClasses, MutantInfo mut) {
-		this.lastError = null;
-		if (MutationScore.reloader == null) {
-			List<String> classpath = Arrays.asList(new String[]{MutationScore.originalBinFolder, MutationScore.testsBinFolder});
-			MutationScore.reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
-			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.originalBinFolder, MutationScore.allowedPackages);
-			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.testsBinFolder, MutationScore.allowedPackages);
-		}
-		List<TestResult> testResults = new LinkedList<TestResult>();
-		System.out.println("Testing mutant : "+mut.getPath()+'\n');
-		if (MutationScore.outputMutationsInfo) {
-			System.out.println(mut.toString());
-		}
-		for (String test : testClasses) {
-			Class<?> testToRun;
-			try {
-				MutationScore.reloader = MutationScore.reloader.getLastChild();
-				MutationScore.reloader.setSpecificClassPath(mut.getName(), mut.getClassRootFolder());//(className, MutationScore.mutantsSourceFolder+pathToMutant);
-				testToRun = MutationScore.reloader.rloadClass(test, true);
-				MuJavaJunitTestRunnerBuilder mjTestRunner = new MuJavaJunitTestRunnerBuilder(testToRun, MutationScore.quickDeath, /*MutationScore.dynamicSubsumption,*/ timeout);
-				Result testResult = mjTestRunner.run();
-				//Core.killStillRunningJUnitTestcaseThreads();
-				TestResult tres = new TestResult(testResult, testToRun, mjTestRunner.getSimpleResults());
-				testResults.add(tres);
-				if (!testResult.wasSuccessful() && MutationScore.quickDeath) {
-					break;
-				}
-			} catch (ClassNotFoundException | IllegalArgumentException | MuJavaTestRunnerException e) {// | InitializationError e) { //change to support junit 3.8
-				e.printStackTrace();
-				this.lastError = e;
-			} catch (Throwable e) {
-				e.printStackTrace();
-				this.lastError = new Exception(e);
-			}
-		}
-		return testResults;
-	}
+//	public List<TestResult> runTestsWithMutants(List<String> testClasses, MutantInfo mut) {
+//		this.lastError = null;
+//		if (MutationScore.reloader == null) {
+//			List<String> classpath = Arrays.asList(new String[]{MutationScore.originalBinFolder, MutationScore.testsBinFolder});
+//			MutationScore.reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
+//			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.originalBinFolder, MutationScore.allowedPackages);
+//			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.testsBinFolder, MutationScore.allowedPackages);
+//		}
+//		List<TestResult> testResults = new LinkedList<TestResult>();
+//		System.out.println("Testing mutant : "+mut.getPath()+'\n');
+//		if (MutationScore.outputMutationsInfo) {
+//			System.out.println(mut.toString());
+//		}
+//		for (String test : testClasses) {
+//			Class<?> testToRun;
+//			try {
+//				MutationScore.reloader = MutationScore.reloader.getLastChild();
+//				MutationScore.reloader.setSpecificClassPath(mut.getName(), mut.getClassRootFolder());//(className, MutationScore.mutantsSourceFolder+pathToMutant);
+//				testToRun = MutationScore.reloader.rloadClass(test, true);
+//				MuJavaJunitTestRunnerBuilder mjTestRunner = new MuJavaJunitTestRunnerBuilder(testToRun, MutationScore.quickDeath, /*MutationScore.dynamicSubsumption,*/ timeout);
+//				Result testResult = mjTestRunner.run();
+//				//Core.killStillRunningJUnitTestcaseThreads();
+//				TestResult tres = new TestResult(testResult, testToRun, mjTestRunner.getSimpleResults());
+//				testResults.add(tres);
+//				if (!testResult.wasSuccessful() && MutationScore.quickDeath) {
+//					break;
+//				}
+//			} catch (ClassNotFoundException | IllegalArgumentException | MuJavaTestRunnerException e) {// | InitializationError e) { //change to support junit 3.8
+//				e.printStackTrace();
+//				this.lastError = e;
+//			} catch (Throwable e) {
+//				e.printStackTrace();
+//				this.lastError = new Exception(e);
+//			}
+//		}
+//		return testResults;
+//	}
 	
-	public ExternalJUnitResult runTestsWithMutantsUsingExternalRunner(List<String> testClasses, MutantInfo mut, int port, boolean separateTestsInDifferentProcesses) {
+	public ExternalJUnitResult runTestsWithMutantsUsingExternalRunner(List<String> testClasses, MutantInfo mut, boolean separateTestsInDifferentProcesses) {
 		ExternalJUnitResult res = null;
 		if (!separateTestsInDifferentProcesses) {
-			return runTestsWithMutantsUsingExternalRunner(testClasses, mut, port);
+			return runTestsWithMutantsUsingExternalRunner(testClasses, mut);
 		} else {
 			List<String> tests = new LinkedList<String>();
 			for (String test : testClasses) {
 				tests.clear();
 				tests.add(test);
-				ExternalJUnitResult singleResult = runTestsWithMutantsUsingExternalRunner(tests, mut, port);
+				ExternalJUnitResult singleResult = runTestsWithMutantsUsingExternalRunner(tests, mut);
 				if (!singleResult.testsRunSuccessful()) {
 					res = singleResult;
 					break;
@@ -200,23 +193,18 @@ public class MutationScore {
 		return res;
 	}
 	
-	public ExternalJUnitResult runTestsWithMutantsUsingExternalRunner(List<String> testClasses, MutantInfo mut, int port) {
+	public ExternalJUnitResult runTestsWithMutantsUsingExternalRunner(List<String> testClasses, MutantInfo mut) {
 		Exception error = null;
 		List<TestResult> testResults = new LinkedList<>();
-		boolean useSockets = port>0;
 		ExecutorService es = Executors.newSingleThreadExecutor();
 		try {
-			TestResultCollector testResultsCollector = new TestResultCollector(mut);//new TestResultCollector(port, mut);
+			TestResultCollector testResultsCollector = new TestResultCollector(mut);
 			String[] args = getExternalJUnitRunnerCommand(testClasses, mut, testResultsCollector.getPort());
 			ProcessBuilder pb = new ProcessBuilder(args);
-			//File errorLog = new File("externalError_" + port + ".log");
 			File errorLog = new File("externalError.log");
 			pb.redirectError(Redirect.appendTo(errorLog));
-			if (useSockets) {
-				//File outputLog = new File("externalOutput_" + port + ".log");
-				File outputLog = new File("externalOutput.log");
-				pb.redirectOutput(Redirect.appendTo(outputLog));
-			}
+			File outputLog = new File("externalOutput.log");
+			pb.redirectOutput(Redirect.appendTo(outputLog));
 			Future<List<TestResult>> testResultsCollectorTask = es.submit(testResultsCollector);
 			Process p = pb.start();
 			int exitCode = p.waitFor();
@@ -349,21 +337,6 @@ public class MutationScore {
 		}
 		return result;
 	}
-
-//	private Collection<? extends TestResult> parseResultsFromInputStream(InputStream is, MutantInfo mi) throws ClassNotFoundException, IOException {
-//		List<TestResult> results = new LinkedList<>();
-//		ObjectInputStream in = new ObjectInputStream(is);
-//		Object o = null;
-//		try {
-//			while ((o = in.readObject()) != null) {
-//				TestResult tr = (TestResult)o;
-//				tr.refresh();
-//				results.add(tr);
-//			}
-//		} catch (EOFException e) {}
-//		in.close();
-//		return results;
-//	}
 
 	private String getCurrentClasspath() {
 		String classpath = System.getProperty("java.class.path");

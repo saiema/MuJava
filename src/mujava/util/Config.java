@@ -28,7 +28,6 @@ import mujava.app.MutatorsInfo;
 public class Config {
 	
 	private static final int DEFAULT_JUNIT_PARALLEL_RUNNER_THREADS = 8;
-	private static final int DEFAULT_RELOADER_INSTANCES_LIMIT = 150;
 	
 	//basic folders
 	private final String originalSrcDir;
@@ -43,7 +42,6 @@ public class Config {
 	private String[] externalClassesToMutate; //PROTOTYPE
 	private Set<String> methodsToMutate;
 	private boolean useExternalMutants;
-	private boolean useSockets;
 	private boolean writePrologue;
 	//basic mutation values
 	
@@ -62,13 +60,11 @@ public class Config {
 	private Set<String> bannedMethods;
 	private Set<String> allowedMembers;
 	private boolean ignoreMutGenLimit;
-	private Set<String> allowedPackagesToReload;
 	private boolean allowNumericLiteralVariations;
 	private boolean disablePrimitiveToObjectAssignments;
 	private boolean wrapPrimitiveToObjectAssignments;
 	private boolean applyRefinedPRVOInMethodCallStatements;
 	private int generation;
-	private int reloaderInstancesLimit;
 	private boolean aoisSkipFinal;
 	private boolean aodsSkipExpressionStatements;
 	private boolean rorReplaceWithTrue;
@@ -108,7 +104,6 @@ public class Config {
 	private boolean prvoSmartMode_arithmeticOpShortcuts;
 	private boolean prvoSmartMode_assignments;
 	private boolean useSimpleClassNames;
-	private boolean useExternalJUnitRunner;
 	private boolean useParallelExternalJUnitRunner;
 	private int parallelExternalJUnitRunnerThreads;
 	private boolean beeScanExpressions;
@@ -152,8 +147,6 @@ public class Config {
 		generation = 1;
 		showSurvivingMutants = false;
 		toughnessAnalysis = false;
-		reloaderInstancesLimit = DEFAULT_RELOADER_INSTANCES_LIMIT;
-		useExternalJUnitRunner = false;
 		useParallelExternalJUnitRunner = false;
 		parallelExternalJUnitRunnerThreads = DEFAULT_JUNIT_PARALLEL_RUNNER_THREADS;
 		junitPath = null;
@@ -163,7 +156,6 @@ public class Config {
 		discardTimeout(0);
 		runTestsInSeparateProcesses(false);
 		useExternalMutants(false);
-		useSockets(false);
 		writePrologue(false);
 		outputMutationsInfo(false);
 		useSimpleClassNames(false);
@@ -185,7 +177,6 @@ public class Config {
 		clearAllowedMembers();
 		clearBannedMethods();
 		clearBannedFields();
-		clearPackagesToReload();
 		clearTestClassesInTestsBinDir();
 		clearTestClasses();
 	}
@@ -302,14 +293,6 @@ public class Config {
 
 	public void useExternalMutants(boolean b) {
 		this.useExternalMutants = b;
-	}
-	
-	public boolean useSockets() {
-		return this.useSockets;
-	}
-	
-	public void useSockets(boolean b) {
-		this.useSockets = b;
 	}
 	
 	public boolean writePrologue() {
@@ -486,26 +469,6 @@ public class Config {
 	
 	public void ignoreMutGenLimit(boolean ignore) {
 		this.ignoreMutGenLimit = ignore;
-	}
-	
-	public void addPackageToReload(String p) {
-		this.allowedPackagesToReload.add(p);
-	}
-	
-	public void delPackageToReload(String p) {
-		this.allowedPackagesToReload.remove(p);
-	}
-	
-	public void clearPackagesToReload() {
-		if (this.allowedPackagesToReload == null) {
-			this.allowedPackagesToReload = new TreeSet<String>();
-		} else {
-			this.allowedPackagesToReload.clear();
-		}
-	}
-	
-	public Set<String> allowedPackagesToReload() {
-		return this.allowedPackagesToReload;
 	}
 	
 	public void allowNumericLiteralVariations(boolean allow) {
@@ -965,14 +928,6 @@ public class Config {
 		this.generation = i;
 	}
 	
-	public int reloaderInstancesLimit() {
-		return this.reloaderInstancesLimit;
-	}
-	
-	public void reloaderInstancesLimit(int i) {
-		this.reloaderInstancesLimit = i;
-	}
-	
 	public boolean showSurvivingMutants() {
 		return this.showSurvivingMutants;
 	}
@@ -1002,14 +957,6 @@ public class Config {
 	 */
 	public void useSimpleClassNames(boolean useSimpleClassNames) {
 		this.useSimpleClassNames = useSimpleClassNames;
-	}
-	
-	public  boolean useExternalJUnitRunner() {
-		return this.useExternalJUnitRunner;
-	}
-	
-	public void useExternalJUnitRunner(boolean b) {
-		this.useExternalJUnitRunner = b;
 	}
 	
 	public boolean useParallelExternalJUnitRunner() {
@@ -1154,11 +1101,9 @@ public class Config {
 		if (!prototypeMode) if (!getClassesInOriginalBinDir().contains(this.classToMutate)) return "Class " + classToMutate + " can't be found inside " + originalBinDir;
 		boolean usingTimeout = testTimeout() > 0;
 		boolean usingDiscard = usingTimeout && discardTimeout() > 0;
-		if (runMutationScore && runTestsInSeparateProcesses && !useExternalJUnitRunner) return "Can't run tests in separate processes if not using external JUnit Runner";
 		if (runMutationScore && testTimeout() < 0) return "Timeout can't be a negative value";
 		if (runMutationScore && discardTimeout() < 0) return "Discard timeout can't be a negative value";
 		if (runMutationScore && usingDiscard && discardTimeout() <= testTimeout()) return "Discard timeout must be greater than test timeout";
-		if (runMutationScore && discardTimeout() > 0 && !useExternalJUnitRunner) return "Cannot use discard timeout without using the External JUnit Runner";
 		if (runMutationScore && (testClasses == null || testClasses.isEmpty())) return "Mutation score is enabled but no test classes has been selected";
 		if (runMutationScore && !prototypeMode) {
 			for (String t : testClasses) {
@@ -1184,28 +1129,18 @@ public class Config {
 				}
 			}
 		}
-		for (String apr : allowedPackagesToReload) {
-			if (!packagesInOriginalBinDir.contains(apr)) return "Package " + apr + " is not present in " + originalBinDir;
-		}
 		if (quickDeath && !runMutationScore) return "Quick death option is enabled but mutation score is not";
 		if (dynamicSubsumption && !runMutationScore) return "Dynamic Subsumption option is enabled but mutation score is not";
 		if (!runMutationScore && showSurvivingMutants) return "Show surviving mutants is enabled but mutation score is not";
 		if (!runMutationScore && toughnessAnalysis) return "Toughness analysis is enabled but mutation score is not";
-		if (useExternalMutants && !useExternalJUnitRunner && !useParallelExternalJUnitRunner) {
-			return "Can't use internal junit runner when using external mutants";
-		}
-		if (useExternalJUnitRunner || useParallelExternalJUnitRunner) {
-			if (junitPath == null || junitPath.isEmpty()) return "Can't use external junit runner without defining the JUnit jar path";
-			if (!verifyFile(this.junitPath)) return "The defined JUnit path doesn't not point to an existing file";
-			if (!junitPath.endsWith(".jar")) return "The defined JUnit path doesn't point to a jar file";
-			if (hamcrestPath == null || junitPath.isEmpty()) return "Can't use external junit runner without defining the hamcrest jar path";
-			if (!verifyFile(this.hamcrestPath)) return "The defined hamcrest path doesn't not point to an existing file";
-			if (!hamcrestPath.endsWith(".jar")) return "The defined hamcrest path doesn't point to a jar file";
-			if (useParallelExternalJUnitRunner && parallelExternalJUnitRunnerThreads <= 0) {
-				return "Using parallel external JUnit runner with a non-positive amount of threads";
-			}
-		} else if (prototypeMode) {
-			return "Can't use protoype mode with internal runner";
+		if (junitPath == null || junitPath.isEmpty()) return "Can't use external junit runner without defining the JUnit jar path";
+		if (!verifyFile(this.junitPath)) return "The defined JUnit path doesn't not point to an existing file";
+		if (!junitPath.endsWith(".jar")) return "The defined JUnit path doesn't point to a jar file";
+		if (hamcrestPath == null || junitPath.isEmpty()) return "Can't use external junit runner without defining the hamcrest jar path";
+		if (!verifyFile(this.hamcrestPath)) return "The defined hamcrest path doesn't not point to an existing file";
+		if (!hamcrestPath.endsWith(".jar")) return "The defined hamcrest path doesn't point to a jar file";
+		if (useParallelExternalJUnitRunner && parallelExternalJUnitRunnerThreads <= 0) {
+			return "Using parallel external JUnit runner with a non-positive amount of threads";
 		}
 		return null;
 	}

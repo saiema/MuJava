@@ -130,11 +130,6 @@ public class ConfigReader {
 				return "mutation.basic.useExternalMutants";
 			}
 		},
-		USE_SOCKETS {
-			public String getKey() {
-				return "mutation.basic.useSockets";
-			}
-		},
 		WRITE_PROLOGUE {
 			public String getKey() {
 				return "mutation.basic.writePrologue";
@@ -202,14 +197,6 @@ public class ConfigReader {
 				return "-C";
 			}
 		},
-		ALLOWED_PACKAGES_TO_RELOAD {
-			public String getKey() {
-				return "mutation.advanced.allowedPackagesToReload";
-			}
-			public String getFlag() {
-				return "-P";
-			}
-		},
 		QUICK_DEATH {
 			public String getKey() {
 				return "mutation.advanced.quickDeath";
@@ -232,14 +219,6 @@ public class ConfigReader {
 			}
 			public String getFlag() {
 				return "-g";
-			}
-		},
-		RELOADER_INSTANCES_LIMIT {
-			public String getKey() {
-				return "mutation.advanced.ReloaderCleanLimit";
-			}
-			public String getFlag() {
-				return "-c";
 			}
 		},
 		MUTATION_SCORE_TOUGHNESS_ANALYSIS {
@@ -270,11 +249,6 @@ public class ConfigReader {
 		OUPUT_MUTANT_MUTATIONS {
 			public String getKey() {
 				return "mutation.advanced.outputMutationsInfoInMutationScore";
-			}
-		},
-		USE_EXTERNAL_JUNIT_RUNNER {
-			public String getKey() {
-				return "mutation.advanced.useExternalJUnitRunner";
 			}
 		},
 		USE_PARALLEL_JUNIT_RUNNER {
@@ -752,11 +726,9 @@ public class ConfigReader {
 			if (isDefined(AODS_SKIP_EXPRESSION_STATEMENTS)) conf.aodsSkipExpressionStatements(getBooleanArgument(AODS_SKIP_EXPRESSION_STATEMENTS));
 			if (isDefined(USE_SIMPLE_CLASS_NAMES)) conf.useSimpleClassNames(getBooleanArgument(USE_SIMPLE_CLASS_NAMES));
 		}
-		if (isDefined(USE_EXTERNAL_JUNIT_RUNNER)) conf.useExternalJUnitRunner(getBooleanArgument(USE_EXTERNAL_JUNIT_RUNNER));
 		if (isDefined(USE_PARALLEL_JUNIT_RUNNER)) conf.useParallelExternalJUnitRunner(getBooleanArgument(USE_PARALLEL_JUNIT_RUNNER));
 		if (isDefined(PARALLEL_JUNIT_RUNNER_THREADS)) conf.parallelExternalJUnitRunnerThreads(getIntArgument(PARALLEL_JUNIT_RUNNER_THREADS));
 		if (isDefined(RUN_TESTS_IN_SEPARATE_PROCESSES)) conf.runTestsInSeparateProcesses(getBooleanArgument(RUN_TESTS_IN_SEPARATE_PROCESSES));
-		if (isDefined(USE_SOCKETS)) conf.useSockets(getBooleanArgument(USE_SOCKETS));
 		boolean junitPathDefined = false;
 		boolean hamcrestPathDefined = false;
 		if (isDefined(JUNIT_PATH)) {
@@ -780,9 +752,6 @@ public class ConfigReader {
 			conf.ignoreMutGenLimit(getBooleanArgument(MUTGENLIMIT));
 			conf.allowNumericLiteralVariations(getBooleanArgument(ALLOW_NUMERIC_LITERAL_VARIATIONS));	
 			if (isDefined(WRITE_PROLOGUE)) conf.writePrologue(getBooleanArgument(WRITE_PROLOGUE));
-		}
-		for (String allowedPackageToReload : stringArgumentsAsArray(getStringArgument(ALLOWED_PACKAGES_TO_RELOAD))) {
-			conf.addPackageToReload(allowedPackageToReload);
 		}
 		conf.runMutationScore(getBooleanArgument(MUTATION_SCORE));
 		if (conf.runMutationScore()) conf.testsBinDir(getStringArgument(TESTS_BIN_DIR));
@@ -973,11 +942,9 @@ public class ConfigReader {
 			case DYNAMIC_SUBSUMPTION_REDUCE_GRAPH:
 			case USE_SIMPLE_CLASS_NAMES:
 			case OUPUT_MUTANT_MUTATIONS:
-			case USE_EXTERNAL_JUNIT_RUNNER:
 			case USE_PARALLEL_JUNIT_RUNNER:	
 			case USE_EXTERNAL_MUTANTS:
 			case RUN_TESTS_IN_SEPARATE_PROCESSES:
-			case USE_SOCKETS:
 			case WRITE_PROLOGUE:
 			case BEE_SKIP_EQUIVALENT_MUTATION:
 			case BEE_SKIP_CONSTANTS:
@@ -993,7 +960,6 @@ public class ConfigReader {
 	public boolean isIntKey(Config_key key) {
 		switch (key) {
 			case PARALLEL_JUNIT_RUNNER_THREADS:
-			case RELOADER_INSTANCES_LIMIT:
 			case GENERATIONS : return true;
 			default : return false;
 		}

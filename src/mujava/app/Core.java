@@ -55,16 +55,12 @@ public class Core {
 	private Exception error;
 	private MutationScore ms;
 	private SubsumptionAnalysis subsumptionAnalysis;
-	//private int generation = -1 ;
 	private List<MutantInfo> lastGeneration = null;
-	//private List<TestResult> lastTestResults = null;
 	public static boolean fullVerbose = false;
 	public static boolean showSurvivingMutants = false;
-	public static boolean useExternalJUnitRunner = false;
 	public static boolean useParallelJUnitRunner = false;
-	public static boolean useSockets = false;
 	public static int parallelJUnitRunnerThreads;
-	public static final int mujavappVersion = 20190220;
+	public static final int mujavappVersion = 20190416;
 	
 	private float totalToughness;
 	private float totalMutants;
@@ -255,23 +251,12 @@ public class Core {
 	}
 	
 	public float calculateMutationScore(String[] testClasses, String className) {
-		//lastTestResults = new LinkedList<>();
 		float ms = -1;
-		if (!useExternalJUnitRunner && !useParallelJUnitRunner) {
-			ms = calculateMutationScore_internalRunner(testClasses, className);
-		} else {
-			String original = getFileToMutate(className);
-			if (deactivateOriginal(original)) {
-				ms = calculateMutationScoreUsingExternalRunner(testClasses, className, useParallelJUnitRunner);
-				if (!reactivateOriginal(original)) ms = -1;
-			}
+		String original = getFileToMutate(className);
+		if (deactivateOriginal(original)) {
+			ms = calculateMutationScoreUsingExternalRunner(testClasses, className, useParallelJUnitRunner);
+			if (!reactivateOriginal(original)) ms = -1;
 		}
-//		if (dynamicSubsumptionAnalysis()) {
-//			for (TestResult tr : lastTestResults) {
-//				SubsumptionNode snode = tr.asSubsumptionNode();
-//				subsumptionAnalysis.add(snode);
-//			}
-//		}
 		return ms;
 	}
 	
@@ -325,78 +310,6 @@ public class Core {
 				return false;
 		}
 		return true;
-//		File f = new File(path+".bak");
-//		if (f.exists() && f.isFile()) {
-//			return f.renameTo(new File(f.getAbsolutePath().replace(".bak", "")));
-//		} else {
-//			return false;
-//		}
-	}
-	
-	private float calculateMutationScore_internalRunner(String[] testClasses, String className) {
-		if (this.lastGeneration == null) {
-			this.error = new IllegalStateException("There are no recorder mutants in the last generation");
-			return -1;
-		}
-		List<String> survivingMutantsPaths = new LinkedList<>();
-		int failedToCompile = 0;
-		int mutantsKilled = 0;
-		int mutants = 0;
-		int timedOut = 0;
-		for (MutantInfo mut : this.lastGeneration) {
-			mutants++;
-			String pathToFile = mut.getPath();
-			if (!ms.compile(pathToFile).compilationSuccessful()){
-				System.out.println("File : " + pathToFile + " didn't compile\n");
-				failedToCompile++;
-				continue;
-			}
-			boolean killed = false;
-			List<TestResult> results = ms.runTestsWithMutants(Arrays.asList(testClasses), mut);
-			Map<String, boolean[]> testsSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<String, boolean[]>():null;
-			if (results == null) {
-				System.out.println("An error ocurred while running tests for mutants");
-				System.out.println(ms.getLastError()!=null?ms.getLastError().toString():"no exception to display, contact your favorite mujava++ developer");
-				return -1;
-			}
-			int runnedTestsCount = 0;
-			int totalFailures = 0;
-			for (TestResult r : results) {
-				if (dynamicSubsumptionAnalysis())testsSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
-				System.out.println(r.toString()+"\n");
-				runnedTestsCount += r.getRunnedTestsCount();
-				totalFailures += r.getTotalFailures();
-				if (!r.wasSuccessful()) {
-					if (r.getTimedoutTests() > 0) timedOut++;
-					for (Failure f : r.getFailures()) {
-						if (Core.fullVerbose) System.out.println("test : " + f.getTestHeader());
-						if (Core.fullVerbose) System.out.println("failure description: " + f.getDescription());
-						if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
-						if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
-					}
-				}
-				if (!killed && !r.wasSuccessful()) killed = true;
-			}
-			if (dynamicSubsumptionAnalysis()) {
-				SubsumptionNode snode = new SubsumptionNode(mut, testsSimpleResults);
-				subsumptionAnalysis.add(snode);
-			}
-			if (toughnessAnalysis()) {
-				float toughness = 1.0f - ((totalFailures * 1.0f) / (runnedTestsCount * 1.0f));
-				this.addToughnessValue(toughness);
-				System.out.println("Toughness: " + toughness + " [failed : " + totalFailures + " | total : " + runnedTestsCount + "]");
-				if (killed) {
-					this.addKilledMutantsToughnessValue(toughness);
-				}
-				System.out.println();
-			}
-			if (killed) mutantsKilled++;
-			if (!killed && Core.showSurvivingMutants) {
-				survivingMutantsPaths.add(pathToFile);
-			}
-			
-		}
-		return mutationAnalysisResults(mutants, failedToCompile, mutantsKilled, timedOut, survivingMutantsPaths);
 	}
 	
 	public float calculateMutationScoreUsingExternalRunner(String[] testClasses, String className, boolean parallelize) {
@@ -477,15 +390,13 @@ public class Core {
 	
 	private List<ExternalJUnitRunnerResult> obtainJUnitResults(String[] testClasses, boolean parallel) {
 		List<ExternalJUnitRunnerResult> results = new LinkedList<>();
-		int socketPort = Core.useSockets?1024:-1;
 		List<Future<ExternalJUnitRunnerResult>> junitExternalRunnerTasks = parallel?new LinkedList<Future<ExternalJUnitRunnerResult>>():null;
 		ExecutorService es = parallel?Executors.newFixedThreadPool(Core.parallelJUnitRunnerThreads):null;
 		if (parallel) {
 			for (MutantInfo mut : this.lastGeneration) {
-				ExternalJUnitParallelRunner externalRunner = new ExternalJUnitParallelRunner(Arrays.asList(testClasses), mut, this.ms, socketPort);
+				ExternalJUnitParallelRunner externalRunner = new ExternalJUnitParallelRunner(Arrays.asList(testClasses), mut, this.ms);
 				Future<ExternalJUnitRunnerResult> newTask = es.submit(externalRunner);
 				junitExternalRunnerTasks.add(newTask);
-				if (Core.useSockets) socketPort++;
 			}
 			for (int i = 0; i < junitExternalRunnerTasks.size(); i++) {
 				Future<ExternalJUnitRunnerResult> t = junitExternalRunnerTasks.get(i);
@@ -510,9 +421,8 @@ public class Core {
 				} else if (!cresult.compilationSuccessful()) {
 					exResult = new ExternalJUnitResult(cresult.error());
 			  	} else {
-			  		exResult = ms.runTestsWithMutantsUsingExternalRunner(Arrays.asList(testClasses), mut, socketPort, MutationScore.runTestsInSeparateProcesses);
+			  		exResult = ms.runTestsWithMutantsUsingExternalRunner(Arrays.asList(testClasses), mut, MutationScore.runTestsInSeparateProcesses);
 			  	}
-				if (Core.useSockets) socketPort++;
 				results.add(new ExternalJUnitRunnerResult(cresult, exResult, mut));
 			}
 		}
@@ -527,7 +437,6 @@ public class Core {
 		int mutants = 0;
 		int discarded = 0;
 		int timedOut = 0;
-		int socketPort = Core.useSockets?1024:-1;
 		for (MutantInfo mut : this.lastGeneration) {
 			mutants++;
 			String pathToFile = mut.getPath();
@@ -538,8 +447,7 @@ public class Core {
 			}
 			boolean killed = false;
 			
-			ExternalJUnitResult results = ms.runTestsWithMutantsUsingExternalRunner(Arrays.asList(testClasses), mut, socketPort, MutationScore.runTestsInSeparateProcesses);
-			if (Core.useSockets) socketPort++;
+			ExternalJUnitResult results = ms.runTestsWithMutantsUsingExternalRunner(Arrays.asList(testClasses), mut, MutationScore.runTestsInSeparateProcesses);
 			if (results.wasDiscarded()) {
 				System.out.println("Mutant " + mut.getPath() + " was discarded after " + MutationScore.discardTimeout + "ms");
 				discarded++;
@@ -597,13 +505,11 @@ public class Core {
 		int mutants = 0;
 		int timedOut = 0;
 		int discarded = 0;
-		int port = Core.useSockets?1024:-1;
 		List<Future<ExternalJUnitRunnerResult>> junitExternalRunnerTasks = new LinkedList<>();
 		ExecutorService es = Executors.newFixedThreadPool(Core.parallelJUnitRunnerThreads);
 		for (MutantInfo mut : this.lastGeneration) {
 			mutants++;
-			ExternalJUnitParallelRunner externalRunner = new ExternalJUnitParallelRunner(Arrays.asList(testClasses), mut, this.ms, port);
-			if (Core.useSockets) port++;
+			ExternalJUnitParallelRunner externalRunner = new ExternalJUnitParallelRunner(Arrays.asList(testClasses), mut, this.ms);
 			Future<ExternalJUnitRunnerResult> newTask = es.submit(externalRunner);
 			junitExternalRunnerTasks.add(newTask);
 		}
@@ -713,14 +619,12 @@ public class Core {
 		private List<String> testClasses;
 		private MutantInfo mut;
 		private MutationScore ms;
-		private int socketPort;
 		
 		
-		public ExternalJUnitParallelRunner(List<String> testClasses, MutantInfo mut, MutationScore ms, int port) {
+		public ExternalJUnitParallelRunner(List<String> testClasses, MutantInfo mut, MutationScore ms) {
 			this.testClasses = testClasses;
 			this.mut = mut;
 			this.ms = ms;
-			this.socketPort = port;
 		}
 		
 		
@@ -732,7 +636,7 @@ public class Core {
 			if (cresult == null) {
 				results = new ExternalJUnitResult(new Exception("Compilation error while compiling mutant "+mut.getPath()));
 			} else if (cresult.compilationSuccessful()) {
-				results = ms.runTestsWithMutantsUsingExternalRunner(testClasses, mut, socketPort, MutationScore.runTestsInSeparateProcesses);
+				results = ms.runTestsWithMutantsUsingExternalRunner(testClasses, mut, MutationScore.runTestsInSeparateProcesses);
 		  	}
 			System.out.println("Mutant analysis for : " + mut.getPath() + " finished");
 			return new ExternalJUnitRunnerResult(cresult, results, this.mut);

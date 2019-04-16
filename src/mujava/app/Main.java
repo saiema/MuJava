@@ -25,7 +25,6 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import mujava.api.Api;
 import mujava.api.Configuration;
 import mujava.api.MutationOperator;
-import mujava.loader.Reloader;
 import mujava.op.BEE;
 import mujava.op.PRVO;
 import mujava.op.basic.AODS;
@@ -283,26 +282,7 @@ public class Main {
 			}
 			
 		}
-		//================================ALLOWED PACKAGES TO RELOAD======================================//
-		if (!useExternalMutants && !config.useExternalJUnitRunner()) {
-			Set<String> allowedPackages = config.allowedPackagesToReload();
-			MutationScore.allowedPackages = allowedPackages.isEmpty()?null:allowedPackages;
-			System.out.print("Allowed packages to mark as reloadable: ");
-			if (allowedPackages.isEmpty()) {
-				System.out.println("all");
-			} else {
-				String allowedPackagesAsString = "[";
-				Iterator<String> it = allowedPackages.iterator();
-				while(it.hasNext()) {
-					allowedPackagesAsString += it.next();
-					if (it.hasNext()) {
-						allowedPackagesAsString += ", ";
-					}
-				}
-				allowedPackagesAsString += "]";
-				System.out.println(allowedPackagesAsString);
-			}
-		}
+		
 		//================================IGNORE MUTGENLIMIT ANNOTATIONS==================================//
 		
 		if (!useExternalMutants && config.ignoreMutGenLimit()) {
@@ -408,59 +388,24 @@ public class Main {
 			Core.showSurvivingMutants = false;
 		}
 		
-		if (config.useExternalJUnitRunner() || config.useParallelExternalJUnitRunner()) {
-			System.out.println("Using external JUnit runner");
-			Core.useExternalJUnitRunner = true;
-		} else {
-			System.out.println("Using internal JUnit runner (uses Reloader)");
-			Core.useExternalJUnitRunner = false;
-		}
-		
 		if (config.useParallelExternalJUnitRunner()) {
-			System.out.println("Using parallel external JUnit runner");
+			System.out.println("Parallel mutant analysis");
 			Core.useParallelJUnitRunner = true;
 		} else {
-			System.out.println("Using sequential JUnit runner");
+			System.out.println("Sequential mutant analysis");
 			Core.useParallelJUnitRunner = false;
 		}
 		
 		if (config.useParallelExternalJUnitRunner()) {
 			int threads = config.parallelExternalJUnitRunnerThreads();
-			System.out.println("Parallel JUnit runner using " + threads + " threads");
+			System.out.println("Parallel mutant analysis using " + threads + " threads");
 			Core.parallelJUnitRunnerThreads = threads;
 		}
 		
-		if (config.useExternalJUnitRunner() || config.useParallelExternalJUnitRunner()) {
-			MutationScore.junitPath = config.junitPath();
-			MutationScore.hamcrestPath = config.hamcrestPath();
-			System.out.println("JUnit jar path: " + config.junitPath());
-			System.out.println("hamcrest jar path: " + config.hamcrestPath());
-		}
-		
-		if (config.useExternalJUnitRunner() || config.useParallelExternalJUnitRunner()) {
-			Core.useSockets = config.useSockets();
-			if (config.useSockets()) {
-				System.out.println("Using sockets to communicate with external runners");
-			} else {
-				System.out.println("Using System.out to communicate with external runners");
-			}
-		}
-		
-		if (config.useExternalJUnitRunner() || config.useParallelExternalJUnitRunner()) {
-			if (config.runTestsInSeparateProcesses()) {
-				System.out.println("Running tests in separate processes");
-				MutationScore.runTestsInSeparateProcesses = true;
-			} else {
-				System.out.println("Running all tests in same process");
-				MutationScore.runTestsInSeparateProcesses = false;
-			}
-		}
-		
-		if (!useExternalMutants && !config.useExternalJUnitRunner() && !config.useParallelExternalJUnitRunner()) {
-		
-			System.out.println("Cleaning Reloader instances after " + config.reloaderInstancesLimit() + " instances");
-			Reloader.MAX_RELOADERS_BEFORE_CLEANING = config.reloaderInstancesLimit();
-		}
+		MutationScore.junitPath = config.junitPath();
+		MutationScore.hamcrestPath = config.hamcrestPath();
+		System.out.println("JUnit jar path: " + config.junitPath());
+		System.out.println("hamcrest jar path: " + config.hamcrestPath());
 		
 		if (!useExternalMutants) {
 			
@@ -887,6 +832,7 @@ public class Main {
 				} else {
 					System.err.println("Error while writting dominator mutants per operator");
 				}
+		
 //				if (subsumptionAnalysis.dumpSubsumptionNodes(domMutantsPerOp.toString())) {
 //					System.out.println("Subsumption nodes dump saved at " + config.dynamicSubsumptionOutput() + "/DUMP");
 //				}
