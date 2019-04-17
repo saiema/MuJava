@@ -133,21 +133,6 @@ public class SubsumptionNode implements Comparable<SubsumptionNode>{
 		}
 	}
 	
-//	public boolean analyzeAndUpdate(SubsumptionNode other) {
-//		if (!mergeIfEquivalent(other)) {
-//			if (subsume(other)) {
-//				subsumedNodes.add(other);
-//				other.subsumingNodes.add(this);
-//			} else if (other.subsume(this)) {
-//				subsumingNodes.add(other);
-//				other.subsumedNodes.add(this);
-//			}
-//			return false;
-//		} else {
-//			return true;
-//		}
-//	}
-	
 	public void addSubsumedNode(SubsumptionNode n) {
 		subsumedNodes.add(n);
 	}

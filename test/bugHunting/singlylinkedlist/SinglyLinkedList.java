@@ -1,37 +1,18 @@
-package bugHunting;
-
-
-import bugHunting.SinglyLinkedListNode;
+package bugHunting.singlylinkedlist;
 
 
 /**
-* SinglyLinkedListContains2Bugs6x12x3 is an implementation of singly linked lists with three bugs
-* injected in lines 6, 12 and 3 of method contains. First bug replaces:
-* while (result == false && current != null) 
-* with
-* while (result == false && current.next != null) 
-* Second bug replaces:
-* if (valueParam == current.value)
-* with
-* if (valueParam == current)  
-* Third bug replaces:
-* current = this.header
-* with 
-* current = this.header.next
-* The bugs to be inserted and the affected lines were randomly chosen, from a set of
-* real programming mistakes in linked list implementations. These particular ones appear in:
-* http://cslibrary.stanford.edu/105/LinkedListProblems.pdf
-* http://giridhar-mb.blogspot.com.ar/2012/11/linked-list-implementation-in-java.html
-* http://www.geeksforgeeks.org/write-a-function-to-get-the-intersection-point-of-two-linked-lists/
+* SinglyLinkedListInsertBackBug9x12Ix8I
+*
 */
-public class SinglyLinkedListContains3Bugs6x12x3 {
+public class SinglyLinkedList {
 
     /*@
     @ invariant (\forall SinglyLinkedListNode n; \reach(this.header, SinglyLinkedListNode, next).has(n); \reach(n.next, SinglyLinkedListNode, next).has(n)==false);
     @*/
     public /*@nullable@*/SinglyLinkedListNode header;
 
-    public SinglyLinkedListContains3Bugs6x12x3() {
+    public SinglyLinkedList() {
     }
 
     /*@
@@ -44,16 +25,16 @@ public class SinglyLinkedListContains3Bugs6x12x3 {
     public boolean contains( /*@nullable@*/java.lang.Object valueParam ) {
         SinglyLinkedListNode current;
         boolean result;
-        current = this.header.next; //mutGenLimit 0
+        current = this.header; //mutGenLimit 0
         result = false; //mutGenLimit 0
         //@decreasing \reach(current, SinglyLinkedListNode, next).int_size();
-        while (result == false && current.next != null) { //mutGenLimit 0
+        while (result == false && current != null) { //mutGenLimit 0
             boolean equalVal;
             if (valueParam == null && current.value == null) { //mutGenLimit 0
                 equalVal = true; //mutGenLimit 0
             } else {
                 if (valueParam != null) { //mutGenLimit 0
-                    if (valueParam == current) { //mutGenLimit 1
+                    if (valueParam == current.value) { //mutGenLimit 0
                         equalVal = true; //mutGenLimit 0
                     } else {
                         equalVal = false; //mutGenLimit 0
@@ -114,32 +95,24 @@ public class SinglyLinkedListContains3Bugs6x12x3 {
             current.next = freshNode; //mutGenLimit 0
         }
     }
-
-
-    
-    /* The following buggy program has been taken from
-     * http://giridhar-mb.blogspot.com.ar/2012/11/linked-list-implementation-in-java.html
-     * Buggy program is display, which traverses the list printing the contents
-     * of each node. Here it's been made, with the same code, a countNodes
-     * method, to return an output and specify the postcondition. */
     
     /*@ requires true;
     @ ensures (\result == \reach(this.header, SinglyLinkedListNode, next).int_size());
     @ signals (Exception e) false;
     @*/
     public int countNodes() {
-    	  int count = 0; //mutGenLimit 0
-    	  if(header == null) { //mutGenLimit 0
-    		  count = 0; //mutGenLimit 0
-    	  } else {
-    		  SinglyLinkedListNode temp = header; //mutGenLimit 0
-    		  //@decreasing \reach(temp, SinglyLinkedListNode, next).int_size();
-    		  while(temp.getNext() != null) { //mutGenLimit 1
-    			  count++; //mutGenLimit 0
-    			  temp = temp.getNext(); //mutGenLimit 0
-    		  }
-    	  }
-    	  return count; //mutGenLimit 0
+          int count = 0; //mutGenLimit 0
+          if(header == null) { //mutGenLimit 0
+                  count = 0; //mutGenLimit 0
+          } else {
+                  SinglyLinkedListNode temp = header; //mutGenLimit 0
+                  //@decreasing \reach(temp, SinglyLinkedListNode, next).int_size();
+                  while(temp.getNext() != null) { //mutGenLimit 1
+                          count++; //mutGenLimit 0
+                          temp = temp.getNext(); //mutGenLimit 0
+                  }
+          }
+          return count; //mutGenLimit 0
     }
     
     /*@ requires n >= 0;
@@ -149,11 +122,11 @@ public class SinglyLinkedListContains3Bugs6x12x3 {
     @ signals (Exception e) false;
     @*/
     public SinglyLinkedListNode removeNthFromEnd(int n) {
-    	SinglyLinkedListNode start = new SinglyLinkedListNode(); //mutGenLimit 0
-    	SinglyLinkedListNode slow = start; //mutGenLimit 0
-    	SinglyLinkedListNode fast = start; //mutGenLimit 0
+        SinglyLinkedListNode start = new SinglyLinkedListNode(); //mutGenLimit 0
+        SinglyLinkedListNode slow = start; //mutGenLimit 0
+        SinglyLinkedListNode fast = start; //mutGenLimit 0
         slow.next = header; //mutGenLimit 0
-        for(int i=1; i<=n+1; i++) { //mutGenLimit 0
+        for(int i=1; i<=n+1; i++) { //mutGenLimit 1
             fast = fast.next; //mutGenLimit 0
         }
         while(fast != null) { //mutGenLimit 0
@@ -163,7 +136,5 @@ public class SinglyLinkedListContains3Bugs6x12x3 {
         slow.next = slow.next.next; //mutGenLimit 0
         return start.next; //mutGenLimit 0
     }
-
-
 
 }

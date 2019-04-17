@@ -811,9 +811,15 @@ public class Mutator extends mujava.openjava.extension.VariableBinder {
 		}
 
 		// special case for assignments (Object = primitive)
-		if (p.getName().compareToIgnoreCase("java.lang.object") == 0
-				&& (c.isPrimitive() && allowWrappers)) {
-			return true;
+//		if (p.getName().compareToIgnoreCase("java.lang.object") == 0
+//				&& (c.isPrimitive() && allowWrappers)) {
+//			return true;
+//		}
+		
+		if (p.getName().compareToIgnoreCase("java.lang.object") == 0) {
+			if (c.isPrimitive()) {
+				return allowWrappers;
+			}
 		}
 
 		/* Supporting java auto-boxing */

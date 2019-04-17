@@ -200,7 +200,7 @@ public class Main {
 			System.out.println("Tests classes: "+stringArrayToString(testClasses));
 		}
 		
-		//so far so good, need to instanciate the core to verify methods
+		//so far so good, need to instantiate the core to verify methods
 		core = Core.newInstance(originalSourceDir, mutantsSourceDir);
 		core.setInputBinDir(originalBinDir);
 		

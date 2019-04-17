@@ -250,6 +250,13 @@ public class Core {
 		return Core.outputDir;
 	}
 	
+	public void printLastGeneration() {
+		for (MutantInfo mut : this.lastGeneration) {
+			System.out.println("Mutant : "+mut.getPath()+'\n');
+			System.out.println(mut.toString());
+		}
+	}
+	
 	public float calculateMutationScore(String[] testClasses, String className) {
 		float ms = -1;
 		String original = getFileToMutate(className);

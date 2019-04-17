@@ -131,44 +131,6 @@ public class MutationScore {
 		return testResults;
 	}
 	
-//	public List<TestResult> runTestsWithMutants(List<String> testClasses, MutantInfo mut) {
-//		this.lastError = null;
-//		if (MutationScore.reloader == null) {
-//			List<String> classpath = Arrays.asList(new String[]{MutationScore.originalBinFolder, MutationScore.testsBinFolder});
-//			MutationScore.reloader = new Reloader(classpath,Thread.currentThread().getContextClassLoader());
-//			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.originalBinFolder, MutationScore.allowedPackages);
-//			MutationScore.reloader.markEveryClassInFolderAsReloadable(MutationScore.testsBinFolder, MutationScore.allowedPackages);
-//		}
-//		List<TestResult> testResults = new LinkedList<TestResult>();
-//		System.out.println("Testing mutant : "+mut.getPath()+'\n');
-//		if (MutationScore.outputMutationsInfo) {
-//			System.out.println(mut.toString());
-//		}
-//		for (String test : testClasses) {
-//			Class<?> testToRun;
-//			try {
-//				MutationScore.reloader = MutationScore.reloader.getLastChild();
-//				MutationScore.reloader.setSpecificClassPath(mut.getName(), mut.getClassRootFolder());//(className, MutationScore.mutantsSourceFolder+pathToMutant);
-//				testToRun = MutationScore.reloader.rloadClass(test, true);
-//				MuJavaJunitTestRunnerBuilder mjTestRunner = new MuJavaJunitTestRunnerBuilder(testToRun, MutationScore.quickDeath, /*MutationScore.dynamicSubsumption,*/ timeout);
-//				Result testResult = mjTestRunner.run();
-//				//Core.killStillRunningJUnitTestcaseThreads();
-//				TestResult tres = new TestResult(testResult, testToRun, mjTestRunner.getSimpleResults());
-//				testResults.add(tres);
-//				if (!testResult.wasSuccessful() && MutationScore.quickDeath) {
-//					break;
-//				}
-//			} catch (ClassNotFoundException | IllegalArgumentException | MuJavaTestRunnerException e) {// | InitializationError e) { //change to support junit 3.8
-//				e.printStackTrace();
-//				this.lastError = e;
-//			} catch (Throwable e) {
-//				e.printStackTrace();
-//				this.lastError = new Exception(e);
-//			}
-//		}
-//		return testResults;
-//	}
-	
 	public ExternalJUnitResult runTestsWithMutantsUsingExternalRunner(List<String> testClasses, MutantInfo mut, boolean separateTestsInDifferentProcesses) {
 		ExternalJUnitResult res = null;
 		if (!separateTestsInDifferentProcesses) {
