@@ -135,6 +135,11 @@ public class ConfigReader {
 				return "mutation.basic.writePrologue";
 			}
 		},
+		SMART_OPERATORS {
+			public String getKey() {
+				return "mutation.basic.smartOps";
+			}
+		},
 		//MUTATION BASIC
 		//MUTATION ADVANCED
 		TEST_TIMEOUT {
@@ -653,6 +658,7 @@ public class ConfigReader {
 	
 	public Config buildConfig() throws IllegalStateException {
 		Config conf = new Config(getStringArgument(ORIGINAL_SOURCE_DIR), getStringArgument(ORIGINAL_BIN_DIR), getStringArgument(MUTANTS_DIR));
+		updateOpProperties();
 		boolean useExternalMutants = false;
 		if (isDefined(USE_EXTERNAL_MUTANTS)) {
 			useExternalMutants = getBooleanArgument(USE_EXTERNAL_MUTANTS);
@@ -775,6 +781,19 @@ public class ConfigReader {
 		String validationError = conf.validate();
 		if (validationError != null) throw new IllegalStateException("Bad configuration : " + validationError);
 		return conf;
+	}
+	
+	private void updateOpProperties() {
+		if (isDefined(SMART_OPERATORS) && getBooleanArgument(SMART_OPERATORS)) {
+			config.setProperty(PRVO_SMART_MODE_ARITHMETIC_OP_SHORTCUTS.getKey(), Boolean.TRUE);
+			config.setProperty(PRVO_SMART_MODE_ASSIGNMENTS.getKey(), Boolean.TRUE);
+			config.setProperty(ROR_SMART_LITERAL_REPLACE.getKey(), Boolean.TRUE);
+			config.setProperty(BEE_SKIP_EQUIVALENT_MUTATION.getKey(), Boolean.TRUE);
+			config.setProperty(BEE_SKIP_CONSTANTS.getKey(), Boolean.TRUE);
+			config.setProperty(BEE_SKIP_SAME_EXPRESSION.getKey(), Boolean.TRUE);
+			config.setProperty(AOIS_SKIP_FINAL.getKey(), Boolean.TRUE);
+			config.setProperty(AODS_SKIP_EXPRESSION_STATEMENTS.getKey(), Boolean.TRUE);
+		}
 	}
 	
 	private String loadInheritedBasicConfig(boolean junitDefined, boolean hamcrestDefined, Config conf) {
@@ -952,6 +971,7 @@ public class ConfigReader {
 			case BEE_SKIP_SAME_EXPRESSION:
 			case AOIS_SKIP_FINAL:
 			case AODS_SKIP_EXPRESSION_STATEMENTS:
+			case SMART_OPERATORS:
 			case MUTGENLIMIT: return true;
 			default : return false;
 		}

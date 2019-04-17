@@ -342,7 +342,12 @@ public class Config {
 	public boolean addOperator(String op) {
 		MutationOperator mop = isValidOp(op);
 		if (mop != null) {
-			this.operators.add(mop);
+			if (mop.equals(MutationOperator.PRVO)) {
+				return addOperator(MutationOperator.PRVOL_SMART.toString())
+					   && addOperator(MutationOperator.PRVOR_REFINED.toString())
+					   && addOperator(MutationOperator.PRVOU_REFINED.toString());
+			}
+			if (!this.operators.contains(mop)) this.operators.add(mop);
 			return true;
 		}
 		return false;
