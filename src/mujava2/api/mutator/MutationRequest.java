@@ -1,9 +1,11 @@
 package mujava2.api.mutator;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import mujava.api.MutationOperator;
@@ -34,6 +36,10 @@ public class MutationRequest {
 	 * The fully qualified name of the class to mutate, e.g.: java.util.List
 	 */
 	private final String fullyQualifiedClassName;
+	/**
+	 * The simple name of the class to mutate, e.g.: List
+	 */
+	private final String simpleClassName;
 	/**
 	 * The mutation operators to use
 	 */
@@ -90,6 +96,8 @@ public class MutationRequest {
 		}
 		this.location = location;
 		this.fullyQualifiedClassName = classToMutate;
+		String[] terms = this.fullyQualifiedClassName.split("\\.");
+		this.simpleClassName = terms[terms.length - 1];
 		this.operators = new LinkedList<MutationOperator>(ops);
 		this.methods = new LinkedList<String>(methods);
 		this.generations = generations;
@@ -124,6 +132,13 @@ public class MutationRequest {
 	}
 	
 	/**
+	 * @return The simple class name of the class to mutate
+	 */
+	public String getClassToMutateSimpleName() {
+		return this.simpleClassName;
+	}
+	
+	/**
 	 * @return how much mutation generations to create
 	 */
 	public int getGenerations() {
@@ -149,6 +164,52 @@ public class MutationRequest {
 		String location = this.location;
 		int generations = this.generations;
 		return new MutationRequest(location, className, clonedOperators, clonedMethods, mutateFields, mutateClass, generations);
+	}
+	
+	/**
+	 * Transform this request into a {@code mujava.app.MutationRequest} request.
+	 * <p>
+	 * This transformation looses the generations information and the new request doesn't have the output directory information.
+	 * 
+	 * @return a {@code mujava.app.MutationRequest} equivalent to this request
+	 * @see mujava.app.MutationRequest
+	 */
+	public mujava.app.MutationRequest transformToOldRequest() {
+		String inputDir = getLocation();
+		if (!inputDir.endsWith(File.separator)) inputDir += File.separator;
+		mujava.app.MutationRequest oldReq = new mujava.app.MutationRequest(this.fullyQualifiedClassName, this.methods.toArray(new String[this.methods.size()]), this.operators.toArray(new MutationOperator[this.operators.size()]), inputDir, null);
+		return oldReq;
+	}
+	
+	@Override
+	public String toString() {
+		String res = "";
+		res += "Class			:	" + this.fullyQualifiedClassName + "\n";
+		res += "Location		:	" + this.location + "\n";
+		res += "Operators		:	[";
+		Iterator<MutationOperator> operatorsIt = this.operators.iterator();
+		while (operatorsIt.hasNext()) {
+			res += operatorsIt.next().toString();
+			if (operatorsIt.hasNext()) {
+				res += ", ";
+			}
+		}
+		res += "]\n";
+		res += "Methods			:	[";
+		Iterator<String> methodsIt = this.methods.iterator();
+		while (methodsIt.hasNext()) {
+			String m = methodsIt.next();
+			if (m.compareTo(MUTATE_CLASS) != 0 && m.compareTo(MUTATE_FIELDS) != 0) {
+				res += m;
+				if (methodsIt.hasNext()) {
+					res += ", ";
+				}
+			}
+		}
+		res += "]\n";
+		res += "Mutate Fields	:	" + this.methods.contains(MUTATE_FIELDS) + "\n";
+		res += "Mutate Class	:	" + this.methods.contains(MUTATE_CLASS) + "\n";
+		return res;
 	}
 	
 }

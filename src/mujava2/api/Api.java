@@ -15,6 +15,12 @@ import openjava.ptree.ParseTreeException;
 
 public class Api {
 	
+	private static boolean verbose = false;
+	
+	public static void setVerbose(boolean v) {
+		Api.verbose = v;
+	}
+	
 	public static List<MutatedAST> generateMutants(MutationRequest request) throws OpenJavaException, ParseTreeException {
 		
 		//GENERATE ORIGINAL AST
@@ -26,8 +32,20 @@ public class Api {
 		
 		JavaAST ast = JavaAST.fromFile(request.getLocation(), request.getClassToMutate());
 		
+		if (Api.verbose) {
+			System.out.println("Mutating " + ast.toString() + "\n");
+		}
+		
 		Mutator mutator = new Mutator(ast, request);
 		Collection<MutationInformation> mutations = mutator.generateMutations();
+		
+		if (Api.verbose) {
+			System.out.println("First generation mutations\n");
+			for (MutationInformation minfo : mutations) {
+				System.out.println(minfo.toString());
+			}
+			System.out.println();
+		}
 		
 		for (MutationInformation minfo : mutations) {
 			MutatedAST mast = new MutatedAST(ast, minfo);
@@ -39,17 +57,31 @@ public class Api {
 	}
 	
 	private static void generateMutants(MutatedAST mast, MutationRequest request, int currGen, List<MutatedAST> result) throws ParseTreeException, OpenJavaException {
-		if (currGen < request.getGenerations()) {
+		if (currGen <= request.getGenerations()) {
 			
 			//APPLY MUTATIONS TO mast
 			JavaAST ast = mast.applyMutations();
+			if (Api.verbose) {
+				System.out.println("Generating " + currGen + " generation mutations for \n" + mast.toString() + "\n");
+			}
 			Mutator mutator = new Mutator(ast, request);
 			Collection<MutationInformation> mutations = mutator.generateMutations();
+			if (Api.verbose) {
+				for (MutationInformation minfo : mutations) {
+					System.out.println(minfo.toString());
+				}
+				System.out.println();
+			}
 			//UNDO MUTATIONS TO mast
 			mast.undoMutations();
+			if (Api.verbose) {
+				System.out.println("Undo applied mutations\n" + mast.toString() + "\n");
+				System.out.println(currGen + " generation mutants\n");
+			}
 			for (MutationInformation minfo : mutations) {
 				MutatedAST newMast = new MutatedAST(mast, minfo);
-				result.add(mast);
+				if (Api.verbose) System.out.println(newMast.toString());
+				result.add(newMast);
 				generateMutants(newMast, request, currGen+1, result);
 			}
 			
@@ -73,7 +105,7 @@ public class Api {
 	}
 	
 	private static void generateLastGenerationMutants(MutatedAST mast, MutationRequest request, int currGen, List<MutatedAST> result) throws ParseTreeException, OpenJavaException {
-		if (currGen < request.getGenerations()) {
+		if (currGen <= request.getGenerations()) {
 			
 			//APPLY MUTATIONS TO mast
 			JavaAST ast = mast.applyMutations();
@@ -83,7 +115,7 @@ public class Api {
 			mast.undoMutations();
 			for (MutationInformation minfo : mutations) {
 				MutatedAST newMast = new MutatedAST(mast, minfo);
-				generateMutants(newMast, request, currGen+1, result);
+				generateLastGenerationMutants(newMast, request, currGen+1, result);
 			}	
 		} else {
 			result.add(mast);
@@ -101,7 +133,7 @@ public class Api {
 		return mutations;
 	}
 	
-	private static List<List<MutationInformation>> generateMutationGenerations(JavaAST ast, MutationRequest request) throws OpenJavaException, ParseTreeException {
+	public static List<List<MutationInformation>> generateMutationGenerations(JavaAST ast, MutationRequest request) throws OpenJavaException, ParseTreeException {
 		/*
 		 * 
 		 * Gen 1 
@@ -150,14 +182,14 @@ public class Api {
 	 * @param that
 	 */
 	private static void merge(List<List<MutationInformation>> thiz, List<List<MutationInformation>> that, int offset) {
-		for (int i = 0; i < that.size(); i++) {
-			if (thiz.size() < i + offset) {
-				thiz.add(that.get(i));
+		for (int t = 0; t < that.size(); t++) {
+			List<MutationInformation> thatList = that.get(t);
+			if (thiz.size() <= t + offset) {
+				thiz.add(thatList);
 			} else {
-				thiz.get(i+offset).addAll(that.get(i));
+				thiz.get(t+offset).addAll(thatList);
 			}
 		}
-		
 	}
 
 }

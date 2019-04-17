@@ -1,12 +1,14 @@
 package mujava.api;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 
 import mujava.app.Core;
+import mujava.op.BEE;
 import mujava.op.PRVO;
 import mujava.op.basic.COR;
 import mujava.op.basic.ROR;
+import mujava.op.util.MutantCodeWriter;
 import mujava.op.util.OLMO;
 
 /**
@@ -15,10 +17,10 @@ import mujava.op.util.OLMO;
  * e.g.: MutationOperator operators, Writers, Filters, etc. 
  * 
  * @author Simón Emmanuel Gutiérrez Brida
- * @version 0.1u
+ * @version 0.2
  */
 public final class Configuration {
-	private static Map<String, Object> arguments = new HashMap<String, Object>();
+	private static Map<String, Object> arguments = new TreeMap<String, Object>();
 	/**
 	 * {@link mujava.api.Api#USE_MUTGENLIMIT}
 	 */
@@ -175,12 +177,93 @@ public final class Configuration {
 	public static final String ENABLE_REFINEMENT_IN_METHOD_CALL_STATEMENTS = PRVO.ENABLE_REFINEMENT_IN_METHOD_CALL_STATEMENTS;
 	
 	/**
+	 * {@link mujava.op.PRVO#ALLOW_FINAL_MEMBERS}
+	 */
+	public static final String ALLOW_FINAL_MEMBERS = PRVO.ALLOW_FINAL_MEMBERS;
+	
+	/**
+	 * {@link mujava.op.PRVO#ENABLE_RELAXED_TYPES}
+	 */
+	public static final String ENABLE_RELAXED_TYPES = PRVO.ENABLE_RELAXED_TYPES;
+	
+	/**
+	 * {@link mujava.op.PRVO#ENABLE_AUTOBOXING}
+	 */
+	public static final String ENABLE_AUTOBOXING = PRVO.ENABLE_AUTOBOXING;
+	
+	/**
+	 * {@link mujava.op.PRVO#ENABLE_INHERITED_ELEMENTS}
+	 */
+	public static final String ENABLE_INHERITED_ELEMENTS = PRVO.ENABLE_INHERITED_ELEMENTS;
+	/**
+	 * Option to enable/disable priority evaluation of mutations
+	 * <p>
+	 * This option is disabled by default
+	 */
+	public static final String PRIORITY_EVALUATE = "mutations.priority.evaluate";
+	
+	/**
+	 * Option to enable/disable the discard of low priority mutations
+	 * <p>
+	 * This option is disabled by default
+	 * <p>
+	 * <b>This option requires {@link PRIORITY_EVALUATE} to be enabled</b> 
+	 */
+	public static final String PRIORITY_LOW_DISCARD = "mutations.priority.low.discard";
+	
+	/**
+	 * Option to enable/disable the discard of neutral priority mutations
+	 * <p>
+	 * This option is disabled by default
+	 * <p>
+	 * <b>This option requires {@link PRIORITY_EVALUATE} to be enabled</b>
+	 */
+	public static final String PRIORITY_NEUTRAL_DISCARD = "mutations.priority.neutral.discard";
+	
+	/**
 	 * {@link mujava.op.util.OLMO#DEBUG}
 	 */
 	public static final String ENABLE_OLMO_DEBUG_MODE = OLMO.DEBUG;
 	
+	/**
+	 * {@link mujava.app.Core#ENABLE_TOUGHNESS}
+	 */
 	public static final String ENABLE_TOUGHNESS = Core.ENABLE_TOUGHNESS;
 	
+	/**
+	 * Option to enable/disable pretty print
+	 * <p>
+	 * This option is disabled by default
+	 * <hr>
+	 * This option affects
+	 * <p>
+	 * <li>Blocks (in If, While, and For statements) will not be printed with braces if there is only one statement
+	 * <li>else blocks containing only an If statement will be printed as else if
+	 */
+	public static final String PRETTY_PRINT = "output.print.pretty";
+	
+	/**
+	 * {@link mujava.op.util.MutantCodeWriter#USE_SIMPLE_CLASS_NAMES}
+	 */
+	public static final String USE_SIMPLE_CLASS_NAMES = MutantCodeWriter.USE_SIMPLE_CLASS_NAMES;
+	
+	
+	/**
+	 * {@link mujava.op.BEE#SCAN_FOR_EXPRESSIONS}
+	 */
+	public static final String SCAN_FOR_EXPRESSIONS = BEE.SCAN_FOR_EXPRESSIONS;
+	
+	/**
+	 * {@link mujava.op.BEE#DISABLE_NEUTRAL_TRUE_FALSE}
+	 */
+	public static final String DISABLE_NEUTRAL_TRUE_FALSE = BEE.DISABLE_NEUTRAL_TRUE_FALSE;
+	
+	/**
+	 * This options enable/disable the ability to set an argument that has already been set
+	 * <p>
+	 * This option is enabled by default
+	 */
+	private static boolean allowArgumentsModifications = true;
 	
 	/**
 	 * Adds an argument an its corresponding value to the configuration
@@ -190,7 +273,9 @@ public final class Configuration {
 	 * @param value		:	the value associated with the argument	:	{@code Object}
 	 */
 	public static void add(String argument, Object value) {
-		Configuration.arguments.put(argument, value);
+		if ((argumentExist(argument) && allowArgumentsModifications) || !argumentExist(argument)) {
+			Configuration.arguments.put(argument, value);
+		}
 	}
 	
 	/**
@@ -223,7 +308,7 @@ public final class Configuration {
 	 * @see Configuration#argumentExist(String)
 	 */
 	public static void removeArgument(String argument) {
-		if (argumentExist(argument)) {
+		if ((argumentExist(argument) && allowArgumentsModifications) || !argumentExist(argument)) {
 			Configuration.arguments.remove(argument);
 		}
 	}
@@ -232,6 +317,18 @@ public final class Configuration {
 	 * Removes all arguments specified in the configuration
 	 */
 	public static void clear() {
-		Configuration.arguments = new HashMap<String, Object>();
+		if (allowArgumentsModifications) {
+			Configuration.arguments = new TreeMap<String, Object>();
+		}
+	}
+	
+	/**
+	 * enable/disable the ability to modify an argument that has already been set
+	 * this includes clearing the Configuration
+	 * <p>
+	 * if modifications are disallowed then this method can't re-allow them
+	 */
+	public static void allowConfigurationModifications(boolean b) {
+		if (allowArgumentsModifications) allowArgumentsModifications = b;
 	}
 }

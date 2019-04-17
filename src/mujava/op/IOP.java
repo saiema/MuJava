@@ -54,7 +54,7 @@ public class IOP extends Mutator {
 	}
 
 	private void generateMutants(MethodDeclaration md, Statement st, int s) {
-		MethodDeclaration originalCopy = (MethodDeclaration) md.makeRecursiveCopy_keepOriginalID();
+		MethodDeclaration originalCopy = (MethodDeclaration) nodeCopyOf(md);
 		if (md.getBody().size() == 2) {
 			if (s == 0) {
 				MethodDeclaration mutant = generateMutant(originalCopy, s, 1);
@@ -121,7 +121,7 @@ public class IOP extends Mutator {
 	}
 
 	private MethodDeclaration generateMutant(MethodDeclaration original, int origPos, int newPos) {
-		MethodDeclaration mutant = (MethodDeclaration) original.makeRecursiveCopy_keepOriginalID();
+		MethodDeclaration mutant = (MethodDeclaration) nodeCopyOf(original);
 		StatementList statements = mutant.getBody();
 		replace(statements, origPos, newPos);
 		return mutant;

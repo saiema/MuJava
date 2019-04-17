@@ -55,7 +55,7 @@ public class JTD extends mujava.op.util.Mutator {
 	}
 	
 	private Expression mutate(Expression p) throws ParseTreeException {
-		Expression copy = (Expression) p.makeRecursiveCopy_keepOriginalID();
+		Expression copy = (Expression) nodeCopyOf((ParseTreeObject) p);
 		Expression prev;
 		Expression current = copy;
 		prev = getPreviousExpression(current);

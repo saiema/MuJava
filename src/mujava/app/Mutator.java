@@ -9,7 +9,7 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,7 +39,7 @@ import openjava.ptree.ParseTreeObject;
  * <pre>
  * 		Mutator mut = new Mutator(req);
  * 		List<MutantInfo> mil = mut.generateMutants();
- * 		HashMap<String, List<String>> mutantsFolder = mut.mutantsFolders;
+ * 		TreeMap<String, List<String>> mutantsFolder = mut.mutantsFolders;
  * 		mut.resetMutantFolders();
  * </pre>
  * <p>
@@ -53,7 +53,7 @@ import openjava.ptree.ParseTreeObject;
  * 			doSomething(mi);
  * 			mi = mut.getNext();
  * 		}
- * 		HashMap<String, List<String>> mutantsFolder = mut.mutantsFolders;
+ * 		TreeMap<String, List<String>> mutantsFolder = mut.mutantsFolders;
  * 		mut.resetMutantFolders();
  * </pre>
  * <p>
@@ -93,6 +93,7 @@ public class Mutator implements Runnable{
 	private OpenJavaException ojerror = null;
 	private ClassNotFoundException cnferror = null;
 	private static Integer index = 0;
+	private static boolean verbose = false;
 	
 	private List<List<Mutation>> Mutationss = null;
 	/**
@@ -100,7 +101,7 @@ public class Mutator implements Runnable{
 	 * the key in this map is {@code <class name> + <System path separator> + <method || (fieldMutations || classMutations)>}
 	 * the entry for a key is a list of subfolders 
 	 */
-	public HashMap<String, List<String>> mutantsFolders = new HashMap<String, List<String>>();
+	public TreeMap<String, List<String>> mutantsFolders = new TreeMap<String, List<String>>();
 	private MutationRequest request;
 	
 	
@@ -146,6 +147,10 @@ public class Mutator implements Runnable{
 		this.request = req;
 	}
 	
+	public static void setVerbose(boolean v) {
+		Mutator.verbose = v;
+	}
+	
 	/**
 	 * This method is equivalent to {@link Mutator#generateMutants()} when using the {@link Mutator#Mutator(MutationRequest)}
 	 * constructor.
@@ -186,7 +191,7 @@ public class Mutator implements Runnable{
 	 * This method resets the variable {@code mutantsFolders} to an empty Map
 	 */
 	public void resetMutantFolders() {
-		mutantsFolders = new HashMap<String, List<String>>();
+		mutantsFolders = new TreeMap<String, List<String>>();
 	}
 	
 	/**
@@ -213,7 +218,7 @@ public class Mutator implements Runnable{
 		//|--------------------Initialization--------------------|
 		List<MutantInfo> res = new LinkedList<MutantInfo>();
 		this.mihs = new LinkedList<MutantsInformationHolder>();
-		mutantsFolders = new HashMap<String, List<String>>();
+		mutantsFolders = new TreeMap<String, List<String>>();
 		Mutationss = new LinkedList<List<Mutation>>();
 		//String basePath = request.outputDir;
 		//List<MutantsInformationHolder> mihs = null;
@@ -327,7 +332,7 @@ public class Mutator implements Runnable{
 	 * @throws ParseTreeException
 	 */
 	public Map<String, MutantsInformationHolder> obtainMutants() throws OpenJavaException, ClassNotFoundException, ParseTreeException {
-		Map<String, MutantsInformationHolder> mutants = new HashMap<String, MutantsInformationHolder>();
+		Map<String, MutantsInformationHolder> mutants = new TreeMap<String, MutantsInformationHolder>();
 		//|--------------------Initialization--------------------|
 		Set<MutationOperator> mutOps = new HashSet<MutationOperator>();
 		mutOps.addAll(Arrays.asList(request.ops));
@@ -401,7 +406,7 @@ public class Mutator implements Runnable{
 		List<Mutation> mis = mutations;
 		List<Mutation> filteredMutations = new LinkedList<Mutation>();
 		Random random = new Random();
-		Map<Integer, List<Mutation>> mutationsPerNodeID = new HashMap<Integer, List<Mutation>>();
+		Map<Integer, List<Mutation>> mutationsPerNodeID = new TreeMap<Integer, List<Mutation>>();
 		while (current < mis.size()) {
 			if (!mis.get(current).isOneLineInMethodOp()) {
 				mis.remove(current);
@@ -491,10 +496,11 @@ public class Mutator implements Runnable{
 	 * <li> given two mutations m1 (ori1, mut1) and m2 (ori2, mut2) if m1 affects ori2 then it must affect mut2 </li>
 	 *
 	 * @param mutations : the mutations : {@code List<Mutation>}
+	 * @param checkInOrder : mutations on the same line will be checked in order and not everyone against everyone 
 	 * @return true if mutations can be merged : {@code boolean}
 	 * @throws ParseTreeException
 	 */
-	public static boolean checkMergingCompatibility(List<Mutation> mutations) throws ParseTreeException {
+	public static boolean checkMergingCompatibility(List<Mutation> mutations, boolean checkInOrder) throws ParseTreeException {
 		boolean canBeMerged = !mutations.isEmpty() && mutationsAreMethodLevel(mutations);
 		if (!canBeMerged) return false;
 		int affectedLine = 0;
@@ -505,12 +511,16 @@ public class Mutator implements Runnable{
 				canBeMerged = false;
 				break;
 			}
-			if (!mutationCanBeApplied(mi, mutations)) {
+			if (!mutationCanBeApplied(mi, mutations, checkInOrder)) {
 				canBeMerged = false;
 				break;
 			}
 		}
 		return canBeMerged;
+	}
+	
+	public static boolean checkMergingCompatibility(List<Mutation> mutations) throws ParseTreeException {
+		return checkMergingCompatibility(mutations, false);
 	}
 	
 	private static boolean mutationsAreMethodLevel(List<Mutation> mutations) {
@@ -522,17 +532,75 @@ public class Mutator implements Runnable{
 		return true;
 	}
 	
-	private static boolean mutationCanBeApplied(Mutation mut, List<Mutation> mutations) throws ParseTreeException {
+	private static boolean mutationCanBeApplied(Mutation mut, List<Mutation> mutations, boolean checkInOrder) throws ParseTreeException {
 		OLMO olmo;
 		boolean res = true;
+		boolean mutReached = false;
 		for (Mutation mi : mutations) {
-			if (mut == mi) continue;
+			if (checkInOrder && !mutReached) {
+				if (mut != mi) {
+					continue;
+				} else {
+					mutReached = true;
+					continue;
+				}
+			} else if (mut == mi) continue;
 			olmo = new OLMO(mut);
 			boolean canBeAppliedToOriginal = olmo.findOriginalNodeIn(mi.getOriginal());
 			boolean canBeAppliedToMutant = olmo.findOriginalNodeIn(mi.getMutant());
-			res = (canBeAppliedToOriginal == canBeAppliedToMutant);
+			res &= (canBeAppliedToOriginal == canBeAppliedToMutant);
+			if (!res && verbose) {
+				System.out.println(mut.toString() + " is not compatible with " + mi.toString());
+			}
+			if (!res) break;
 		}
 		return res;
+	}
+	
+	public static boolean verifyApplicationOfMutations(List<Mutation> mutations) throws ParseTreeException {
+		Mutation[] mutationsArray = mutations.toArray(new Mutation[mutations.size()]);
+		boolean swapOcurred = false;
+		boolean incompatible = false;
+		int j, muts = mutations.size(), i = 0;
+		while (i < muts - 1) {
+			swapOcurred = false;
+			incompatible = false;
+			Mutation aMut = mutationsArray[i];
+			j = i + 1;
+			while (j < muts) {
+				Mutation bMut = mutationsArray[j];
+				OLMO olmo = new OLMO(aMut);
+				boolean aOrigInbOrig = olmo.findOriginalNodeIn(bMut.getOriginal());
+				boolean aOrigInbMut = olmo.findOriginalNodeIn(bMut.getMutant());
+				if ((aOrigInbOrig && aOrigInbMut) || (!aOrigInbOrig && aOrigInbMut)) {
+					break;
+				} //keep order
+				else if (aOrigInbOrig && !aOrigInbMut) {
+					//check inversion
+					olmo = new OLMO(bMut);
+					boolean bOrigInaOrig = olmo.findOriginalNodeIn(aMut.getOriginal());
+					boolean bOrigInaMut = olmo.findOriginalNodeIn(aMut.getMutant());
+					if (bOrigInaOrig && bOrigInaMut) {
+						//invert
+						mutationsArray[i] = bMut;
+						mutationsArray[j] = aMut;
+						incompatible = false;
+						swapOcurred = true;
+						break;
+					} else {
+						incompatible = true;
+					}
+				} else if (!aOrigInbOrig && !aOrigInbMut) {
+					//Mutations are not related (affects different nodes)
+				}
+				j++;
+			}
+			if (incompatible && !swapOcurred) return false;
+			if (swapOcurred) i = 0; else i++;
+		}
+		mutations.clear();
+		for (Mutation m : mutationsArray) mutations.add(m);
+		return true;
 	}
 	
 	/**
@@ -566,7 +634,7 @@ public class Mutator implements Runnable{
 		List<Mutation> mutationsToWrite;
 		if (applyAllMutantsToSameFile) {
 			OLMO olmo;
-			Map<Integer, List<Mutation>> mutations = new HashMap<Integer, List<Mutation>>();
+			Map<Integer, List<Mutation>> mutations = new TreeMap<Integer, List<Mutation>>();
 			for (Mutation mi : mih.getMutantsIdentifiers()) {
 				Integer affectedLine = mi.getAffectedLine();
 				if (affectedLine == -1) {

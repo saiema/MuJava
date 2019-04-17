@@ -63,7 +63,7 @@ public class ISD extends Mutator {
 	}
 	
 	private Expression deleteSuper_dumb(Expression p) throws ParseTreeException {
-		Expression copy = (Expression) p.makeRecursiveCopy_keepOriginalID();
+		Expression copy = (Expression) nodeCopyOf((ParseTreeObject) p);
 		Expression prev;
 		Expression current = copy;
 		prev = getPreviousExpression(current);
@@ -89,7 +89,7 @@ public class ISD extends Mutator {
 	}
 
 	private Expression deleteSuper(Expression exp) throws ParseTreeException {
-		Expression copy = (Expression) exp.makeRecursiveCopy_keepOriginalID();
+		Expression copy = (Expression) nodeCopyOf((ParseTreeObject) exp);
 		Expression prev;
 		Expression current = copy;
 		prev = getPreviousExpression(current);
@@ -109,7 +109,7 @@ public class ISD extends Mutator {
 		String currentName;
 		if (current instanceof FieldAccess) {
 			currentName = ((FieldAccess) current).getName();
-			List<Variable> reachableVars = getReachableVariables((ParseTreeObject) current).get(currentType);
+			List<Variable> reachableVars = getReachableVariables((ParseTreeObject) current, ALLOW_FINAL).get(currentType);
 			for (Variable var : reachableVars) {
 				String varName = var.toString();
 				if (compareNamesWithoutPackage(currentName, varName)) {
@@ -154,7 +154,7 @@ public class ISD extends Mutator {
 				ExpressionList actualArguments = methodCall.getArguments();
 				if (formalArguments.length == actualArguments.size()) {
 					for (int a = 0; a < formalArguments.length; a++) {
-						if (!compatibleAssignType(formalArguments[a], getType(actualArguments.get(a))))
+						if (!compatibleAssignTypeRelaxed(formalArguments[a], getType(actualArguments.get(a))))
 							return false;
 					}
 					return true;

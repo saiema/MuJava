@@ -13,6 +13,7 @@ import openjava.ptree.util.*;
 import java.io.*;
 import java.lang.reflect.Constructor;
 
+import mujava.api.Configuration;
 import mujava.op.util.*;
 import mujava.util.*;
 
@@ -108,7 +109,7 @@ public abstract class MutantsGenerator {
 	protected void initParseTree() throws OpenJavaException {
 		try {
 			// System.out.println("OJSystem.env0 :" + OJSystem.env );
-			comp_unit.accept(new TypeNameQualifier(file_env));
+			if (!doNotUseTypeNameQualifier()) comp_unit.accept(new TypeNameQualifier(file_env));
 			// System.out.println("OJSystem.env1 :" + OJSystem.env );
 			MemberAccessCorrector corrector = new MemberAccessCorrector(
 					file_env);
@@ -117,6 +118,14 @@ public abstract class MutantsGenerator {
 			// System.out.println("OJSystem.env3 :" + OJSystem.env );
 		} catch (ParseTreeException e) {
 			throw new OpenJavaException("can't initialize parse tree");
+		}
+	}
+	
+	private boolean doNotUseTypeNameQualifier() {
+		if (Configuration.argumentExist(MutantCodeWriter.USE_SIMPLE_CLASS_NAMES)) {
+			return (Boolean) Configuration.getValue(MutantCodeWriter.USE_SIMPLE_CLASS_NAMES);
+		} else {
+			return false;
 		}
 	}
 

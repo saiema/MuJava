@@ -12,11 +12,18 @@ import mujava.api.MutantsInformationHolder;
 import mujava.op.util.Mutator;
 import openjava.mop.FileEnvironment;
 import openjava.ptree.BinaryExpression;
+import openjava.ptree.BreakStatement;
 import openjava.ptree.ClassDeclaration;
 import openjava.ptree.CompilationUnit;
+import openjava.ptree.DoWhileStatement;
 import openjava.ptree.Expression;
+import openjava.ptree.ForStatement;
+import openjava.ptree.IfStatement;
 import openjava.ptree.Literal;
 import openjava.ptree.ParseTreeException;
+import openjava.ptree.Statement;
+import openjava.ptree.StatementList;
+import openjava.ptree.WhileStatement;
 
 /**
  * <p>
@@ -48,6 +55,15 @@ public class ROR extends Arithmetic_OP {
 	 * this option is enabled by default
 	 */
 	public static final String REPLACE_WITH_FALSE = "ror_replace_with_false";
+	/**
+	 * Option to enable/disable avoiding replacing with true or false in instances when
+	 * the generated mutants will not compile
+	 * <p>
+	 * this option is disabled by default
+	 */
+	public static final String SMART_LITERAL_REPLACE = "ror_smart_literal_replace";
+	
+	private static enum Literals {NONE, TRUE, FALSE, BOTH};
 
 	public ROR(FileEnvironment file_env, ClassDeclaration cdecl,
 			CompilationUnit comp_unit) {
@@ -126,8 +142,12 @@ public class ROR extends Arithmetic_OP {
 			Mutator.setParentOf(mutant, exp, true);
 			outputToFile(exp, mutant);
 		}
-		if (allowReplacementWithFalse()) outputToFile(exp, Literal.constantFalse());
-		if (allowReplacementWithTrue()) outputToFile(exp, Literal.constantTrue());
+		Literals allowed = Literals.BOTH;
+		if (allowReplacementWithFalse() || allowReplacementWithTrue()) {
+			allowed = smartValidation(exp);
+		}
+		if (allowReplacementWithFalse() && (allowed.equals(Literals.FALSE) || allowed.equals(Literals.BOTH))) outputToFile(exp, Literal.constantFalse());
+		if (allowReplacementWithTrue() && (allowed.equals(Literals.TRUE) || allowed.equals(Literals.BOTH))) outputToFile(exp, Literal.constantTrue());
 	}
 
 	private void objectRORMutantGen(BinaryExpression exp, int op) {
@@ -145,8 +165,12 @@ public class ROR extends Arithmetic_OP {
 			Mutator.setParentOf(mutant, exp, true);
 			outputToFile(exp, mutant);
 		}
-		if (allowReplacementWithFalse()) outputToFile(exp, Literal.constantFalse());
-		if (allowReplacementWithTrue()) outputToFile(exp, Literal.constantTrue());
+		Literals allowed = Literals.BOTH;
+		if (allowReplacementWithFalse() || allowReplacementWithTrue()) {
+			allowed = smartValidation(exp);
+		}
+		if (allowReplacementWithFalse() && (allowed.equals(Literals.FALSE) || allowed.equals(Literals.BOTH))) outputToFile(exp, Literal.constantFalse());
+		if (allowReplacementWithTrue() && (allowed.equals(Literals.TRUE) || allowed.equals(Literals.BOTH))) outputToFile(exp, Literal.constantTrue());
 	}
 	
 	private boolean allowReplacementWithTrue() {
@@ -163,6 +187,62 @@ public class ROR extends Arithmetic_OP {
 		} else {
 			return true;
 		}
+	}
+	
+	private boolean smartLiteralReplacement() {
+		if (Configuration.argumentExist(SMART_LITERAL_REPLACE)) {
+			return (Boolean) Configuration.getValue(SMART_LITERAL_REPLACE);
+		} else {
+			return false;
+		}
+	}
+	
+	private Literals smartValidation(BinaryExpression e) {
+		if (!smartLiteralReplacement()) return Literals.BOTH;
+		Statement from = (Statement) getStatement(e);
+		if (from instanceof WhileStatement) {
+			WhileStatement wst = (WhileStatement) from;
+			Expression cond = wst.getExpression();
+			if (e == cond) {
+				if (hasBreakStatement(wst.getStatements())) return Literals.TRUE;
+				else {
+					return Literals.NONE;
+				}
+			}
+		} else if (from instanceof ForStatement) {
+			ForStatement fst = (ForStatement) from;
+			Expression cond = fst.getCondition();
+			if (e == cond) {
+				if (hasBreakStatement(fst.getStatements())) return Literals.TRUE;
+				else {
+					return Literals.NONE;
+				}
+			}
+		} else if (from instanceof DoWhileStatement) {
+			DoWhileStatement dwst = (DoWhileStatement) from;
+			Expression cond = dwst.getExpression();
+			if (e == cond) {
+				if (hasBreakStatement(dwst.getStatements())) return Literals.BOTH;
+				else {
+					return Literals.FALSE;
+				}
+			}
+		}
+		return Literals.BOTH;
+	}
+	
+	private boolean hasBreakStatement(StatementList stList) {
+		for (int s = 0; s < stList.size(); s++) {
+			Statement st = stList.get(s);
+			if (st instanceof BreakStatement) return true;
+			if (st instanceof IfStatement) {
+				IfStatement ifStatement = (IfStatement) st;
+				if (hasBreakStatement(ifStatement.getStatements()) || hasBreakStatement(ifStatement.getElseStatements())) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**

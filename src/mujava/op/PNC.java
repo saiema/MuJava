@@ -70,14 +70,11 @@ public class PNC extends mujava.op.util.Mutator {
 		for (Constructor<?> c : childConstructors) {
 			if (compatibleArguments(c.getParameterTypes(), arguments)) {
 				OJClass newConstructorAsOJC = OJClass.forClass(child);
-				AllocationExpression mutant = (AllocationExpression) original
-						.makeRecursiveCopy_keepOriginalID();
-				TypeName newConstructorAsTypeName = TypeName
-						.forOJClass(newConstructorAsOJC);
+				AllocationExpression mutant = (AllocationExpression) nodeCopyOf(original);
+				TypeName newConstructorAsTypeName = TypeName.forOJClass(newConstructorAsOJC);
 				mutant.setClassType(newConstructorAsTypeName);
 				if (c.getParameterTypes().length < arguments.size()) {
-					arguments = arguments.subList(0,
-							c.getParameterTypes().length - 1);
+					arguments = arguments.subList(0,c.getParameterTypes().length - 1);
 					mutant.setArguments(arguments);
 				}
 				outputToFile(original, mutant);
@@ -89,8 +86,7 @@ public class PNC extends mujava.op.util.Mutator {
 		if (parameterTypes.length <= arguments.size()) {
 			for (int p = 0; p < parameterTypes.length; p++) {
 				OJClass argumentType = OJClass.forClass(parameterTypes[p]);
-				if (!compatibleAssignType(argumentType,
-						getType(arguments.get(p)))) {
+				if (!compatibleAssignTypeRelaxed(argumentType,getType(arguments.get(p)))) {
 					return false;
 				}
 			}

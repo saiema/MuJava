@@ -31,12 +31,12 @@ public class DoubleLinkedList {
 	}
 	
 	public void addLast(Object data) {
-		if (isEmpty()) { //mutGenLimit 1
+		if (isEmpty()) {
 			addFirstNode(data);
 		} else {
 			DoubleLinkedListNode newNode = new DoubleLinkedListNode();
-			newNode.setData(data);
-			newNode.setNext(null);
+			newNode.setData(data); //mutGenLimit 1
+			newNode.setNext(null); //mutGenLimit 1
 			newNode.setPrev(end); //mutGenLimit 1
 			this.end.setNext(newNode); //mutGenLimit 1
 			this.end = newNode;
@@ -74,10 +74,10 @@ public class DoubleLinkedList {
 			} else if (index >= this.size) {
 				addLast(data);
 			} else {
-				if (index > (this.size / 2)) { //mutGenLimit 1
+				if (index > (this.size / 2)) {
 					addFromLast(data, index);
 				} else {
-					addFromStart(data, index); //mutGenLimit 1
+					addFromStart(data, index);
 				}
 				size++;
 			}
@@ -109,7 +109,7 @@ public class DoubleLinkedList {
 	}
 	
 	public void removeFirst() {
-		if (size() == 1) { //mutGenLimit 1
+		if (size() == 1) {
 			removeLonelyNode();
 		} else {
 			this.start.getNext().setPrev(null);

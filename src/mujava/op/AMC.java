@@ -40,7 +40,7 @@ public class AMC extends mujava.op.util.Mutator {
 			int insert_mod) {
 		ModifierList mutant;
 		mutant = new ModifierList(ModifierList.EMPTY);
-		mutant = (ModifierList) original.makeRecursiveCopy_keepOriginalID();
+		mutant = (ModifierList) nodeCopyOf(original);
 
 		int mod = mutant.getRegular();
 

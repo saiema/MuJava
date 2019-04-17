@@ -6,6 +6,7 @@ import java.util.Set;
 import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.AMC;
+import mujava.op.BEE;
 import mujava.op.EAM;
 import mujava.op.EMM;
 import mujava.op.EOA;
@@ -183,39 +184,47 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 						comp_unit.accept(mutant_op);
 					}
 					
-					if (mutOps.contains(MutationOperator.PRVOL)) {
-						Debug.println("  Applying PRVOL ... ... ");
-						mutant_op = new PRVO(file_env, cdecl, comp_unit);
-						((PRVO)mutant_op).setLeft();
-						((PRVO)mutant_op).dumbMode();
-						((PRVO)mutant_op).setOP(MutationOperator.PRVOL);
-						comp_unit.accept(mutant_op);
-					}
+//					if (mutOps.contains(MutationOperator.PRVOL)) {
+//						Debug.println("  Applying PRVOL ... ... ");
+//						mutant_op = new PRVO(file_env, cdecl, comp_unit);
+//						((PRVO)mutant_op).setLeft();
+//						((PRVO)mutant_op).dumbMode();
+//						((PRVO)mutant_op).setOP(MutationOperator.PRVOL);
+//						comp_unit.accept(mutant_op);
+//					}
 					
-					if (mutOps.contains(MutationOperator.PRVOL_SMART)) {
+					if (mutOps.contains(MutationOperator.PRVOL_SMART) || mutOps.contains(MutationOperator.PRVOL)) {
 						Debug.println("  Applying PRVOL_SMART ... ... ");
 						mutant_op = new PRVO(file_env, cdecl, comp_unit);
 						((PRVO)mutant_op).setLeft();
-						((PRVO)mutant_op).smartMode();
-						((PRVO)mutant_op).setOP(MutationOperator.PRVOL_SMART);
+						//((PRVO)mutant_op).smartMode();
+						if (mutOps.contains(MutationOperator.PRVOL_SMART)) {
+							((PRVO)mutant_op).setOP(MutationOperator.PRVOL_SMART);
+						} else {
+							((PRVO)mutant_op).setOP(MutationOperator.PRVOL);
+						}
 						comp_unit.accept(mutant_op);
 					}
 					
-					if (mutOps.contains(MutationOperator.PRVOR)) {
-						Debug.println("  Applying PRVOR ... ... ");
-						mutant_op = new PRVO(file_env, cdecl, comp_unit);
-						((PRVO)mutant_op).setRight();
-						((PRVO)mutant_op).dumbMode();
-						((PRVO)mutant_op).setOP(MutationOperator.PRVOR);
-						comp_unit.accept(mutant_op);
-					}
+//					if (mutOps.contains(MutationOperator.PRVOR)) {
+//						Debug.println("  Applying PRVOR ... ... ");
+//						mutant_op = new PRVO(file_env, cdecl, comp_unit);
+//						((PRVO)mutant_op).setRight();
+//						((PRVO)mutant_op).dumbMode();
+//						((PRVO)mutant_op).setOP(MutationOperator.PRVOR);
+//						comp_unit.accept(mutant_op);
+//					}
 					
-					if (mutOps.contains(MutationOperator.PRVOR_SMART)) {
+					if (mutOps.contains(MutationOperator.PRVOR_SMART) || mutOps.contains(MutationOperator.PRVOR)) {
 						Debug.println("  Applying PRVOR_SMART ... ... ");
 						mutant_op = new PRVO(file_env, cdecl, comp_unit);
 						((PRVO)mutant_op).setRight();
-						((PRVO)mutant_op).smartMode();
-						((PRVO)mutant_op).setOP(MutationOperator.PRVOR_SMART);
+						//((PRVO)mutant_op).smartMode();
+						if (mutOps.contains(MutationOperator.PRVOR_SMART)) {
+							((PRVO)mutant_op).setOP(MutationOperator.PRVOR_SMART);
+						} else {
+							((PRVO)mutant_op).setOP(MutationOperator.PRVOR);
+						}
 						comp_unit.accept(mutant_op);
 					}
 					
@@ -224,26 +233,30 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 						mutant_op = new PRVO(file_env, cdecl, comp_unit);
 						((PRVO)mutant_op).setRight();
 						((PRVO)mutant_op).setRefinedMode(true);
-						((PRVO)mutant_op).smartMode();
+						//((PRVO)mutant_op).smartMode();
 						((PRVO)mutant_op).setOP(MutationOperator.PRVOR_REFINED);
 						comp_unit.accept(mutant_op);
 					}
 					
-					if (mutOps.contains(MutationOperator.PRVOU)) {
-						Debug.println("  Applying PRVOU ... ... ");
-						mutant_op = new PRVO(file_env, cdecl, comp_unit);
-						((PRVO)mutant_op).setUnary();
-						((PRVO)mutant_op).dumbMode();
-						((PRVO)mutant_op).setOP(MutationOperator.PRVOU);
-						comp_unit.accept(mutant_op);
-					}
+//					if (mutOps.contains(MutationOperator.PRVOU)) {
+//						Debug.println("  Applying PRVOU ... ... ");
+//						mutant_op = new PRVO(file_env, cdecl, comp_unit);
+//						((PRVO)mutant_op).setUnary();
+//						((PRVO)mutant_op).dumbMode();
+//						((PRVO)mutant_op).setOP(MutationOperator.PRVOU);
+//						comp_unit.accept(mutant_op);
+//					}
 					
-					if (mutOps.contains(MutationOperator.PRVOU_SMART)) {
+					if (mutOps.contains(MutationOperator.PRVOU_SMART) || mutOps.contains(MutationOperator.PRVOU)) {
 						Debug.println("  Applying PRVOU_SMART ... ... ");
 						mutant_op = new PRVO(file_env, cdecl, comp_unit);
 						((PRVO)mutant_op).setUnary();
-						((PRVO)mutant_op).smartMode();
-						((PRVO)mutant_op).setOP(MutationOperator.PRVOU_SMART);
+						//((PRVO)mutant_op).smartMode();
+						if (mutOps.contains(MutationOperator.PRVOU_SMART)) {
+							((PRVO)mutant_op).setOP(MutationOperator.PRVOU_SMART);
+						} else {
+							((PRVO)mutant_op).setOP(MutationOperator.PRVOU);
+						}
 						comp_unit.accept(mutant_op);
 					}
 					
@@ -252,7 +265,7 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 						mutant_op = new PRVO(file_env, cdecl, comp_unit);
 						((PRVO)mutant_op).setUnary();
 						((PRVO)mutant_op).setRefinedMode(true);
-						((PRVO)mutant_op).smartMode();
+						//((PRVO)mutant_op).smartMode();
 						((PRVO)mutant_op).setOP(MutationOperator.PRVOU_REFINED);
 						comp_unit.accept(mutant_op);
 					}
@@ -466,6 +479,12 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 					if (mutOps.contains(MutationOperator.NPER)) {
 						Debug.println("  Applying NPER ... ... ");
 						mutant_op = new NPER(file_env, cdecl, comp_unit);
+						comp_unit.accept(mutant_op);
+					}
+					
+					if (mutOps.contains(MutationOperator.BEE)) {
+						Debug.println("  Applying BEE ... ... ");
+						mutant_op = new BEE(file_env, cdecl, comp_unit);
 						comp_unit.accept(mutant_op);
 					}
 					

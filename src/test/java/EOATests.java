@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -28,6 +29,11 @@ public class EOATests {
 	public EOATests(Property prop, List<MutantInfo> mutantsInfo) {
 		this.prop = prop;
 		this.mutantsInfo = mutantsInfo;
+	}
+	
+	@BeforeClass
+	public static void verboseOptions() {
+		TestingTools.setVerbose(false);
 	}
 	
 	
@@ -67,7 +73,7 @@ public class EOATests {
 		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_3 var1 = \\((.+\\.)?EOA\\_3\\) param1\\.clone\\(\\); //mutGenLimit 0"));
 		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_3 var2 = \\((.+\\.)?EOA\\_3\\) auxMethod1\\( var1\\, param1 \\)\\.clone\\(\\); //mutGenLimit 0"));
 		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_1 var3 = param1\\.clone\\(\\); //mutGenLimit 0"));
-		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_2 var4 = \\(\\((.+\\.)?EOA\\_Base\\_2\\) auxMethod2\\( auxMethod1\\( var1\\, param1 \\)\\, \\((.+\\.)?EOA\\_Base\\_2\\) var3\\, param1 \\)\\)\\.clone\\(\\); //mutGenLimit 0"));
+		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_2 var4 = \\(\\((.+\\.)?EOA\\_Base\\_2\\) auxMethod2\\( auxMethod1\\( var1\\, param1 \\)\\, new (.+\\.)?EOA\\_Base\\_2\\(\\)\\, param1 \\)\\)\\.clone\\(\\)\\; //mutGenLimit 0"));
 		Property propEOA_3 = new Property(MutationOperator.EOA,
 										"test/EOA_3",
 										"radiatedMethod",

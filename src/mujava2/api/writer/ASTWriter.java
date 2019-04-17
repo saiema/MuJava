@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 
 import mujava.api.Mutation;
 import mujava.app.MutationInformation;
-import mujava.op.util.MutantCodeWriter;
 import openjava.ptree.AllocationExpression;
 import openjava.ptree.Annotation;
 import openjava.ptree.AnnotationDeclaration;
@@ -884,7 +883,7 @@ public class ASTWriter extends ParseTreeVisitor {
 		String identifier = p.getName();
 		TypeName[] tn = p.getImplementsList();
 		EnumConstantList enumConstants = p.getEnumConstantList();
-		MemberDeclarationList mdl = p.getClassBodayDeclaration();
+		MemberDeclarationList mdl = p.getClassBodyDeclaration();
 
 		ModifierList modifs = p.getModifiers();
 		if (modifs != null) {

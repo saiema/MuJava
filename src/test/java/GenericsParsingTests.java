@@ -340,21 +340,21 @@ public class GenericsParsingTests {
 										TestingTools.NO_PATTERN_EXPECTED,
 										TestingTools.NO_PATTERN_EXPECTED);
 		
-//		Property propFC_3 = new Property(MutationOperator.AMC,
-//										"generics/FC_3",
-//										"defMethod",
-//										TestingTools.NO_MUTANTS_EXPECTED,
-//										TestingTools.NO_MUTANTS_EXPECTED,
-//										TestingTools.NO_PATTERN_EXPECTED,
-//										TestingTools.NO_PATTERN_EXPECTED);
-//		
-//		Property propFC_4 = new Property(MutationOperator.AMC,
-//										"generics/FC_4",
-//										"defMethod",
-//										TestingTools.NO_MUTANTS_EXPECTED,
-//										TestingTools.NO_MUTANTS_EXPECTED,
-//										TestingTools.NO_PATTERN_EXPECTED,
-//										TestingTools.NO_PATTERN_EXPECTED);
+		Property propFC_3 = new Property(MutationOperator.AMC,
+										"generics/FC_3",
+										"defMethod",
+										TestingTools.NO_MUTANTS_EXPECTED,
+										TestingTools.NO_MUTANTS_EXPECTED,
+										TestingTools.NO_PATTERN_EXPECTED,
+										TestingTools.NO_PATTERN_EXPECTED);
+		
+		Property propFC_4 = new Property(MutationOperator.AMC,
+										"generics/FC_4",
+										"defMethod",
+										TestingTools.NO_MUTANTS_EXPECTED,
+										TestingTools.NO_MUTANTS_EXPECTED,
+										TestingTools.NO_PATTERN_EXPECTED,
+										TestingTools.NO_PATTERN_EXPECTED);
 		
 		Property propSW_1 = new Property(MutationOperator.AMC,
 										"generics/SW_1",
@@ -498,9 +498,9 @@ public class GenericsParsingTests {
 				//the above test also check generics on a method call argument
 				//For condition------------
 				
-				//For collection++++++++++++ (There's no support for the sintax "for (<elem> : <collection>) <body>")
-//				{propFC_3},
-//				{propFC_4},
+				//For collection++++++++++++
+				{propFC_3},
+				{propFC_4},
 				//For collection------------
 				
 				//Switch++++++++++++

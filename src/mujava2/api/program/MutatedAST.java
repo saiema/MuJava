@@ -29,6 +29,7 @@ public class MutatedAST {
 	private List<MutationInformation> mutations;
 	private Map<String, Map<Integer, List<MutationInformation>>> mutationsPerLinePerMethod;
 	private Map<String, Map<Integer, Boolean>> mutationsAppliedPerLinePerMethod;
+	private File lastOutputFile = null;
 //	private boolean mutationsApplied;
 	
 	public MutatedAST(JavaAST original, List<MutationInformation> mutations) {
@@ -62,9 +63,19 @@ public class MutatedAST {
 	}
 	
 	private void initializeMutationsApplied() {
-		for (Entry<String, Map<Integer, Boolean>> appliedPerMethod : this.mutationsAppliedPerLinePerMethod.entrySet()) {
-			for (Entry<Integer, Boolean> appliedPerLine : appliedPerMethod.getValue().entrySet()) {
-				appliedPerLine.setValue(Boolean.FALSE);
+		if (this.mutationsAppliedPerLinePerMethod == null) {
+			this.mutationsAppliedPerLinePerMethod = new TreeMap<String, Map<Integer, Boolean>>();
+		}
+		for (Entry<String, Map<Integer, List<MutationInformation>>> mpm : this.mutationsPerLinePerMethod.entrySet()) {
+			Map<Integer, Boolean> mapl = null;
+			if (!this.mutationsAppliedPerLinePerMethod.containsKey(mpm.getKey())) {
+				mapl = new TreeMap<Integer, Boolean>();
+				this.mutationsAppliedPerLinePerMethod.put(mpm.getKey(), mapl);
+			} else {
+				mapl = this.mutationsAppliedPerLinePerMethod.get(mpm.getKey());
+			}
+			for (Entry<Integer, List<MutationInformation>> mpl : mpm.getValue().entrySet()) {
+				mapl.put(mpl.getKey(), Boolean.FALSE);
 			}
 		}
 	}
@@ -267,6 +278,7 @@ public class MutatedAST {
 		this.original.getCompUnit().accept(writer);
 		pw.flush();  
 		pw.close();
+		this.lastOutputFile = file;
 		return JustCodeDigest.digest(file);
 	}
 	
@@ -368,6 +380,16 @@ public class MutatedAST {
 			}
 			muts.add(minfo);
 		}
+		Map<String, Map<Integer, List<MutationInformation>>> orderedMutationsPerLinePerMethod = new TreeMap<String, Map<Integer, List<MutationInformation>>>();
+		for (Entry<String, Map<Integer, List<MutationInformation>>> mutationsPerMethod : this.mutationsPerLinePerMethod.entrySet()) {
+			Map<Integer, List<MutationInformation>> orderedMutationsPerLine = new TreeMap<Integer, List<MutationInformation>>();
+			for (Entry<Integer, List<MutationInformation>> mpl : mutationsPerMethod.getValue().entrySet()) {
+				List<MutationInformation> orderedMutations = OLMO.orderMutationsInformation(mpl.getValue());
+				orderedMutationsPerLine.put(mpl.getKey(), orderedMutations);
+			}
+			orderedMutationsPerLinePerMethod.put(mutationsPerMethod.getKey(), orderedMutationsPerLine);
+		}
+		this.mutationsPerLinePerMethod = orderedMutationsPerLinePerMethod;
 		//CHECK MUTATIONS FOR MERGING COMPATIBILITY
 		boolean compatible = true;
 		for (Entry<String, Map<Integer, List<MutationInformation>>> mutationsPerMethod : this.mutationsPerLinePerMethod.entrySet()) {
@@ -382,9 +404,12 @@ public class MutatedAST {
 					List<Mutation> mutationsList = new LinkedList<>();
 					for (MutationInformation minfo : muts) mutationsList.add(minfo.getMutation());
 					try {
-						compatible = mujava.app.Mutator.checkMergingCompatibility(mutationsList);
+						//compatible = mujava.app.Mutator.checkMergingCompatibility(mutationsList, true);
+						compatible = mujava.app.Mutator.verifyApplicationOfMutations(mutationsList);
 						if (!compatible) {
 							error = "Incompatibilty found in mutations for method " + method + " line " + line;
+						} else {
+							reorder(muts, mutationsList);
 						}
 					} catch (ParseTreeException e) {
 						compatible = false;
@@ -394,6 +419,23 @@ public class MutatedAST {
 			}
 		}
 		return error;
+	}
+	
+	private void reorder(List<MutationInformation> unordered, List<Mutation> ordered) {
+		List<MutationInformation> res = new LinkedList<MutationInformation>();
+		for (Mutation m : ordered) {
+			int id = m.mutationID();
+			for (int i = 0; i < unordered.size(); i++) {
+				MutationInformation minf = unordered.get(i);
+				if (minf.getMutation().mutationID() == id) {
+					res.add(minf);
+					unordered.remove(i);
+					break;
+				}
+			}
+		}
+		unordered.clear();
+		unordered.addAll(res);
 	}
 	
 	private String mergePaths(String p1, String p2) {
@@ -439,6 +481,57 @@ public class MutatedAST {
 			}
 		}
 		return mutationsAsList;
+	}
+	
+	@Override
+	public String toString() {
+		String res = "";
+		res += "ID			: [" + this.getID() + "]\n";
+		res += "Class		: " + this.original.getClassName() + "\n";
+		res += "File		: " + this.original.getJavaFile().getPath().toString() + "\n";
+		res += "Root folder	: " + this.original.getRootFolder() + "\n";
+		res += "======================================================\n";
+		res += "Mutations\n";
+		res += mutationsToString();
+		res += "======================================================\n";
+		return res;
+	}
+	
+	private String mutationsToString() {
+		String res = "Generation	: " + this.getGeneration() + "\n";
+		for (Entry<String, Map<Integer, List<MutationInformation>>> mpm : this.mutationsPerLinePerMethod.entrySet()) {
+			for (Entry<Integer, List<MutationInformation>> mpl : mpm.getValue().entrySet()) {
+				for (MutationInformation minfo : mpl.getValue()) {
+					res += minfo.toString() + "\n";
+				}
+			}
+		}
+		if (this.parent != null) {
+			res += this.parent.mutationsToString();
+		}
+		return res;
+	}
+	
+	private int getID() {
+		int id = 0;
+		for (Entry<String, Map<Integer, List<MutationInformation>>> mpm : this.mutationsPerLinePerMethod.entrySet()) {
+			for (Entry<Integer, List<MutationInformation>> mpl : mpm.getValue().entrySet()) {
+				for (MutationInformation minfo : mpl.getValue()) {
+					id += minfo.getMutation().mutationID();
+				}
+			}
+		}
+		if (this.parent != null) {
+			id += this.parent.getID();
+		}
+		return id;
+	}
+	
+	/**
+	 * @return the last file in which this {@code MutatedAST} was written
+	 */
+	public File lastOutputFile() {
+		return this.lastOutputFile;
 	}
 
 }

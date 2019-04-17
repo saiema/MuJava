@@ -97,7 +97,7 @@ public class PRVO_Writer extends MutantCodeWriter {
 			} else if (this.mutant_var != null) {
 				super.visit(this.mutant_var);
 			} else if (this.mutant_new != null) {
-				super.visit(this.mutant_new);
+				super.visit(mutant_new);
 			} else {
 				throw new IllegalStateException(o.toFlattenString() + " to be replaced but no mutant set");
 			}
@@ -123,7 +123,7 @@ public class PRVO_Writer extends MutantCodeWriter {
 			} else if (this.mutant_var != null) {
 				super.visit(this.mutant_var);
 			} else if (this.mutant_new != null) {
-				super.visit(this.mutant_new);
+				super.visit(mutant_new);
 			} else {
 				throw new IllegalStateException(o.toFlattenString() + " to be replaced but no mutant set");
 			}
@@ -149,7 +149,7 @@ public class PRVO_Writer extends MutantCodeWriter {
 			} else if (this.mutant_var != null) {
 				super.visit(this.mutant_var);
 			} else if (this.mutant_new != null) {
-				super.visit(this.mutant_new);
+				super.visit(mutant_new);
 			} else {
 				throw new IllegalStateException(o.toFlattenString() + " to be replaced but no mutant set");
 			}
@@ -175,7 +175,7 @@ public class PRVO_Writer extends MutantCodeWriter {
 			} else if (this.mutant_var != null) {
 				super.visit(this.mutant_var);
 			} else if (this.mutant_new != null) {
-				super.visit(this.mutant_new);
+				super.visit(mutant_new);
 			} else {
 				throw new IllegalStateException(o.toFlattenString() + " to be replaced but no mutant set");
 			}
@@ -201,7 +201,7 @@ public class PRVO_Writer extends MutantCodeWriter {
 			} else if (this.mutant_var != null) {
 				super.visit(this.mutant_var);
 			} else if (this.mutant_new != null) {
-				super.visit(this.mutant_new);
+				super.visit(mutant_new);
 			} else {
 				throw new IllegalStateException(o.toFlattenString() + " to be replaced but no mutant set");
 			}
@@ -227,7 +227,7 @@ public class PRVO_Writer extends MutantCodeWriter {
 			} else if (this.mutant_var != null) {
 				super.visit(this.mutant_var);
 			} else if (this.mutant_new != null) {
-				super.visit(this.mutant_new);
+				super.visit(mutant_new);
 			} else {
 				throw new IllegalStateException(o.toFlattenString() + " to be replaced but no mutant set");
 			}
@@ -253,7 +253,7 @@ public class PRVO_Writer extends MutantCodeWriter {
 			} else if (this.mutant_var != null) {
 				super.visit(this.mutant_var);
 			} else if (this.mutant_new != null) {
-				super.visit(this.mutant_new);
+				super.visit(mutant_new);
 			} else {
 				throw new IllegalStateException(o.toFlattenString() + " to be replaced but no mutant set");
 			}

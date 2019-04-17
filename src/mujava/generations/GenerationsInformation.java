@@ -1,6 +1,6 @@
 package mujava.generations;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,13 +32,13 @@ public class GenerationsInformation {
 	public GenerationsInformation(boolean lowMemoryMode) {
 		if (lowMemoryMode) {
 			this.lastGeneration = new LinkedList<MutantInfo>();
-			this.mutationsNumberPerOperatorPerLinePerGeneration = new HashMap<Integer, Map<Integer, Map<MutationOperator, Integer>>>();
+			this.mutationsNumberPerOperatorPerLinePerGeneration = new TreeMap<Integer, Map<Integer, Map<MutationOperator, Integer>>>();
 			this.lastMutantsUpdated = new LinkedList<MutantInfo>();
 			this.lowMemoryMode = true;
 		} else {
-			this.generations = new HashMap<Integer, List<MutantInfo>>();
-			this.mutationsPerLinePerGeneration = new HashMap<Integer, Map<Integer, List<MutantInfo>>>();
-			this.mutationsPerOperatorPerLinePerGenerations = new HashMap<Integer, Map<Integer, Map<MutationOperator, List<MutantInfo>>>>();
+			this.generations = new TreeMap<Integer, List<MutantInfo>>();
+			this.mutationsPerLinePerGeneration = new TreeMap<Integer, Map<Integer, List<MutantInfo>>>();
+			this.mutationsPerOperatorPerLinePerGenerations = new TreeMap<Integer, Map<Integer, Map<MutationOperator, List<MutantInfo>>>>();
 			this.lastMutantsUpdated = new LinkedList<MutantInfo>();
 			this.lowMemoryMode = false;
 		}
@@ -49,9 +49,9 @@ public class GenerationsInformation {
 	 * The constructor for the class
 	 */
 	public GenerationsInformation() {
-		this.generations = new HashMap<Integer, List<MutantInfo>>();
-		this.mutationsPerLinePerGeneration = new HashMap<Integer, Map<Integer, List<MutantInfo>>>();
-		this.mutationsPerOperatorPerLinePerGenerations = new HashMap<Integer, Map<Integer, Map<MutationOperator, List<MutantInfo>>>>();
+		this.generations = new TreeMap<Integer, List<MutantInfo>>();
+		this.mutationsPerLinePerGeneration = new TreeMap<Integer, Map<Integer, List<MutantInfo>>>();
+		this.mutationsPerOperatorPerLinePerGenerations = new TreeMap<Integer, Map<Integer, Map<MutationOperator, List<MutantInfo>>>>();
 		this.lastMutantsUpdated = new LinkedList<MutantInfo>();
 		this.lowMemoryMode = false;
 	}
@@ -116,18 +116,18 @@ public class GenerationsInformation {
 		if (this.mutationsNumberPerOperatorPerLinePerGeneration.containsKey(generation)) {
 			mutationsPerOperatorPerLine = this.mutationsNumberPerOperatorPerLinePerGeneration.get(generation);
 		} else {
-			mutationsPerOperatorPerLine = new HashMap<Integer, Map<MutationOperator, Integer>>();
+			mutationsPerOperatorPerLine = new TreeMap<Integer, Map<MutationOperator, Integer>>();
 			this.mutationsNumberPerOperatorPerLinePerGeneration.put(generation, mutationsPerOperatorPerLine);
 		}
 		Map<MutationOperator, Integer> mutationsPerOperator;
 		if (mutationsPerOperatorPerLine.containsKey(affectedLine)) {
 			mutationsPerOperator = mutationsPerOperatorPerLine.get(affectedLine);
 		} else {
-			mutationsPerOperator = new HashMap<MutationOperator, Integer>();
+			mutationsPerOperator = new TreeMap<MutationOperator, Integer>();
 			mutationsPerOperatorPerLine.put(affectedLine, mutationsPerOperator);
 		}
 		Integer mutations;
-		if (mutationsPerOperator.containsKey(mutant.getOpUsed())) {
+		if (mutant.getOpUsed() != null && mutationsPerOperator.containsKey(mutant.getOpUsed())) {
 			mutations = mutationsPerOperator.get(mutant.getOpUsed()) + 1;
 		} else {
 			mutations = new Integer(1);
@@ -140,7 +140,7 @@ public class GenerationsInformation {
 		if (this.mutationsPerLinePerGeneration.containsKey(generation)) {
 			genMutantsPerLine = this.mutationsPerLinePerGeneration.get(generation);
 		} else {
-			genMutantsPerLine = new HashMap<Integer, List<MutantInfo>>();
+			genMutantsPerLine = new TreeMap<Integer, List<MutantInfo>>();
 			this.mutationsPerLinePerGeneration.put(generation, genMutantsPerLine);
 		}
 		List<MutantInfo> mutantsPerLine;
@@ -158,14 +158,14 @@ public class GenerationsInformation {
 		if (this.mutationsPerOperatorPerLinePerGenerations.containsKey(generation)) {
 			mutationsPerOperatorPerLine = this.mutationsPerOperatorPerLinePerGenerations.get(generation);
 		} else {
-			mutationsPerOperatorPerLine = new HashMap<Integer, Map<MutationOperator, List<MutantInfo>>>();
+			mutationsPerOperatorPerLine = new TreeMap<Integer, Map<MutationOperator, List<MutantInfo>>>();
 			this.mutationsPerOperatorPerLinePerGenerations.put(generation, mutationsPerOperatorPerLine);
 		}
 		Map<MutationOperator, List<MutantInfo>> mutationsPerOperator;
 		if (mutationsPerOperatorPerLine.containsKey(mutant.getMutatedLine())) {
 			mutationsPerOperator = mutationsPerOperatorPerLine.get(mutant.getMutatedLine());
 		} else {
-			mutationsPerOperator = new HashMap<MutationOperator, List<MutantInfo>>();
+			mutationsPerOperator = new TreeMap<MutationOperator, List<MutantInfo>>();
 			mutationsPerOperatorPerLine.put(mutant.getMutatedLine(), mutationsPerOperator);
 		}
 		List<MutantInfo> mutations;

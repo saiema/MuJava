@@ -5,24 +5,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.Rule;
+import org.junit.rules.Timeout;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.Suite;
+import org.junit.runners.model.FrameworkField;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 
-public class FailFastParameterized extends Suite {
+public class FailFastCapableParameterized extends Suite {
 
-	private class FailFastTestClassRunnerForParameters extends FailFastBlockJUnit4ClassRunner {
+	private class FailFastTestClassRunnerForParameters extends FailFastCapableBlockJUnit4ClassRunner {
 		private final int fParameterSetNumber;
 
 		private final List<Object[]> fParameterList;
 
-		FailFastTestClassRunnerForParameters(Class<?> type, List<Object[]> parameterList, int i) throws InitializationError {
-			super(type);
+		FailFastTestClassRunnerForParameters(Class<?> type, List<Object[]> parameterList, int i, boolean failFast, long timeout, long discard) throws InitializationError {
+			super(type, failFast, timeout, discard);
 			fParameterList = parameterList;
 			fParameterSetNumber = i;
 		}
@@ -71,13 +74,14 @@ public class FailFastParameterized extends Suite {
 	/**
 	 * Only called reflectively. Do not use programmatically.
 	 */
-	public FailFastParameterized(Class<?> klass) throws Throwable {
+	public FailFastCapableParameterized(Class<?> klass, boolean failFast, long timeout, long discard) throws Throwable {
 		super(klass, Collections.<Runner> emptyList());
 		//System.out.println(this.getClass().getCanonicalName() + ".<init>");
-		FailFastBlockJUnit4ClassRunner.ignore = false;
+		FailFastCapableBlockJUnit4ClassRunner.ignore = false;
 		List<Object[]> parametersList = getParametersList(getTestClass());
+		if (hasTimeoutRule(getTestClass())) timeout = 0L;
 		for (int i = 0; i < parametersList.size(); i++)
-			runners.add(new FailFastTestClassRunnerForParameters(getTestClass().getJavaClass(), parametersList, i));
+			runners.add(new FailFastTestClassRunnerForParameters(getTestClass().getJavaClass(), parametersList, i, failFast, timeout, discard));
 	}
 
 	@Override
@@ -102,6 +106,15 @@ public class FailFastParameterized extends Suite {
 		}
 
 		throw new Exception("No public static parameters method on class " + testClass.getName());
+	}
+	
+	private boolean hasTimeoutRule(TestClass klass) {
+		List<FrameworkField> ruleFields = klass.getAnnotatedFields(Rule.class);
+		if (ruleFields.isEmpty()) return false;
+		for (FrameworkField field : ruleFields) {
+			if (field.getField().getType().getName().compareTo(Timeout.class.getName()) == 0) return true;
+		}
+		return false;
 	}
 
 }

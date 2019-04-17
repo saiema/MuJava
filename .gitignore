@@ -4,3 +4,8 @@
 *.war
 *.ear
 /bin/
+
+# etc
+
+*.properties
+*.log

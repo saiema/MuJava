@@ -1,7 +1,7 @@
 package mujava2.api.mutator;
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -21,7 +21,6 @@ import mujava.op.util.OLMO;
 import mujava.security.ApiCaller;
 import mujava2.api.program.JavaAST;
 import openjava.ptree.ParseTreeException;
-import openjava.ptree.ParseTreeObject;
 
 /**
  * A very simple mutation generator.
@@ -66,7 +65,7 @@ public class Mutator extends ApiCaller {
 	 * @throws ParseTreeException
 	 */
 	public Collection<MutationInformation> generateMutations() throws OpenJavaException, ParseTreeException {
-		Map<String, MutantsInformationHolder> mutants = new HashMap<String, MutantsInformationHolder>();
+		Map<String, MutantsInformationHolder> mutants = new TreeMap<String, MutantsInformationHolder>();
 		LinkedList<MutationInformation> mutations = new LinkedList<>();
 		//|--------------------Initialization--------------------|
 		Set<MutationOperator> mutOps = new HashSet<>(req.getOperators());
@@ -77,12 +76,12 @@ public class Mutator extends ApiCaller {
 		//|--------------------Generation loop--------------------|
 		for (String currentMethod : req.getMethods()) {
 			//|--------------------Mutants Generation--------------------|
-			ParseTreeObject.resetObjectID();
-			Api.hijackApi(this, req.getClassToMutate(), currentMethod, mutOps);
+			//ParseTreeObject.resetObjectID();
+			Api.hijackApi(this, req.getClassToMutateSimpleName(), currentMethod, mutOps);
 			
 			this.generator.generateMutants(originalAST, mutOps);
 			MutantsInformationHolder mih = MutantsInformationHolder.mainHolder();
-			MutantsInformationHolder.resetMainHolder();
+			MutantsInformationHolder.resetMainHolder(true);
 			//|--------------------Mutants Generation--------------------|
 
 			mutants.put(currentMethod, mih);

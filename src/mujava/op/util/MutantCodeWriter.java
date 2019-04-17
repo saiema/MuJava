@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import openjava.ptree.*;
+import mujava.api.Configuration;
 import mujava.api.Mutation;
 import openjava.ptree.util.ParseTreeVisitor;
 
@@ -30,6 +31,11 @@ import openjava.ptree.util.ParseTreeVisitor;
  */
 
 public class MutantCodeWriter extends ParseTreeVisitor {
+	
+	
+	public static final String USE_SIMPLE_CLASS_NAMES = "mutant_code_writer_use_simple_class_names";
+	public static final String KEEP_ORIGINAL_TYPE_NAMES = "mutant_code_writer_keep_original_type_names";
+	public static final String WRITE_PROLOGUE = "mutant_code_writer_write_prologue";
 	
 	/**
 	 * The mutation to write
@@ -52,11 +58,6 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	private int nest = 0;
 	private boolean modified = false;
 	private boolean debug = false;
-	private static boolean useSimpleClassNames = false;
-	
-	public static void useSimpleClassNames(boolean b) {
-		MutantCodeWriter.useSimpleClassNames = b;
-	}
 	
 
 	public void setTab(String str) {
@@ -472,6 +473,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 	public void visit(BinaryExpression p) throws ParseTreeException {
 		outputCommentIfApplicable(p.getComment()); //added (10/09/14)
+		if (p.forceParenthesis()) out.print("(");
 		Expression lexpr = p.getLeft();
 		if (isOperatorNeededLeftPar(p.getOperator(), lexpr)) {
 			writeParenthesis(lexpr);
@@ -488,6 +490,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		} else {
 			rexpr.accept(this);
 		}
+		if (p.forceParenthesis()) out.print(")");
 	}
 
 	public void visit(Block p) throws ParseTreeException {
@@ -614,13 +617,9 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 	public void visit(CompilationUnit p) throws ParseTreeException {
 		this.modified = false;
-		if (this.printMutantPrologue) {						//modified (10/09/14)
-			out.println("// This is a mutant program.");	//modified (10/09/14)
-			line_num++;										//modified (10/09/14)
-			out.println("// Author : ysma");				//modified (10/09/14)
-			line_num++;										//modified (10/09/14)
-			out.println();									//modified (10/09/14)
-			line_num++;										//modified (10/09/14)
+		if ((this.printMutantPrologue || writePrologue()) && this.mi != null) {
+			out.println("//mutation : " + this.mi.toString());
+			line_num++;
 		}
 		
 		/* package statement */
@@ -779,7 +778,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		String identifier = p.getName();
 		TypeName[] tn = p.getImplementsList();
 		EnumConstantList enumConstants = p.getEnumConstantList();
-		MemberDeclarationList mdl = p.getClassBodayDeclaration();
+		MemberDeclarationList mdl = p.getClassBodyDeclaration();
 
 		ModifierList modifs = p.getModifiers();
 		if (modifs != null) {
@@ -1042,7 +1041,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 				out.print(" //mutGenLimit " + p.getMutGenLimit());	//added (11/09/14) [simon]
 			}														//added (11/09/14) [simon]
 		} else {
-			writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1);	//modified (11/09/14) [simon]
+			writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1, prettyPrint());	//modified (11/09/14) [simon]
 		}
 
 		out.println();
@@ -1050,8 +1049,12 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	}
 
 	public void visit(IfStatement p) throws ParseTreeException {
+		visit(p, false);
+	}
+	
+	private void visit(IfStatement p, boolean isElseIf) throws ParseTreeException {
 		outputCommentIfApplicable(p.getComment()); //added (11/09/14)
-		writeTab();
+		if (!isElseIf) writeTab();
 
 		out.print("if ");
 
@@ -1062,17 +1065,23 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 		/* then part */
 		StatementList stmts = p.getStatements();
-		writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1); //modified (11/09/14) [simon]
+		writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1, prettyPrint()); //modified (11/09/14) [simon]
 
 		/* else part */
 		StatementList elsestmts = p.getElseStatements();
 		if (!elsestmts.isEmpty()) {
-			out.print(" else ");
-			writeStatementsBlock(elsestmts);
+			if (stmts.size() > 1 || !prettyPrint())
+				out.print(" ");
+			out.print("else ");
+			
+			if (prettyPrint() && elsestmts.size() == 1 && (elsestmts.get(0) instanceof IfStatement)) {
+				visit((IfStatement) elsestmts.get(0), true);
+			} else
+				writeStatementsBlock(elsestmts, prettyPrint());
 		}
 
-		out.println();
-		line_num++;
+		if (!isElseIf) out.println();
+		if (!isElseIf) line_num++;
 	}
 
 	public void visit(InstanceofExpression p) throws ParseTreeException {
@@ -1352,6 +1361,10 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		expr.accept(this);
 
 		out.print(";");
+		
+		if (p.hasMutGenLimit()) {								//added (19/07/18) [simon]
+			out.print(" //mutGenLimit " + p.getMutGenLimit());	//added (19/07/18) [simon]
+		}														//added (19/07/18) [simon]
 
 		out.println();
 		line_num++;
@@ -1398,7 +1411,19 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			useLineSeparator = false;
 		}
 		outputCommentIfApplicable(p.getComment(), useTabs, useLineSeparator); //added (12/09/14)
-		String typename = (MutantCodeWriter.useSimpleClassNames?p.getSimpleName():p.getName()).replace('$', '.');
+		String typename = "";
+		if (useSimpleClassName()) {
+			if (p.constructedFromOJClass()) {
+				typename = p.getSimpleName().replace('$', '.');
+			} else if (keepOriginalTypeNames()) {
+				typename = p.getName().replace('$', '.');
+			} else {
+				typename = p.getSimpleName().replace('$', '.');
+			}
+		} else {
+			typename = p.getName().replace('$', '.');
+		}
+		//String typename = (useSimpleClassName()?p.getSimpleName():p.getName()).replace('$', '.');
 		out.print(typename);
 
 		int dims = p.getDimension();
@@ -1463,7 +1488,19 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 
 		TypeName typespec = p.getTypeSpecifier();
 //		typespec.accept(this);
-		String typename = typespec.getName().replace('$', '.');
+		String typename = "";
+		if (useSimpleClassName()) {
+			if (typespec.constructedFromOJClass()) {
+				typename = typespec.getSimpleName().replace('$', '.');
+			} else if (keepOriginalTypeNames()) {
+				typename = typespec.getName().replace('$', '.');
+			} else {
+				typename = typespec.getSimpleName().replace('$', '.');
+			}
+		} else {
+			typename = typespec.getName().replace('$', '.');
+		}
+		//String typename = (useSimpleClassName()?typespec.getSimpleName():typespec.getName()).replace('$', '.');//typespec.getName().replace('$', '.');
 		out.print(typename);
 
 		int dims = typespec.getDimension();
@@ -1519,7 +1556,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 			}														//added (12/09/14) [simon]
 		} else {
 			out.print(" ");					//added (07/10/14) [simon] {added a space}
-			writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1);	//modified (12/09/14) [simon]
+			writeStatementsBlockWithMGL(stmts, p.hasMutGenLimit()?p.getMutGenLimit():-1, prettyPrint());	//modified (12/09/14) [simon]
 		}
 
 		out.println();
@@ -1644,9 +1681,14 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		out.print(")");
 	}
 
-	protected void writeStatementsBlock(StatementList stmts)
-			throws ParseTreeException {
-		out.println("{");
+	protected void writeStatementsBlock(StatementList stmts) throws ParseTreeException {
+		writeStatementsBlock(stmts, false);
+	}
+	
+	protected void writeStatementsBlock(StatementList stmts, boolean noBracesWithOneStatement) throws ParseTreeException {
+		boolean printBraces = !(stmts.size() == 1 && noBracesWithOneStatement);
+		if (printBraces) out.println("{");
+		else out.println();
 		line_num++;
 		pushNest();
 
@@ -1655,14 +1697,22 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		outputCommentIfApplicable(stmts.getAfterComment());
 
 		popNest();
-		writeTab();
-		out.print("}");
+		if (printBraces) {
+			writeTab();
+			out.print("}");
+		}
 	}
 	
 	//++++++++++++++++++++++++++++++++++++++++++++++++++
 	//+++++++++++++++++++++++++++added (11/09/14) [simon]
 	protected void writeStatementsBlockWithMGL(StatementList stmts, int mgl) throws ParseTreeException {
-		out.print("{");	//modified (12/09/14) [simon]
+		writeStatementsBlockWithMGL(stmts, mgl, false);
+	}
+	//-----------------------------------------------------
+	
+	protected void writeStatementsBlockWithMGL(StatementList stmts, int mgl, boolean noBracesWithOneStatement) throws ParseTreeException {
+		boolean printBraces = !(stmts.size() == 1 && noBracesWithOneStatement);
+		if (printBraces) out.print("{");	//modified (12/09/14) [simon]
 		
 		if (mgl >= 0) {
 			out.print(" //mutGenLimit " + mgl);
@@ -1677,9 +1727,10 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		
 		popNest();
 		writeTab();
-		out.print("}");
+		if (printBraces) {
+			out.print("}");
+		}
 	}
-	//-----------------------------------------------------
 
 	protected static final boolean isOperatorNeededLeftPar(int operator,
 			Expression leftexpr) {
@@ -1794,7 +1845,7 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 	private void outputCommentIfApplicable(String original, boolean useTabs, boolean addLineSeparator) {
 		if (original == null) return;
 		if (original.isEmpty()) return;
-		Matcher m = Pattern.compile("(\n)|(\r)|(\r\n)|("+System.getProperty("line.separator")+")").matcher(original);
+		Matcher m = Pattern.compile("(\r\n)|(\n)|(\r)|("+System.getProperty("line.separator")+")").matcher(original);
 		int from = 0;
 		int to = 0;
 		while (!m.hitEnd()) {
@@ -1840,6 +1891,12 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 		this.line_num++;
 	}
 	
+	private boolean prettyPrint() {
+		if (Configuration.argumentExist(Configuration.PRETTY_PRINT))
+			return (Boolean) Configuration.getValue(Configuration.PRETTY_PRINT);
+		return false;
+	}
+	
 	// ++++++++++++++++++++++++++++++++++++++++++++++++++
 	// +++++++++++++++++++++++++++added (12/09/14) [simon]
 //	private int countCommentLines(String comment) {
@@ -1853,5 +1910,26 @@ public class MutantCodeWriter extends ParseTreeVisitor {
 //	}
 	
 	//-----------------------------------------------------
+	
+	private boolean useSimpleClassName() {
+		if (Configuration.argumentExist(USE_SIMPLE_CLASS_NAMES)) {
+			return (Boolean) Configuration.getValue(USE_SIMPLE_CLASS_NAMES);
+		}
+		return false;
+	}
+	
+	private boolean keepOriginalTypeNames() {
+		if (Configuration.argumentExist(KEEP_ORIGINAL_TYPE_NAMES)) {
+			return (Boolean) Configuration.getValue(KEEP_ORIGINAL_TYPE_NAMES);
+		}
+		return true; //TODO: should be changed to false
+	}
+	
+	private boolean writePrologue() {
+		if (Configuration.argumentExist(WRITE_PROLOGUE)) {
+			return (Boolean) Configuration.getValue(WRITE_PROLOGUE);
+		}
+		return false;
+	}
 
 }

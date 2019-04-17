@@ -8,8 +8,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import mujava.api.Configuration;
 import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
+import mujava.op.PRVO;
+import mujava.op.util.MutantCodeWriter;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +50,7 @@ public class PRVOTests {
 	
 	@Parameters
 	public static Collection<Object[]> firstValues() {
-		
+		TestingTools.setVerbose(true);
 		/*
 		 * ORIGINAL
 		 * current = this.header.next;
@@ -76,8 +79,8 @@ public class PRVOTests {
 		mceSLLBE_left.add(Pattern.compile("this\\.header\\.value = this\\.header\\.next; //mutGenLimit 0"));
 		mceSLLBE_left.add(Pattern.compile("this\\.header = this\\.header\\.next; //mutGenLimit 0"));
 		mceSLLBE_left.add(Pattern.compile("value_param = this\\.header\\.next; //mutGenLimit 0"));
-		mceSLLBE_left.add(Pattern.compile("test = this\\.header\\.next; //mutGenLimit 0"));
-		Property propSLLBEVarField_left = new Property(MutationOperator.PRVOL, "list/SinglyLinkedListBinaryExpressionVarField", "contains", 7, 0, mceSLLBE_left, mcneSLLBE_left);
+		//mceSLLBE_left.add(Pattern.compile("test = this\\.header\\.next; //mutGenLimit 0"));
+		Property propSLLBEVarField_left = new Property(MutationOperator.PRVOL, "list/SinglyLinkedListBinaryExpressionVarField", "contains", 6, 0, mceSLLBE_left, mcneSLLBE_left);
 		
 		
 		/*
@@ -87,7 +90,6 @@ public class PRVOTests {
 		List<Pattern> mceSLLVD_0 = new LinkedList<Pattern>();
 		List<Pattern> mcneSLLVD_0 = new LinkedList<Pattern>();
 		mceSLLVD_0.add(Pattern.compile("Object test = current\\.next; //mutGenLimit 0"));
-		mceSLLVD_0.add(Pattern.compile("Object test = current\\.clone\\(\\); //mutGenLimit 0"));
 		mceSLLVD_0.add(Pattern.compile("Object test = current\\.getClass\\(\\); //mutGenLimit 0"));
 		mceSLLVD_0.add(Pattern.compile("Object test = current\\.hashCode\\(\\); //mutGenLimit 0"));
 		mceSLLVD_0.add(Pattern.compile("Object test = current\\.toString\\(\\); //mutGenLimit 0"));
@@ -96,8 +98,9 @@ public class PRVOTests {
 		mceSLLVD_0.add(Pattern.compile("Object test = result; //mutGenLimit 0"));
 		mceSLLVD_0.add(Pattern.compile("Object test = super\\.clone\\(\\)\\.getClass\\(\\); //mutGenLimit 0"));
 		mcneSLLVD_0.add(Pattern.compile("Object !test = [a-zA-Z_0-9]+; //mutGenLimit 0"));
+		mcneSLLVD_0.add(Pattern.compile("Object test = current\\.clone\\(\\); //mutGenLimit 0"));
 		mcneSLLVD_0.add(Pattern.compile(".+//mutGenLimit [^0]+"));
-		Property propSLLVariableDeclaration_0 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListVariableDeclaration", "contains", 91, 79, mceSLLVD_0, mcneSLLVD_0);
+		Property propSLLVariableDeclaration_0 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListVariableDeclaration", "contains", 79 /*original: 83*/, 73 /*original: 77*/, mceSLLVD_0, mcneSLLVD_0);
 		
 		List<Pattern> mceSLLVD_1 = new LinkedList<Pattern>();
 		List<Pattern> mcneSLLVD_1 = new LinkedList<Pattern>();
@@ -165,8 +168,8 @@ public class PRVOTests {
 		mceSLLVD_5.add(Pattern.compile("Object test = super\\.getClass\\(\\)\\.toString\\(\\); //mutGenLimit 0"));
 		mceSLLVD_5.add(Pattern.compile("Object test = super\\.getClass\\(\\); //mutGenLimit 0"));
 		mceSLLVD_5.add(Pattern.compile("Object test = super\\.hashCode\\(\\); //mutGenLimit 0"));
-		mceSLLVD_5.add(Pattern.compile("Object test = this\\.header\\.clone\\(\\); //mutGenLimit 0"));
 		mceSLLVD_5.add(Pattern.compile("Object test = this\\.header\\.getClass\\(\\); //mutGenLimit 0"));
+		mcneSLLVD_5.add(Pattern.compile("Object test = this\\.header\\.clone\\(\\); //mutGenLimit 0"));
 		Property propSLLVariableDeclaration_5 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListVariableDeclaration", "contains", -1, -1, mceSLLVD_5, mcneSLLVD_5);
 		
 		List<Pattern> mceSLLVD_6 = new LinkedList<Pattern>();
@@ -211,10 +214,10 @@ public class PRVOTests {
 		
 		List<Pattern> mceSLLVD_9 = new LinkedList<Pattern>();
 		List<Pattern> mcneSLLVD_9 = new LinkedList<Pattern>();
-		mceSLLVD_9.add(Pattern.compile("Object test = test\\.hashCode\\(\\); //mutGenLimit 0"));
-		mceSLLVD_9.add(Pattern.compile("Object test = test\\.getClass\\(\\); //mutGenLimit 0"));
-		mceSLLVD_9.add(Pattern.compile("Object test = test\\.toString\\(\\); //mutGenLimit 0"));
-		mceSLLVD_9.add(Pattern.compile("Object test = test; //mutGenLimit 0"));
+		mcneSLLVD_9.add(Pattern.compile("Object test = test\\.hashCode\\(\\); //mutGenLimit 0"));
+		mcneSLLVD_9.add(Pattern.compile("Object test = test\\.getClass\\(\\); //mutGenLimit 0"));
+		mcneSLLVD_9.add(Pattern.compile("Object test = test\\.toString\\(\\); //mutGenLimit 0"));
+		mcneSLLVD_9.add(Pattern.compile("Object test = test; //mutGenLimit 0"));
 		Property propSLLVariableDeclaration_9 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListVariableDeclaration", "contains", -1, -1, mceSLLVD_9, mcneSLLVD_9);
 		
 		
@@ -229,7 +232,6 @@ public class PRVOTests {
 		List<Pattern> mcneSLLR_0 = new LinkedList<Pattern>();
 		mceSLLR_0.add(Pattern.compile("return null; //mutGenLimit 0"));
 		mceSLLR_0.add(Pattern.compile("return current; //mutGenLimit 0"));
-		mceSLLR_0.add(Pattern.compile("return this\\.header\\.clone\\(\\); //mutGenLimit 0"));
 		mceSLLR_0.add(Pattern.compile("return this\\.header\\.getClass\\(\\); //mutGenLimit 0"));
 		mceSLLR_0.add(Pattern.compile("return this\\.header\\.hashCode\\(\\); //mutGenLimit 0"));
 		mceSLLR_0.add(Pattern.compile("return this\\.header\\.toString\\(\\); //mutGenLimit 0"));
@@ -238,10 +240,11 @@ public class PRVOTests {
 		mceSLLR_0.add(Pattern.compile("return super\\.clone\\(\\)\\.getClass\\(\\); //mutGenLimit 0"));
 		mceSLLR_0.add(Pattern.compile("return super\\.clone\\(\\)\\.hashCode\\(\\); //mutGenLimit 0"));
 		mceSLLR_0.add(Pattern.compile("return this\\.header; //mutGenLimit 0"));
+		mcneSLLR_0.add(Pattern.compile("return this\\.header\\.clone\\(\\); //mutGenLimit 0"));
 		mcneSLLR_0.add(Pattern.compile("return header; //mutGenLimit 0"));
 		mcneSLLR_0.add(Pattern.compile(".+//mutGenLimit [^0]+"));
 		mcneSLLR_0.add(Pattern.compile("return this\\.(current|value)(\\..+)?; //mutGenLimit"));
-		Property propSLLReturn_0 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListReturn", "getHeader", 87, 80, mceSLLR_0, mcneSLLR_0);
+		Property propSLLReturn_0 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListReturn", "getHeader", 79 /*original: 83*/, 74 /*original: 78*/, mceSLLR_0, mcneSLLR_0);
 		
 		List<Pattern> mceSLLR_1 = new LinkedList<Pattern>();
 		List<Pattern> mcneSLLR_1 = new LinkedList<Pattern>();
@@ -314,8 +317,7 @@ public class PRVOTests {
 		Property propSLLReturn_5 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListReturn", "getHeader", -1, -1, mceSLLR_5, mcneSLLR_5);
 		
 		List<Pattern> mceSLLR_6 = new LinkedList<Pattern>();
-		List<Pattern> mcneSLLR_6 = new LinkedList<Pattern>();
-		mceSLLR_6.add(Pattern.compile("return this\\.header\\.clone\\(\\); //mutGenLimit 0")); 
+		List<Pattern> mcneSLLR_6 = new LinkedList<Pattern>(); 
 		mceSLLR_6.add(Pattern.compile("return this\\.header\\.getClass\\(\\); //mutGenLimit 0"));
 		mceSLLR_6.add(Pattern.compile("return this\\.header\\.hashCode\\(\\); //mutGenLimit 0"));
 		mceSLLR_6.add(Pattern.compile("return this\\.header\\.toString\\(\\); //mutGenLimit 0"));
@@ -325,6 +327,7 @@ public class PRVOTests {
 		mceSLLR_6.add(Pattern.compile("return super\\.toString\\(\\)\\.getBytes\\(\\); //mutGenLimit 0"));
 		mceSLLR_6.add(Pattern.compile("return super\\.toString\\(\\)\\.getClass\\(\\); //mutGenLimit 0"));
 		mceSLLR_6.add(Pattern.compile("return super\\.toString\\(\\)\\.hashCode\\(\\); //mutGenLimit 0"));
+		mcneSLLR_6.add(Pattern.compile("return this\\.header\\.clone\\(\\); //mutGenLimit 0"));
 		Property propSLLReturn_6 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListReturn", "getHeader", -1, -1, mceSLLR_6, mcneSLLR_6);
 		
 		List<Pattern> mceSLLR_7 = new LinkedList<Pattern>();
@@ -343,11 +346,11 @@ public class PRVOTests {
 		List<Pattern> mceSLLR_8 = new LinkedList<Pattern>();
 		List<Pattern> mcneSLLR_8 = new LinkedList<Pattern>();
 		mceSLLR_8.add(Pattern.compile("return current\\.toString\\(\\); //mutGenLimit 0"));
-		mceSLLR_8.add(Pattern.compile("return current\\.clone\\(\\); //mutGenLimit 0"));
 		mceSLLR_8.add(Pattern.compile("return current\\.getClass\\(\\); //mutGenLimit 0"));
 		mceSLLR_8.add(Pattern.compile("return current\\.hashCode\\(\\); //mutGenLimit 0"));
 		mceSLLR_8.add(Pattern.compile("return current\\.value; //mutGenLimit 0"));
 		mceSLLR_8.add(Pattern.compile("return current\\.next; //mutGenLimit 0"));
+		mcneSLLR_8.add(Pattern.compile("return current\\.clone\\(\\); //mutGenLimit 0"));
 		Property propSLLReturn_8 = new Property(MutationOperator.PRVOU, "list/SinglyLinkedListReturn", "getHeader", -1, -1, mceSLLR_8, mcneSLLR_8);
 		
 		/*
@@ -364,7 +367,6 @@ public class PRVOTests {
 		
 		List<Pattern> mceSLLBENR_left = new LinkedList<Pattern>();
 		List<Pattern> mcneSLLBENR_left = new LinkedList<Pattern>();
-		mceSLLBENR_left.add(Pattern.compile("test = null; //mutGenLimit 0"));
 		mceSLLBENR_left.add(Pattern.compile("current\\.next = null; //mutGenLimit 0"));
 		mceSLLBENR_left.add(Pattern.compile("current\\.value = null; //mutGenLimit 0"));
 		mceSLLBENR_left.add(Pattern.compile("this\\.header\\.value = null; //mutGenLimit 0"));
@@ -373,11 +375,12 @@ public class PRVOTests {
 		mceSLLBENR_left.add(Pattern.compile("value_param = null; //mutGenLimit 0"));
 		mceSLLBENR_left.add(Pattern.compile("super\\.toString\\(\\).CASE_INSENSITIVE_ORDER = null; //mutGenLimit 0"));
 		
+		mcneSLLBENR_left.add(Pattern.compile("test = null; //mutGenLimit 0"));
 		mcneSLLBENR_left.add(Pattern.compile("^([\\s ])*header = null; //mutGenLimit 0"));
 		mcneSLLBENR_left.add(Pattern.compile("^([\\s ])*header\\.value = null; //mutGenLimit 0"));
 		mcneSLLBENR_left.add(Pattern.compile("^([\\s ])*header\\.next = null; //mutGenLimit 0"));
 		
-		Property propSLLBExpreVarNull_left = new Property(MutationOperator.PRVOL, "list/SinglyLinkedListBinaryExpressionVarNull", "contains", 8, 0, mceSLLBENR_left, mcneSLLBENR_left);
+		Property propSLLBExpreVarNull_left = new Property(MutationOperator.PRVOL, "list/SinglyLinkedListBinaryExpressionVarNull", "contains", 7, 0, mceSLLBENR_left, mcneSLLBENR_left);
 		
 		/*
 		 *  MUTANTES NO INCLUIDOS EN LOS TEST
@@ -416,7 +419,7 @@ public class PRVOTests {
 		mcneSLLBEFieldVar_left.add(Pattern.compile("^([\\s ])*header = header; //mutGenLimit 0"));
 		mcneSLLBEFieldVar_left.add(Pattern.compile("^([\\s ])*header\\.next = header; //mutGenLimit 0"));
 		mcneSLLBEFieldVar_left.add(Pattern.compile("^([\\s ])*header\\.next\\.next = header; //mutGenLimit 0"));
-		Property propSLLBEFieldVar_left = new Property(MutationOperator.PRVOL, "list/SinglyLinkedListBinaryExpressionFieldVar", "contains", 9, 8, mceSLLBEFieldVar_left, mcneSLLBEFieldVar_left);
+		Property propSLLBEFieldVar_left = new Property(MutationOperator.PRVOL, "list/SinglyLinkedListBinaryExpressionFieldVar", "contains", 8, 8, mceSLLBEFieldVar_left, mcneSLLBEFieldVar_left);
 		
 		
 		/* MUTANTES NO INCLUIDOS EN LOS TESTS
@@ -479,11 +482,12 @@ public class PRVOTests {
 		mceSLLBEFieldVarFor_right.add(Pattern.compile("current\\.value = super\\.getClass\\(\\); //mutGenLimit 0"));
 		mceSLLBEFieldVarFor_right.add(Pattern.compile("current\\.value = super\\.clone\\(\\); //mutGenLimit 0"));
 		mceSLLBEFieldVarFor_right.add(Pattern.compile("current\\.value = super\\.hashCode\\(\\); //mutGenLimit 0"));
-		mceSLLBEFieldVarFor_right.add(Pattern.compile("current\\.value = test; //mutGenLimit 0"));
+		
 		
 		mcneSLLBEFieldVarFor_right.add(Pattern.compile(".+//mutGenLimit [^0]+"));
+		mcneSLLBEFieldVarFor_right.add(Pattern.compile("current\\.value = test; //mutGenLimit 0"));
 		mcneSLLBEFieldVarFor_right.add(Pattern.compile("current\\.value = header; //mutGenLimit 0"));
-		Property propSLLBEFieldVarFor_right = new Property(MutationOperator.PRVOR, "list/SinglyLinkedListBinaryExpressionFieldVarFor", "contains", 11, 8, mceSLLBEFieldVarFor_right, mcneSLLBEFieldVarFor_right);
+		Property propSLLBEFieldVarFor_right = new Property(MutationOperator.PRVOR, "list/SinglyLinkedListBinaryExpressionFieldVarFor", "contains", 10, 8, mceSLLBEFieldVarFor_right, mcneSLLBEFieldVarFor_right);
 		
 		/*
 		 * ORIGINAL
@@ -495,13 +499,13 @@ public class PRVOTests {
 		mceSLLBEFieldVarFor_left.add(Pattern.compile("current\\.next\\.value = i; //mutGenLimit 0"));
 		mceSLLBEFieldVarFor_left.add(Pattern.compile("this\\.header\\.next\\.value = i; //mutGenLimit 0"));
 		mceSLLBEFieldVarFor_left.add(Pattern.compile("value_param = i; //mutGenLimit 0"));
-		mceSLLBEFieldVarFor_left.add(Pattern.compile("test = i; //mutGenLimit 0"));
 		mceSLLBEFieldVarFor_left.add(Pattern.compile("i = i; //mutGenLimit 0"));
 		mceSLLBEFieldVarFor_left.add(Pattern.compile("j = i; //mutGenLimit 0"));
 		
+		mcneSLLBEFieldVarFor_left.add(Pattern.compile("test = i; //mutGenLimit 0"));
 		mcneSLLBEFieldVarFor_left.add(Pattern.compile("^([\\s ])*header\\.value = i; //mutGenLimit 0"));
 		mcneSLLBEFieldVarFor_left.add(Pattern.compile("^([\\s ])*header\\.next\\.value = i; //mutGenLimit 0"));
-		Property propSLLBEFieldVarFor_left = new Property(MutationOperator.PRVOL, "list/SinglyLinkedListBinaryExpressionFieldVarFor", "contains", 7, 6, mceSLLBEFieldVarFor_left, mcneSLLBEFieldVarFor_left);
+		Property propSLLBEFieldVarFor_left = new Property(MutationOperator.PRVOL, "list/SinglyLinkedListBinaryExpressionFieldVarFor", "contains", 6, 6, mceSLLBEFieldVarFor_left, mcneSLLBEFieldVarFor_left);
 		
 		
 		//LOS SIGUIENTES SON TESTS PARA COMPROBAR QUE NO SE MUTA FUERA DEL METODO BAJO CONSIDERACION
@@ -575,6 +579,16 @@ public class PRVOTests {
 		List<MutantInfo> mfOMUCR;
 		List<MutantInfo> mfOMUCU;
 		
+		Configuration.add(PRVO.ALLOW_FINAL_MEMBERS, Boolean.TRUE);
+		Configuration.add(MutantCodeWriter.USE_SIMPLE_CLASS_NAMES, Boolean.FALSE);
+		Configuration.add(MutantCodeWriter.KEEP_ORIGINAL_TYPE_NAMES, Boolean.FALSE);
+		List<Pattern> prohibitedClassMethods = new LinkedList<>();
+		prohibitedClassMethods.add(Pattern.compile("java\\.lang\\.Class\\#getAnnotatedInterfaces"));
+		prohibitedClassMethods.add(Pattern.compile("java\\.lang\\.Class\\#getTypeName"));
+		prohibitedClassMethods.add(Pattern.compile("java\\.lang\\.Class\\#getAnnotatedSuperclass"));
+		prohibitedClassMethods.add(Pattern.compile("java\\.lang\\.Class\\#toGenericString"));
+		Configuration.add(Configuration.PROHIBITED_METHODS, prohibitedClassMethods);
+		
 		mfSLLBEVarField_right = TestingTools.generateMutants(propSLLBEVarField_right);
 		
 		mfSLLBEVarField_left = TestingTools.generateMutants(propSLLBEVarField_left);
@@ -604,6 +618,11 @@ public class PRVOTests {
 		mfOMUCR = TestingTools.generateMutants(propOMUCR);
 		
 		mfOMUCU = TestingTools.generateMutants(propOMUCU);
+		
+		Configuration.removeArgument(PRVO.ALLOW_FINAL_MEMBERS);
+		Configuration.removeArgument(MutantCodeWriter.USE_SIMPLE_CLASS_NAMES);
+		Configuration.removeArgument(MutantCodeWriter.KEEP_ORIGINAL_TYPE_NAMES);
+		Configuration.removeArgument(Configuration.PROHIBITED_METHODS);
 		
 		return Arrays.asList(new Object[][] {
 				{propSLLBEVarField_right, mfSLLBEVarField_right},			//0

@@ -10,6 +10,7 @@ import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import openjava.mop.*;
 import openjava.ptree.*;
+import openjava.ptree.ParseTree.COPY_SCOPE;
 
 /**
  * <p>Generate COD (Conditional Operator Deletion) mutants --
@@ -32,7 +33,13 @@ public class COD extends MethodLevelMutator {
 		if (!(getMutationsLeft(p)>0)) return;
 		int op = p.getOperator();
 		if ( op == UnaryExpression.NOT) {
-			outputToFile(p, p.getExpression());
+			UnaryExpression mutant = (UnaryExpression) boundedRecursiveCopyOf(p, COPY_SCOPE.STATEMENT, true);//nodeCopyOf(p);
+			Expression expr = mutant.getExpression();
+			mutant.replace(expr);
+//			Expression mutant = (Expression) p.getExpression().makeRecursiveCopy_keepOriginalID();
+//			((ParseTreeObject)mutant).setParent(p.getParent());
+			outputToFile(p, expr);
+//			outputToFile(p, p.getExpression());
 		}
 		super.visit(p.getExpression());
 	}

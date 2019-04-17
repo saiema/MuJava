@@ -11,11 +11,13 @@ import java.util.regex.Pattern;
 import mujava.api.MutationOperator;
 import mujava.app.MutantInfo;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import test.EOA_Base_2;
 import test.java.utils.Property;
 import test.java.utils.TestingTools;
 
@@ -30,6 +32,10 @@ public class EOA_STRICTTests {
 		this.mutantsInfo = mutantsInfo;
 	}
 	
+	@BeforeClass
+	public static void verboseOptions() {
+		TestingTools.setVerbose(false);
+	}
 	
 	@Parameters
 	public static Collection<Object[]> firstValues() {
@@ -57,7 +63,7 @@ public class EOA_STRICTTests {
 		
 		List<Pattern> ceEOA_3 = new LinkedList<Pattern>();
 		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_1 var3 = param1\\.clone\\(\\); //mutGenLimit 0"));
-		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_2 var4 = \\(\\((.+\\.)?EOA\\_Base\\_2\\) auxMethod2\\( auxMethod1\\( var1\\, param1 \\)\\, \\((.+\\.)?EOA\\_Base\\_2\\) var3\\, param1 \\)\\)\\.clone\\(\\); //mutGenLimit 0"));
+		ceEOA_3.add(Pattern.compile("(.+\\.)?EOA\\_Base\\_2 var4 = \\(\\((.+\\.)?EOA\\_Base\\_2\\) auxMethod2\\( auxMethod1\\( var1\\, param1 \\)\\, new (.+\\.)?EOA\\_Base\\_2\\(\\)\\, param1 \\)\\)\\.clone\\(\\); //mutGenLimit 0"));
 		Property propEOA_3 = new Property(MutationOperator.EOA_STRICT,
 										"test/EOA_3",
 										"radiatedMethod",

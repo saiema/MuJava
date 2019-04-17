@@ -34,8 +34,7 @@ import java.util.List;
 
 public class EAM extends mujava.op.util.Mutator {
 
-	public EAM(FileEnvironment file_env, ClassDeclaration cdecl,
-			CompilationUnit comp_unit) {
+	public EAM(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit) {
 		super(file_env, comp_unit);
 	}
 
@@ -44,11 +43,25 @@ public class EAM extends mujava.op.util.Mutator {
 			return;
 		if (!isGetter(p))
 			return;
-		List<OJMethod> getters = getAllGetters(getSelfType());
+		Expression prev = getPreviousExpression(p);
+		int options = ALLOW_NON_STATIC;
+		OJClass t = null;
+		if (prev == null) {
+			t = getSelfType();
+			options += ALLOW_PRIVATE;
+			options += TARGET_IS_NULL;
+		} else {
+			t = getType(prev);
+			if (isSelfClass(t)) {
+				options += ALLOW_PRIVATE;
+				options += TARGET_IS_MUTATED_CLASS_OBJECT;
+			}
+		}
+		List<OJMethod> getters = getAllGetters(t, options);
 		OJMethod original = getOriginalMethod(p, getters);
 		for (OJMethod g : getters) {
 			if (!isSameMethod(p, g) && compatibleMethods(original, g)) {
-				MethodCall mutant = (MethodCall) p.makeRecursiveCopy_keepOriginalID();
+				MethodCall mutant = (MethodCall) nodeCopyOf(p);
 				mutant.setName(g.getName());
 				outputToFile(p, mutant);
 			}
@@ -64,7 +77,7 @@ public class EAM extends mujava.op.util.Mutator {
 		return null;
 	}
 
-	private boolean isSameMethod(MethodCall m1, OJMethod m2)throws ParseTreeException {
+	private boolean isSameMethod(MethodCall m1, OJMethod m2) throws ParseTreeException {
 		String nm1 = m1.getName();
 		String nm2 = m2.getName();
 		if (nm1.compareTo(nm2) != 0) {
@@ -83,9 +96,9 @@ public class EAM extends mujava.op.util.Mutator {
 		return true;
 	}
 
-	private List<OJMethod> getAllGetters(OJClass t) {
+	private List<OJMethod> getAllGetters(OJClass t, int options) {
 		List<OJMethod> result = new LinkedList<OJMethod>();
-		OJMethod[] allMethods = getAllMethods(t);
+		OJMethod[] allMethods = getAllMethods(t, options);
 		for (OJMethod m : allMethods) {
 			if (isGetter(m)) {
 				result.add(m);
@@ -107,7 +120,7 @@ public class EAM extends mujava.op.util.Mutator {
 
 		if (c1.length == c2.length) {
 			for (int i = 0; i < c1.length; i++) {
-				if (!(compatibleAssignType(c1[i], (c2[i]))))
+				if (!(compatibleAssignTypeRelaxed(c1[i], (c2[i]))))
 					return false;
 			}
 		} else {
@@ -115,18 +128,18 @@ public class EAM extends mujava.op.util.Mutator {
 		}
 		OJClass retType1 = m1.getReturnType();
 		OJClass retType2 = m2.getReturnType();
-		if (!(compatibleAssignType(retType1, retType2))) {
+		if (!(compatibleAssignTypeRelaxed(retType1, retType2))) {
 			return false;
 		}
 		return true;
 	}
 
 	private boolean isGetter(OJMethod m) {
-		return m.getName().startsWith("get") && m.getReturnType().getName().compareToIgnoreCase("void")!=0;
+		return m.getName().startsWith("get") && m.getReturnType().getName().compareToIgnoreCase("void") != 0;
 	}
 
 	private boolean isGetter(MethodCall p) throws ParseTreeException {
-		return p.getName().startsWith("get") && getType(p).getName().compareToIgnoreCase("void")!=0;
+		return p.getName().startsWith("get") && getType(p).getName().compareToIgnoreCase("void") != 0;
 	}
 
 	/**
