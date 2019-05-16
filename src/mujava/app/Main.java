@@ -190,12 +190,12 @@ public class Main {
 		//============================verify test classes================================================//
 		if (mutationScore) {
 			Set<String> tclasses = config.testClasses();
-			for (String tc : tclasses) {
-				if (!verifyFile(testBinDir+tc.replaceAll("\\.", Core.SEPARATOR)+".class")) {
-					System.err.println("Test class ("+(testBinDir+tc.replaceAll("\\.", Core.SEPARATOR)+".class")+") doesn't exist");
-					return;
-				}
-			}
+//			for (String tc : tclasses) {
+//				if (!verifyFile(testBinDir+tc.replaceAll("\\.", Core.SEPARATOR)+".class")) {
+//					System.err.println("Test class ("+(testBinDir+tc.replaceAll("\\.", Core.SEPARATOR)+".class")+") doesn't exist");
+//					return;
+//				}
+//			}
 			testClasses = tclasses.toArray(new String[tclasses.size()]);
 			System.out.println("Tests classes: "+stringArrayToString(testClasses));
 		}
@@ -887,10 +887,10 @@ public class Main {
 		return confirmDirectoryCleaning(file);
 	}
 
-	private static boolean verifyFile(String f) {
-		File file = new File(f);
-		return file.exists() && file.isFile();
-	}
+//	private static boolean verifyFile(String f) {
+//		File file = new File(f);
+//		return file.exists() && file.isFile();
+//	}
 	
 	private static boolean verifyClassFile(String f) {
 		int firstDolar = f.indexOf('$');
