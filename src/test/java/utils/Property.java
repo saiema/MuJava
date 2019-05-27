@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import mujava.api.MutationOperator;
+import mujava.app.Core;
 
 public class Property {
 	public final static String MUTATE_FIELDS= "0_mutateFields";
@@ -11,7 +12,7 @@ public class Property {
 	
 	public Property(MutationOperator op, String clazz, String method, Integer mutantsExpected, Integer compilingMutantsExpected, List<Pattern> mutantCodeExpected, List<Pattern> mutantCodeNotExpected) {
 		this.op 						= op;
-		this.clazz 						= clazz;
+		this.clazz 						= fixBackslash(clazz);
 		this.method 					= method;
 		this.mutantsExpected 			= mutantsExpected;
 		this.compilingMutantsExpected 	= compilingMutantsExpected;
@@ -28,7 +29,7 @@ public class Property {
 	
 	public Property(List<MutationOperator> ops, String clazz, String method, Integer mutantsExpected, Integer compilingMutantsExpected, List<Pattern> mutantCodeExpected, List<Pattern> mutantCodeNotExpected, MutationsFilter filter, boolean writeAllToSameFile) {
 		this.ops 						= ops;
-		this.clazz 						= clazz;
+		this.clazz 						= fixBackslash(clazz);
 		this.method 					= method;
 		this.mutantsExpected 			= mutantsExpected;
 		this.compilingMutantsExpected 	= compilingMutantsExpected;
@@ -43,7 +44,7 @@ public class Property {
 	
 	public Property(List<MutationOperator> ops, String clazz, String method, List<MutationExpected> mutationsExpected, List<Integer> linesAffectedExpected) {
 		this.ops 						= ops;
-		this.clazz 						= clazz;
+		this.clazz 						= fixBackslash(clazz);
 		this.method 					= method;
 		this.mutationsExpected 			= mutationsExpected;
 		this.affectedLinesExpected		= linesAffectedExpected;
@@ -54,7 +55,7 @@ public class Property {
 	
 	public Property(List<MutationOperator> ops, String clazz, String method, List<MutationExpected> mutationsExpected, List<Integer> linesAffectedExpected, MutationsFilter filter) {
 		this.ops 						= ops;
-		this.clazz 						= clazz;
+		this.clazz 						= fixBackslash(clazz);
 		this.method 					= method;
 		this.mutationsExpected 			= mutationsExpected;
 		this.affectedLinesExpected		= linesAffectedExpected;
@@ -66,13 +67,18 @@ public class Property {
 	
 	public Property(List<MutationOperator> ops, String clazz, String method, MutationsFilter filter, boolean canBeMerged) {
 		this.ops 						= ops;
-		this.clazz 						= clazz;
+		this.clazz 						= fixBackslash(clazz);
 		this.method 					= method;
 		this.filter						= filter;
 		this.canBeMerged				= canBeMerged;
 		this.testingObtainingMutants	= false;
 		this.testingMultiMutations		= false;
 		this.testingMutationMerging		= true;
+	}
+	
+	
+	private String fixBackslash(String orig) {
+		return orig.replaceAll("/", Core.SEPARATOR);
 	}
 	
 	public List<MutationOperator> ops;
