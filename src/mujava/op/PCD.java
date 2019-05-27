@@ -51,7 +51,7 @@ public class PCD extends Mutator {
 	
 	public void visit(ReturnStatement p) throws ParseTreeException {
 		Expression exp = p.getExpression();
-		exp.accept(this);
+		if (exp != null) exp.accept(this);
 	}
 	
 	public void visit(VariableDeclarator p) throws ParseTreeException {
