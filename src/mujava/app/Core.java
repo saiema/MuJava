@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,7 +45,7 @@ public class Core {
 	public static final String ENABLE_TOUGHNESS = "Core_toughness";
 	public static final String DYNAMIC_SUBSUMPTION = "Core_dynamicSubsumption";
 	
-	public static String SEPARATOR = fixBackslash(FileSystems.getDefault().getSeparator());
+	public static String SEPARATOR = File.separator; //fixBackslash(FileSystems.getDefault().getSeparator());
 	private static Core instance = null;
 	private static String inputDir;
 	private static String outputDir;
@@ -81,13 +80,13 @@ public class Core {
 		return instance;
 	}
 	
-	private static String fixBackslash(String orig) {
-		if (orig == "\\") {
-			return "\\\\";
-		} else {
-			return orig;
-		}
-	}
+//	private static String fixBackslash(String orig) {
+//		if (orig == "\\") {
+//			return "\\\\";
+//		} else {
+//			return orig;
+//		}
+//	}
 
 	public void setMutationScore(MutationScore ms) {
 		this.ms = ms;
