@@ -399,7 +399,7 @@
             shortDescription="change the body of a method with the body of another with the same name"
             fullDescription="mutates &lt;modifiers&gt; &lt;return type&gt; m(&lt;params&gt;) &lt;body&gt; with &lt;modifiers&gt; &lt;return type&gt; m(&lt;params&gt;) &lt;body'&gt; such that body' belongs to another method named m"
             affectsOneLine="false"
-    />
+    ></mutant>
     <mutant name="PPD"
             type="ClassLevel"
             isBasic="false"
@@ -414,6 +414,11 @@
 	<mutant name="BEE" type="MethodLevel" isBasic="false"
 		shortDescription="Boolean Expression Extender"
 		fullDescription="recursively adds op E to any boolean expression (Variable, FieldAccess, MethodCall, UnaryExpression, BinaryExpression)"
+		affectsOneLine="true">
+	</mutant>
+	<mutant name="CRCR" type="MethodLevel" isBasic="false"
+		shortDescription="CRCR operator from PIT (rv)"
+		fullDescription="from a constant c generates 1, 0, -1, -c, c + 1, and c - 1"
 		affectsOneLine="true">
 	</mutant>
 </info>
