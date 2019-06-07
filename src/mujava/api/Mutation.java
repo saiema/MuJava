@@ -404,6 +404,7 @@ public class Mutation {
 			case PCI			:;
 			case PMD			:;	//only when mutating methods
 			case PNC			:;  //only when mutating methods
+			case PRVO			:;
 			case PRVOR			:;
 			case PRVOR_SMART	:;
 			case PRVOR_REFINED	:;
@@ -417,6 +418,8 @@ public class Mutation {
 			//----------------------------------
 			case MULTI			: {res = false; break;}
 			case BEE			: {res = true; break;}
+			case CRCR			:;
+			case IC				: {res = true; break;}
 
 		}
 		return res;
