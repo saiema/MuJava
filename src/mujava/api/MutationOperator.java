@@ -56,6 +56,7 @@ public enum MutationOperator {
 	
 		public static boolean isPRVO(MutationOperator op) {
 			switch (op) {
+			case PRVO:
 			case PRVOL:
 			case PRVOL_SMART:
 			case PRVOR:
