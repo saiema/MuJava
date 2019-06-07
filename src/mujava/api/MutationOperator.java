@@ -3,6 +3,7 @@ package mujava.api;
 public enum MutationOperator {
 	BEE,
 	CRCR,
+	IC,
 	EAM,
 	EMM,
 	EOA, EOA_DUMB, EOA_STRICT,

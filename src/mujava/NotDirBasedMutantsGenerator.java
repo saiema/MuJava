@@ -12,6 +12,7 @@ import mujava.op.EAM;
 import mujava.op.EMM;
 import mujava.op.EOA;
 import mujava.op.EOC;
+import mujava.op.IC;
 import mujava.op.IHD;
 import mujava.op.IHI;
 import mujava.op.IOD;
@@ -492,6 +493,12 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 					if (mutOps.contains(MutationOperator.CRCR)) {
 						Debug.println("  Applying CRCR ... ... ");
 						mutant_op = new CRCR(file_env, cdecl, comp_unit);
+						comp_unit.accept(mutant_op);
+					}
+					
+					if (mutOps.contains(MutationOperator.IC)) {
+						Debug.println("  Applying IC ... ... ");
+						mutant_op = new IC(file_env, cdecl, comp_unit);
 						comp_unit.accept(mutant_op);
 					}
 					

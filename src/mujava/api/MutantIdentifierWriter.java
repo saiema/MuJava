@@ -9,6 +9,7 @@ import mujava.op.CRCR_Writer;
 import mujava.op.EMM_Writer;
 import mujava.op.EOA_Writer;
 import mujava.op.EOC_Writer;
+import mujava.op.IC_Writer;
 import mujava.op.IHD_Writer;
 import mujava.op.IHI_Writer;
 import mujava.op.IOD_Writer;
@@ -258,6 +259,10 @@ public class MutantIdentifierWriter {
 		} else if (mutation.getMutOp().equals(MutationOperator.CRCR)) {
 			
 			writer_generic = new CRCR_Writer(null, output, mutation);
+			
+	    } else if (mutation.getMutOp().equals(MutationOperator.IC)) {
+			
+			writer_generic = new IC_Writer(null, output, mutation);
 			
 	    } else if (mutation.getMutOp().equals(MutationOperator.MULTI)) {
 			
