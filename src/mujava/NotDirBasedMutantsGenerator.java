@@ -26,6 +26,7 @@ import mujava.op.JSD;
 import mujava.op.JSI;
 import mujava.op.JTD;
 import mujava.op.JTI;
+import mujava.op.LVR;
 import mujava.op.NPER;
 import mujava.op.OAN;
 import mujava.op.OMR;
@@ -499,6 +500,12 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 					if (mutOps.contains(MutationOperator.IC)) {
 						Debug.println("  Applying IC ... ... ");
 						mutant_op = new IC(file_env, cdecl, comp_unit);
+						comp_unit.accept(mutant_op);
+					}
+					
+					if (mutOps.contains(MutationOperator.LVR)) {
+						Debug.println("  Applying LVR ... ... ");
+						mutant_op = new LVR(file_env, cdecl, comp_unit);
 						comp_unit.accept(mutant_op);
 					}
 					

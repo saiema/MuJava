@@ -21,6 +21,7 @@ import mujava.op.JDC_Writer;
 import mujava.op.JID_Writer;
 import mujava.op.JSD_Writer;
 import mujava.op.JTI_Writer;
+import mujava.op.LVR_Writer;
 import mujava.op.NPER_Writer;
 import mujava.op.OMR_Writer;
 import mujava.op.PCC_Writer;
@@ -263,6 +264,10 @@ public class MutantIdentifierWriter {
 	    } else if (mutation.getMutOp().equals(MutationOperator.IC)) {
 			
 			writer_generic = new IC_Writer(null, output, mutation);
+			
+	    } else if (mutation.getMutOp().equals(MutationOperator.LVR)) {
+			
+			writer_generic = new LVR_Writer(null, output, mutation);
 			
 	    } else if (mutation.getMutOp().equals(MutationOperator.MULTI)) {
 			

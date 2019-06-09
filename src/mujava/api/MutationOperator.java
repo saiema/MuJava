@@ -4,6 +4,7 @@ public enum MutationOperator {
 	BEE,
 	CRCR,
 	IC,
+	LVR,
 	EAM,
 	EMM,
 	EOA, EOA_DUMB, EOA_STRICT,
