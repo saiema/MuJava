@@ -56,7 +56,10 @@ public class CRCR extends Arithmetic_OP {
 		boolean isZero = isZero(from.getExpression());
 		boolean isOne = isOne(from.getExpression());
 		UnaryExpression originalCopy = (UnaryExpression) from.makeRecursiveCopy_keepOriginalID();
-		if (compatibleAssignTypeStrict(OJClass.forClass(Integer.class), exprType, true)) {
+		if (compatibleAssignTypeStrict(OJClass.forClass(Integer.class), exprType, true)
+			|| compatibleAssignTypeStrict(OJClass.forClass(Byte.class), exprType, true)
+			|| compatibleAssignTypeStrict(OJClass.forClass(Short.class), exprType, true))
+		{
 			if (!(isZero && (isNeg || isPlus))) {
 				expressions.add(Literal.makeLiteral(new Integer(0)));
 			}
@@ -115,6 +118,8 @@ public class CRCR extends Arithmetic_OP {
 			mutMinusOne.forceParenthesis(true);
 			expressions.add(mutPlusOne);
 			expressions.add(mutMinusOne);
+		} else {
+			throw new ParseTreeException("getMutations called with incompatible type");
 		}
 		if (!isZero) expressions.add(new UnaryExpression(originalCopy, UnaryExpression.MINUS));
 		return expressions;
