@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 
 import mujava.op.util.MutantCodeWriter;
 import mujava.op.AMC_Writer;
+import mujava.op.AOD_Writer;
 import mujava.op.BEE_Writer;
 import mujava.op.CRCR_Writer;
 import mujava.op.EMM_Writer;
@@ -268,6 +269,10 @@ public class MutantIdentifierWriter {
 	    } else if (mutation.getMutOp().equals(MutationOperator.LVR)) {
 			
 			writer_generic = new LVR_Writer(null, output, mutation);
+			
+	    } else if (mutation.getMutOp().equals(MutationOperator.AOD)) {
+			
+			writer_generic = new AOD_Writer(null, output, mutation);
 			
 	    } else if (mutation.getMutOp().equals(MutationOperator.MULTI)) {
 			

@@ -6,6 +6,7 @@ import java.util.Set;
 import mujava.api.MutationOperator;
 import mujava.api.MutantsInformationHolder;
 import mujava.op.AMC;
+import mujava.op.AOD;
 import mujava.op.BEE;
 import mujava.op.CRCR;
 import mujava.op.EAM;
@@ -506,6 +507,12 @@ public class NotDirBasedMutantsGenerator extends MutantsGenerator {
 					if (mutOps.contains(MutationOperator.LVR)) {
 						Debug.println("  Applying LVR ... ... ");
 						mutant_op = new LVR(file_env, cdecl, comp_unit);
+						comp_unit.accept(mutant_op);
+					}
+					
+					if (mutOps.contains(MutationOperator.AOD)) {
+						Debug.println("  Applying AOD ... ... ");
+						mutant_op = new AOD(file_env, cdecl, comp_unit);
 						comp_unit.accept(mutant_op);
 					}
 					

@@ -420,7 +420,8 @@ public class Mutation {
 			case BEE			:;
 			case CRCR			:;
 			case IC				:;
-			case LVR			: {res = true; break;}
+			case LVR			:;
+			case AOD			: {res = true; break;}
 
 		}
 		return res;

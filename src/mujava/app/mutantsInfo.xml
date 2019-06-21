@@ -430,4 +430,9 @@
 		shortDescription="LVR operator from major" fullDescription="Replace a literal numeric value by 1, 0, and -1; replaces a string with an empty string; and replaces true and false for eachother"
 		affectsOneLine="true">
 	</mutant>
+	<mutant name="AOD" type="MethodLevel" isBasic="false"
+		shortDescription="AOD operator from PIT"
+		fullDescription="Replaces an arithmetic binary operation with one of its members"
+		affectsOneLine="true">
+	</mutant>
 </info>
