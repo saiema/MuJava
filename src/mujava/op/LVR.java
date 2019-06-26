@@ -8,6 +8,7 @@ import mujava.api.MutationOperator;
 import mujava.op.basic.Arithmetic_OP;
 import openjava.mop.FileEnvironment;
 import openjava.mop.OJClass;
+import openjava.mop.OJSystem;
 import openjava.ptree.ClassDeclaration;
 import openjava.ptree.CompilationUnit;
 import openjava.ptree.Expression;
@@ -41,11 +42,12 @@ public class LVR extends Arithmetic_OP {
 	
 	public void visit(Literal p) throws ParseTreeException {
 		if (!(getMutationsLeft(p) > 0)) return;
-		if (isArithmeticType(p)) {
+		OJClass type = getType(p);
+		if (isArithmeticType(p) && type != OJSystem.CHAR) {
 			for (Expression m : getArithmeticMutations(p)) {
 				outputToFile(p, m);
 			}
-		} else if (p.getLiteralType() == Literal.STRING) {
+		} else if (p.getLiteralType() == Literal.STRING || type == OJSystem.CHAR) {
 			if (p.toFlattenString().trim().isEmpty()) return;
 			outputToFile(p, Literal.constantEmptyString());
 		} else if (p.getLiteralType() == Literal.BOOLEAN) {

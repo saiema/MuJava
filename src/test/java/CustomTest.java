@@ -44,11 +44,11 @@ public class CustomTest {
 	
 	@Parameters
 	public static Collection<Object[]> firstValues() {
-		TestingTools.setVerbose(false);
+		TestingTools.setVerbose(true);
 		MutantsInformationHolder.setVerbose(false);
-		Configuration.add(Configuration.USE_MUTGENLIMIT, Boolean.TRUE);
-		Configuration.add(Configuration.PRETTY_PRINT, Boolean.FALSE);
-		Configuration.add(Configuration.USE_SIMPLE_CLASS_NAMES, Boolean.TRUE);
+		Configuration.add(Configuration.USE_MUTGENLIMIT, Boolean.FALSE);
+//		Configuration.add(Configuration.PRETTY_PRINT, Boolean.FALSE);
+//		Configuration.add(Configuration.USE_SIMPLE_CLASS_NAMES, Boolean.TRUE);
 		
 		//TESTS DEFINITIONS
 		//MULTIMUTATIONS
@@ -284,6 +284,18 @@ public class CustomTest {
 											null,
 											false);
 		
+		List<MutationOperator> operators13 = new LinkedList<>();
+		operators13.add(MutationOperator.LVR);
+		Property propCustom13 = new Property(operators13,
+											 "org/apache/commons/collections4/list/NCLL",
+											 "toString",
+											 TestingTools.NO_MUTANTS_EXPECTED,
+											 TestingTools.NO_MUTANTS_EXPECTED,
+											 TestingTools.NO_PATTERN_EXPECTED,
+											 TestingTools.NO_PATTERN_EXPECTED,
+											 null,
+											 false);
+		
 		//Configuration.clear();
 		//MutantCodeWriter.useSimpleClassNames(false);
 		
@@ -293,7 +305,7 @@ public class CustomTest {
 		
 		//PARAMETERS
 		return Arrays.asList(new Object[][] {
-				{propCustom12},
+				{propCustom13},
 		});
 	}
 	
@@ -312,7 +324,7 @@ public class CustomTest {
 			MutationRequest request = new MutationRequest(	p.clazz,
 															new String[] {p.method},
 															reqOps,
-															"test/",
+															"benchmarks/",
 															"test/mutantExamples/");
 			//modified to allow filtering
 			mutator.setRequest(request);
