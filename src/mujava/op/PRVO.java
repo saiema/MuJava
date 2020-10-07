@@ -923,10 +923,35 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		for (Object m : fieldAndMethods(e1c, null)) {
 			if (m instanceof OJField || m instanceof OJMethod) {
-				if (((OJMember) m).getName().compareTo(e2Name)==0) return true;
+				if (((OJMember) m).getName().compareTo(e2Name)==0 && isFieldMethodOfTypeCheck(e2, (OJMember) m)) return true;
 			}
 		}
 		return false;
+	}
+	
+	private boolean isFieldMethodOfTypeCheck(Expression expected, OJMember obtained) throws ParseTreeException {
+		OJClass expectedType = getType(expected);
+		OJClass obtainedType = null;
+		if (obtained instanceof OJMethod) {
+			obtainedType = ((OJMethod) obtained).getReturnType();
+		} else if (obtained instanceof OJField) {
+			obtainedType = ((OJField) obtained).getType();
+		} else {
+			return false;
+		}
+		if (!sameType(expectedType, obtainedType)) return false;
+		OJClass obtainedDeclaringClass = obtained.getDeclaringClass();
+		OJClass expectedDeclaringClass = null;
+		if (expected instanceof MethodCall && canGetPrev(expected)) {
+			expectedDeclaringClass = getType(((MethodCall)expected).getReferenceExpr());
+		} else if (expected instanceof FieldAccess && canGetPrev(expected)) {
+			expectedDeclaringClass = getType(((FieldAccess) expected).getReferenceExpr());
+		} else if (expected instanceof ArrayAccess && canGetPrev(expected)) {
+			expectedDeclaringClass = getType(((ArrayAccess)expected).getReferenceExpr());
+		} else {
+			expectedDeclaringClass = getSelfType();
+		}
+		return sameType(expectedDeclaringClass, obtainedDeclaringClass);
 	}
 
 	private boolean isFieldMethodOf(Expression e1, Expression e2) throws ParseTreeException {
@@ -950,7 +975,7 @@ public class PRVO extends mujava.op.util.Mutator {
 		}
 		for (Object m : fieldAndMethods(e1c, null)) {
 			if (m instanceof OJField || m instanceof OJMethod) {
-				if (((OJMember) m).getName().compareTo(e2Name)==0) return true;
+				if (((OJMember) m).getName().compareTo(e2Name)==0 && isFieldMethodOfTypeCheck(e2, (OJMember) m)) return true;
 			}
 		}
 		return false;
