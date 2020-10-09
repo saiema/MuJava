@@ -41,9 +41,9 @@ import openjava.ptree.*;
  */
 
 public class PNC extends mujava.op.util.Mutator {
-	private FileEnvironment lfile_env;
+	private final FileEnvironment lfile_env;
 
-	public PNC(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit) {
+	public PNC(FileEnvironment file_env, CompilationUnit comp_unit) {
 		super(file_env, comp_unit);
 		this.lfile_env = file_env;
 	}
@@ -97,15 +97,14 @@ public class PNC extends mujava.op.util.Mutator {
 	}
 
 	private List<Class<?>> getChilds(Class<?> clazz) {
-		List<Class<?>> childs = new LinkedList<Class<?>>();
+
 		Reflections reflections = new Reflections(
 				new ConfigurationBuilder()
 						.setUrls(
 								ClasspathHelper.forPackage(this.lfile_env
 										.getPackage())).setScanners(
 								new SubTypesScanner()));
-		childs.addAll(reflections.getSubTypesOf(clazz));
-		return childs;
+		return new LinkedList<>(reflections.getSubTypesOf(clazz));
 	}
 	
 	

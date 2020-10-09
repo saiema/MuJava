@@ -4,23 +4,18 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Path;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.nio.file.Paths;
+import java.util.*;
 
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import mujava.util.packageScanner.PackageScanner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import main.api.DependencyScanner;
 import mujava.api.MutationOperator;
 import mujava.app.Core;
 import mujava.app.MutatorsInfo;
@@ -119,7 +114,6 @@ public class Config {
 	private boolean showSurvivingMutants;
 	private boolean toughnessAnalysis;
 	private boolean outputMutationsInfo;
-	private boolean useOldJUnit = false; //TODO: complete getters, setters, and config in file
 	//mutation score
 	
 	//mutation score advanced options
@@ -135,7 +129,6 @@ public class Config {
 	private List<String> packagesInOriginalBinDir;
 	private List<String> testClassesInTestsBinDir;
 	private final MutationOperator[] validMutOps = MutationOperator.values();
-	private DependencyScanner testsScanner = null;
 	//auxiliary values
 	
 
@@ -320,16 +313,12 @@ public class Config {
 	}
 	
 	public void addMethodToMutate(String method) {
-		if (!this.methodsToMutate.contains(method)) this.methodsToMutate.add(method);
-	}
-	
-	public void removeMethodToMutate(String method) {
-		if (this.methodsToMutate.contains(method)) this.methodsToMutate.remove(method);
+		this.methodsToMutate.add(method);
 	}
 	
 	public void clearMethodsToMutate() {
 		if (this.methodsToMutate == null) {
-			this.methodsToMutate = new TreeSet<String>();
+			this.methodsToMutate = new TreeSet<>();
 		} else {
 			this.methodsToMutate.clear();
 		}
@@ -347,20 +336,10 @@ public class Config {
 					   && addOperator(MutationOperator.PRVOR_REFINED.toString())
 					   && addOperator(MutationOperator.PRVOU_REFINED.toString());
 			}
-			if (!this.operators.contains(mop)) this.operators.add(mop);
+			this.operators.add(mop);
 			return true;
 		}
 		return false;
-	}
-	
-	public boolean removeOperator(String op) {
-		MutationOperator mop = isValidOp(op);
-		if (mop != null) {
-			this.operators.remove(mop);
-			return true;
-		} else {
-			return false;
-		}
 	}
 	
 	private MutationOperator isValidOp(String op) {
@@ -374,7 +353,7 @@ public class Config {
 	
 	public void clearOperators() {
 		if (this.operators == null) {
-			this.operators = new TreeSet<MutationOperator>();
+			this.operators = new TreeSet<>();
 		} else {
 			this.operators.clear();
 		}
@@ -416,13 +395,9 @@ public class Config {
 		allowedMembers.add(m);
 	}
 	
-	public void delAllowedMember(String m) {
-		allowedMembers.remove(m);
-	}
-	
 	public void clearAllowedMembers() {
 		if (allowedMembers == null) {
-			allowedMembers = new TreeSet<String>();
+			allowedMembers = new TreeSet<>();
 		} else {
 			allowedMembers.clear();
 		}
@@ -438,7 +413,7 @@ public class Config {
 	
 	public void clearBannedMethods() {
 		if (bannedMethods == null) {
-			bannedMethods = new TreeSet<String>();
+			bannedMethods = new TreeSet<>();
 		} else {
 			bannedMethods.clear();
 		}
@@ -458,7 +433,7 @@ public class Config {
 	
 	public void clearBannedFields() {
 		if (this.bannedFields == null) {
-			this.bannedFields = new TreeSet<String>();
+			this.bannedFields = new TreeSet<>();
 		} else {
 			this.bannedFields.clear();
 		}
@@ -534,7 +509,7 @@ public class Config {
 	
 	public void clearTestClasses() {
 		if (this.testClasses == null) {
-			this.testClasses = new TreeSet<String>();
+			this.testClasses = new TreeSet<>();
 		} else {
 			this.testClasses.clear();
 		}
@@ -1021,31 +996,26 @@ public class Config {
 		}
 	}
 	
-	private MethodComparator methodComparator = new MethodComparator();
+	private final MethodComparator methodComparator = new MethodComparator();
 	
 	public List<String> getClassesInOriginalBinDir() {
 		if (this.classesInOriginalBinDir != null && !this.classesInOriginalBinDir.isEmpty()) return this.classesInOriginalBinDir;
-		List<String> classesInOriginalBinDir = new LinkedList<String>();
+		List<String> classesInOriginalBinDir = new LinkedList<>();
 		try {
-			DependencyScanner depScanner = new DependencyScanner(toPath(addTrailingSeparator(this.originalBinDir)));
-			classesInOriginalBinDir.addAll(depScanner.getDependencyMap().getClasses());
+			classesInOriginalBinDir.addAll(PackageScanner.scanClassesIn(Paths.get(this.originalBinDir)));
 		} catch (IllegalStateException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 		this.classesInOriginalBinDir = classesInOriginalBinDir;
 		return classesInOriginalBinDir;
 	}
 	
 	public List<String> getTestClassesInTestsBinDir() {
 		if (this.testClassesInTestsBinDir != null && !this.testClassesInTestsBinDir.isEmpty()) return this.testClassesInTestsBinDir;
-		List<String> testClassesInTestsBinDir = new LinkedList<String>();
+		List<String> testClassesInTestsBinDir = new LinkedList<>();
 		try {
-			if (this.testsScanner == null || this.testsScanner.getScannedPath().compareTo(this.originalBinDir) != 0) {
-				this.testsScanner = new DependencyScanner(toPath(addTrailingSeparator(this.testsBinDir)));
-			}
-			for (String c : this.testsScanner.getDependencyMap().getClasses()) {
+			for (String c : PackageScanner.scanClassesIn(Paths.get(this.testsBinDir))) {
 				if (isTestClass(loadClass(c, this.testsBinDir))) {
 					testClassesInTestsBinDir.add(c);
 				}
@@ -1054,22 +1024,14 @@ public class Config {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 		this.testClassesInTestsBinDir = testClassesInTestsBinDir;
 		return testClassesInTestsBinDir;
 	}
 	
 	private boolean existsAsTestClass(String c) {
 		try {
-			if (this.testsScanner == null || this.testsScanner.getScannedPath().compareTo(this.originalBinDir) != 0) {
-				this.testsScanner = new DependencyScanner(toPath(addTrailingSeparator(this.testsBinDir)));
-			}
-			for (String tc : this.testsScanner.getDependencyMap().getClasses()) {
-				if (tc.compareTo(c) == 0) {
-					return isTestClass(loadClass(c, this.testsBinDir));
-				}
-			}
-		} catch (IllegalStateException | IOException e) {
+			return isTestClass(loadClass(c, this.testsBinDir));
+		} catch (IllegalStateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -1078,15 +1040,14 @@ public class Config {
 	
 	public List<String> getpackagesInOriginalBinDir() {
 		if (this.packagesInOriginalBinDir != null && !this.packagesInOriginalBinDir.isEmpty()) return this.packagesInOriginalBinDir;
-		List<String> packagesInOriginalBinDir = new LinkedList<String>();
+		List<String> packages = new LinkedList<>();
 		try {
-			DependencyScanner depScanner = new DependencyScanner(toPath(addTrailingSeparator(this.originalBinDir)));
-			packagesInOriginalBinDir.addAll(depScanner.getScannedPackages());
+			packages.addAll(PackageScanner.scanPackagesIn(Paths.get(this.originalBinDir)));
 		} catch (IllegalStateException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		this.packagesInOriginalBinDir = packagesInOriginalBinDir;
+		this.packagesInOriginalBinDir = packages;
 		return packagesInOriginalBinDir;
 	}
 	
@@ -1115,9 +1076,6 @@ public class Config {
 				if (!existsAsTestClass(t)) {
 					return "Class " + t + " can't be found inside " + testsBinDir + " or is not a valid test class";
 				}
-//				if (!isTestClass(loadClass(t, addTrailingSeparator(this.testsBinDir)))) {
-//					return "Class " + t + " is not a valid test class";
-//				}
 			}
 		}
 		for (MutationOperator m : operators) {
@@ -1141,18 +1099,13 @@ public class Config {
 		if (junitPath == null || junitPath.isEmpty()) return "Can't use external junit runner without defining the JUnit jar path";
 		if (!verifyFile(this.junitPath)) return "The defined JUnit path doesn't not point to an existing file";
 		if (!junitPath.endsWith(".jar")) return "The defined JUnit path doesn't point to a jar file";
-		if (hamcrestPath == null || junitPath.isEmpty()) return "Can't use external junit runner without defining the hamcrest jar path";
+		if (hamcrestPath == null) return "Can't use external junit runner without defining the hamcrest jar path";
 		if (!verifyFile(this.hamcrestPath)) return "The defined hamcrest path doesn't not point to an existing file";
 		if (!hamcrestPath.endsWith(".jar")) return "The defined hamcrest path doesn't point to a jar file";
 		if (useParallelExternalJUnitRunner && parallelExternalJUnitRunnerThreads <= 0) {
 			return "Using parallel external JUnit runner with a non-positive amount of threads";
 		}
 		return null;
-	}
-	
-	private Path toPath(String p) {
-		File path = new File(p);
-		return path.toPath();
 	}
 	
 	private String classNameAsPath(String cname) {
@@ -1184,29 +1137,24 @@ public class Config {
 	private Class<?> loadClass(String className, String fromPath) {
 		File file = new File(fromPath);
 		Class<?> clazz = null;
-		String classToLoad = className;
 		try {
 		    URL url = file.toURI().toURL();
 		    URL[] urls = new URL[]{url};
 		    
 		    URLClassLoader cl = new URLClassLoader(urls);
 
-		    clazz = cl.loadClass(classToLoad);
+		    clazz = cl.loadClass(className);
 		    cl.close();
 		    
-		} catch (MalformedURLException e) {
-			
-		} catch (ClassNotFoundException e) {
-			
-		} catch (IOException e) {
-			
+		} catch (ClassNotFoundException | IOException e) {
+			e.printStackTrace();
 		}
 		return clazz;
 	}
 	
 	private void clearMethodsInsideClassToMutate() {
 		if (this.methodsInClassToMutate == null) {
-			this.methodsInClassToMutate = new TreeSet<Method>(methodComparator);
+			this.methodsInClassToMutate = new TreeSet<>(methodComparator);
 		} else {
 			this.methodsInClassToMutate.clear();
 		}
@@ -1214,7 +1162,7 @@ public class Config {
 	
 	private void clearClassesInOriginalBinDir() {
 		if (this.classesInOriginalBinDir == null) {
-			this.classesInOriginalBinDir = new LinkedList<String>();
+			this.classesInOriginalBinDir = new LinkedList<>();
 		} else {
 			this.classesInOriginalBinDir.clear();
 		}
@@ -1227,7 +1175,7 @@ public class Config {
 	
 	private void clearTestClassesInTestsBinDir() {
 		if (this.testClassesInTestsBinDir == null) {
-			this.testClassesInTestsBinDir = new LinkedList<String>();
+			this.testClassesInTestsBinDir = new LinkedList<>();
 		} else {
 			this.testClassesInTestsBinDir.clear();
 		}
@@ -1235,11 +1183,9 @@ public class Config {
 	
 	private boolean isTestClass(Class<?> c) {
 		if (c == null) return false;
-		if (!this.useOldJUnit) {
-			RunWith runWithAnnotation = c.getAnnotation(RunWith.class);
-			if (runWithAnnotation != null) {
-				return true;
-			}
+		RunWith runWithAnnotation = c.getAnnotation(RunWith.class);
+		if (runWithAnnotation != null) {
+			return true;
 		}
 		if (TestCase.class.isAssignableFrom(c)) {
 			return true;

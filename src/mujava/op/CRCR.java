@@ -1,25 +1,33 @@
 package mujava.op;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import mujava.api.MutantsInformationHolder;
 import mujava.api.MutationOperator;
 import mujava.op.basic.Arithmetic_OP;
 import openjava.mop.FileEnvironment;
 import openjava.mop.OJClass;
-import openjava.ptree.ClassDeclaration;
-import openjava.ptree.CompilationUnit;
-import openjava.ptree.Expression;
-import openjava.ptree.ParseTreeException;
-import openjava.ptree.ParseTreeObject;
-import openjava.ptree.UnaryExpression;
-import openjava.ptree.Literal;
-import openjava.ptree.BinaryExpression;
+import openjava.ptree.*;
 
+import java.util.LinkedList;
+import java.util.List;
+
+/**
+ * PIT operator.
+ *
+ * Generates CRCR (Constant Replacement Mutator) mutations.
+ * <ul>
+ * 		<li>{@code c} => {@code 1} : if {@code c} is not {@code 1}</li>
+ * 		<li>{@code c} => {@code 0} : if {@code c} is not {@code 0}</li>
+ * 		<li>{@code c} => {@code -1} : if {@code c} is not {@code -1}</li>
+ * 		<li>{@code c} => {@code -c} : if {@code c} is not {@code 0} nor {@code 1}</li>
+ * 		<li>{@code c} => {@code c + 1}</li>
+ * 		<li>{@code c} => {@code c - 1}</li>
+ * </ul>
+ *
+ * @see <a href="https://pitest.org/quickstart/mutators/#EXPERIMENTAL_CRCR">PIT CRCR Documentation</a>.
+ */
 public class CRCR extends Arithmetic_OP {
 	
-	public CRCR(FileEnvironment file_env, ClassDeclaration cdecl, CompilationUnit comp_unit) {
+	public CRCR(FileEnvironment file_env, CompilationUnit comp_unit) {
 		super( file_env, comp_unit );
 	}
 	
@@ -106,14 +114,14 @@ public class CRCR extends Arithmetic_OP {
 		
 		} else if (compatibleAssignTypeStrict(OJClass.forClass(Long.class), exprType, true)) {
 			if (!(isZero && (isNeg || isPlus))) {
-				expressions.add(Literal.makeLiteral(new Long(0l)));
+				expressions.add(Literal.makeLiteral(new Long(0L)));
 			}
-			if (!(isOne && isPlus) && !(isOne && isNeg)) expressions.add(Literal.makeLiteral(new Long(1l)));
+			if (!(isOne && isPlus) && !(isOne && isNeg)) expressions.add(Literal.makeLiteral(new Long(1L)));
 			if (!(isOne && isNeg)) {
-				expressions.add(new UnaryExpression(Literal.makeLiteral(new Long(1l)), UnaryExpression.MINUS));
+				expressions.add(new UnaryExpression(Literal.makeLiteral(new Long(1L)), UnaryExpression.MINUS));
 			}
-			BinaryExpression mutPlusOne = new BinaryExpression(originalCopy, BinaryExpression.PLUS, Literal.makeLiteral(new Long(1l)));
-			BinaryExpression mutMinusOne = new BinaryExpression(originalCopy, BinaryExpression.MINUS, Literal.makeLiteral(new Long(1l)));
+			BinaryExpression mutPlusOne = new BinaryExpression(originalCopy, BinaryExpression.PLUS, Literal.makeLiteral(new Long(1L)));
+			BinaryExpression mutMinusOne = new BinaryExpression(originalCopy, BinaryExpression.MINUS, Literal.makeLiteral(new Long(1L)));
 			mutPlusOne.forceParenthesis(true);
 			mutMinusOne.forceParenthesis(true);
 			expressions.add(mutPlusOne);
@@ -161,12 +169,12 @@ public class CRCR extends Arithmetic_OP {
 			mutMinusOne.forceParenthesis(true);
 			expressions.add(mutPlusOne);
 			expressions.add(mutMinusOne);
-		} else if (from.getLiteralType()==Literal.LONG) {
-			if (!isZero) expressions.add(Literal.makeLiteral(new Long(0l)));
-			if (!isOne) expressions.add(Literal.makeLiteral(new Long(1l)));
-			expressions.add(new UnaryExpression(Literal.makeLiteral(new Long(1l)), UnaryExpression.MINUS));
-			BinaryExpression mutPlusOne = new BinaryExpression(originalCopy, BinaryExpression.PLUS, Literal.makeLiteral(new Long(1)));
-			BinaryExpression mutMinusOne = new BinaryExpression(originalCopy, BinaryExpression.MINUS, Literal.makeLiteral(new Long(1l)));
+		} else if (from.getLiteralType() == Literal.LONG) {
+			if (!isZero) expressions.add(Literal.makeLiteral(new Long(0L)));
+			if (!isOne) expressions.add(Literal.makeLiteral(new Long(1L)));
+			expressions.add(new UnaryExpression(Literal.makeLiteral(new Long(1L)), UnaryExpression.MINUS));
+			BinaryExpression mutPlusOne = new BinaryExpression(originalCopy, BinaryExpression.PLUS, Literal.makeLiteral(new Long(1L)));
+			BinaryExpression mutMinusOne = new BinaryExpression(originalCopy, BinaryExpression.MINUS, Literal.makeLiteral(new Long(1L)));
 			mutPlusOne.forceParenthesis(true);
 			mutMinusOne.forceParenthesis(true);
 			expressions.add(mutPlusOne);
@@ -181,18 +189,30 @@ public class CRCR extends Arithmetic_OP {
 	}
 	
 	private boolean isZero(Literal l) {
+		String litRawValue = l.toFlattenString().trim();
 		if (l.getLiteralType() == Literal.INTEGER) {
-			Integer intLiteral = Integer.valueOf(removeEndingChar(l.toFlattenString().trim()));
+			int intLiteral;
+			if (litRawValue.contains("x") || litRawValue.contains("X")) {
+				try {
+					String hexString = getHexString(litRawValue);
+					intLiteral = Integer.parseInt(hexString, 16);
+				} catch (NumberFormatException nfe) {
+					nfe.printStackTrace();
+					return false;
+				}
+			} else {
+				intLiteral = Integer.parseInt(removeEndingChar(litRawValue));
+			}
 			return intLiteral == 0;
 		} else if (l.getLiteralType() == Literal.DOUBLE) {
-			Double doubleLiteral = Double.valueOf(removeEndingChar(l.toFlattenString().trim()));
+			double doubleLiteral = Double.parseDouble(removeEndingChar(litRawValue));
 			return doubleLiteral == 0.0d;
 		} else if (l.getLiteralType() == Literal.FLOAT) {
-			Float floatLiteral = Float.valueOf(removeEndingChar(l.toFlattenString().trim()));
+			float floatLiteral = Float.parseFloat(removeEndingChar(litRawValue));
 			return floatLiteral == 0.0f;
 		} else if (l.getLiteralType()==Literal.LONG) {
-			Long longLiteral = Long.valueOf(removeEndingChar(l.toFlattenString().trim()));
-			return longLiteral == 0l;
+			long longLiteral = Long.parseLong(removeEndingChar(litRawValue));
+			return longLiteral == 0L;
 		}
 		return false;
 	}
@@ -203,18 +223,30 @@ public class CRCR extends Arithmetic_OP {
 	}
 	
 	private boolean isOne(Literal l) {
+		String litRawValue = l.toFlattenString().trim();
 		if (l.getLiteralType() == Literal.INTEGER) {
-			Integer intLiteral = Integer.valueOf(removeEndingChar(l.toFlattenString().trim()));
+			int intLiteral;
+			if (litRawValue.contains("x") || litRawValue.contains("X")) {
+				try {
+					String hexString = getHexString(litRawValue);
+					intLiteral = Integer.parseInt(hexString, 16);
+				} catch (NumberFormatException nfe) {
+					nfe.printStackTrace();
+					return false;
+				}
+			} else {
+				intLiteral = Integer.parseInt(removeEndingChar(litRawValue));
+			}
 			return intLiteral == 1;
 		} else if (l.getLiteralType() == Literal.DOUBLE) {
-			Double doubleLiteral = Double.valueOf(removeEndingChar(l.toFlattenString().trim()));
+			double doubleLiteral = Double.parseDouble(removeEndingChar(litRawValue));
 			return doubleLiteral == 1.0d;
 		} else if (l.getLiteralType() == Literal.FLOAT) {
-			Float floatLiteral = Float.valueOf(removeEndingChar(l.toFlattenString().trim()));
+			float floatLiteral = Float.parseFloat(removeEndingChar(litRawValue));
 			return floatLiteral == 1.0f;
 		} else if (l.getLiteralType()==Literal.LONG) {
-			Long longLiteral = Long.valueOf(removeEndingChar(l.toFlattenString().trim()));
-			return longLiteral == 1l;
+			long longLiteral = Long.parseLong(removeEndingChar(litRawValue));
+			return longLiteral == 1L;
 		}
 		return false;
 	}
@@ -226,6 +258,13 @@ public class CRCR extends Arithmetic_OP {
 		} else {
 			return original;
 		}
+	}
+
+	private String getHexString(String value) {
+		if (!value.contains("x") && !value.contains("X"))
+			throw new IllegalArgumentException("value is not an hex string (" + value + ")");
+		int xIdx = Math.max(value.indexOf('x'), value.indexOf('X'));
+		return value.substring(xIdx + 1);
 	}
 	
 	public void outputToFile(Literal original, Expression mutant) {

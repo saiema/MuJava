@@ -27,18 +27,14 @@ import mujava.api.Mutation;
  * @version 2.0
  */
 public class MutantInfo {
-	private String name;
+	private final String name;
 	private String method;
-	private String path;
-	private byte[] md5digest;
-	private boolean severalMutations;
+	private final String path;
+	private final byte[] md5digest;
+	private final boolean severalMutations;
 	private boolean isExternal;
 	private List<MutationInformation> mutations;
 	private Mutation lastMutation;
-	
-//	private List<Integer> mutatedLines;
-//	private List<Mutation> mutations;
-//	private List<MutationOperator> opsUsed;
 	
 	
 	/**
@@ -47,7 +43,7 @@ public class MutantInfo {
 	 * @param name          : 	the mutated class name : {@code String}
 	 * @param method        :	the method mutated ({@code null} if the mutation was on the class fields or if this is an external mutant) : {@code String}
 	 * @param path          :	the path to the mutated file : {@code String}
-	 * @param digest        :	the md5 hash of the mutated file
+	 * @param md5digest        :	the md5 hash of the mutated file
 	 * @param mi            :	the mutant identifier that generated this mutant, {@code null} if this is an external mutant : {@code Mutation}
 	 * @param isExternal    :	if the mutant was not created by mujava
 	 */
@@ -61,6 +57,7 @@ public class MutantInfo {
 		addMutation(mi, method);
 		this.md5digest = md5digest;
 		this.severalMutations = isExternal;
+		this.isExternal = isExternal;
 	}
 	
 	/**
@@ -69,7 +66,7 @@ public class MutantInfo {
 	 * @param name			: 	the mutated class name : {@code String}
 	 * @param method		:	the method mutated ({@code null} if the mutation was on the class fields) : {@code String}
 	 * @param path			:	the path to the mutated file : {@code String}
-	 * @param digest		:	the md5 hash of the mutated file
+	 * @param md5digest		:	the md5 hash of the mutated file
 	 * @param mi			:	the mutant identifier that generated this mutant : {@code Mutation}
 	 */
 	public MutantInfo(String name, String method, String path, byte[] md5digest, Mutation mi) {
@@ -95,10 +92,7 @@ public class MutantInfo {
 	}
 	
 	private void initializeLists() {
-//		this.mutatedLines = new LinkedList<Integer>();
-//		this.mutations = new LinkedList<Mutation>();
-//		this.opsUsed = new LinkedList<MutationOperator>();
-		this.mutations = new LinkedList<MutationInformation>();
+		this.mutations = new LinkedList<>();
 	}
 	
 	/**
@@ -119,7 +113,7 @@ public class MutantInfo {
 	
 	/**
 	 * Adds a list of mutations
-	 * @param mutations	:	the list of mutations to add
+	 * @param mutationsInfo	:	the list of mutations to add
 	 * @param prepend	:	if {@code true} new mutations will be prepended to current ones, else they will be appended
 	 */
 	public void addMutations(List<MutationInformation> mutationsInfo, boolean prepend) {
@@ -170,7 +164,7 @@ public class MutantInfo {
 	public boolean isGuardMutation() {
 		boolean isGuardMutation = true;
 		for (int i = 0; isGuardMutation && (i < this.mutations.size()); i++) {
-			isGuardMutation &= this.mutations.get(i).getMutation().isGuardMutation();
+			isGuardMutation = this.mutations.get(i).getMutation().isGuardMutation();
 		}
 		return isGuardMutation;
 	}
@@ -257,28 +251,28 @@ public class MutantInfo {
 	
 	@Override
 	public String toString() {
-		String res =  "name: " + this.name
-						+ "\nPath                   : " + this.path
-						+ "\nMD5 hash               : " + Arrays.toString(this.md5digest);
+		StringBuilder res = new StringBuilder("name: " + this.name
+				+ "\nPath                   : " + this.path
+				+ "\nMD5 hash               : " + Arrays.toString(this.md5digest));
 		if (!isExternal) {
-			res+= "\nSeveral mutations      : "	+ this.severalMutationsApplied(); 
-			res+= "\nMutations              : " + "\n";
+			res.append("\nSeveral mutations      : ").append(this.severalMutationsApplied());
+			res.append("\nMutations              : " + "\n");
 			for (MutationInformation minfo : this.mutations) {
-				res += indentedMutations(minfo);
+				res.append(indentedMutations(minfo));
 			}
 		} else {
-			res+= "\nis external";
+			res.append("\nis external");
 		}
-		return res;
+		return res.toString();
 	}
 	
 	private String indentedMutations(MutationInformation minfo) {
-		String res = "";
+		StringBuilder res = new StringBuilder();
 		String[] lines = minfo.toString().split("\n");
 		for (String line : lines) {
-			res += "    " + line + "\n";
+			res.append("    ").append(line).append("\n");
 		}
-		return res;
+		return res.toString();
 	}
 
 }

@@ -7,6 +7,7 @@ public class CRCR {
 		float b = 5.0f + 1.0f + 0.0f + (-1.0f) + 1.2f; //mutGenLimit 1
 		double c = 5.0d + 1.0d + 0.0d + (-1.0d) + 1.2d; //mutGenLimit 1
 		long d = 5l + 1l + 0l + (-1l) + 3l; //mutGenLimit 1
+		int e = 0xC9 + 0x0 + 0xFF + 0x1FA + 0x1; //mutGenLimit 1
 		return (int) (a + c + 3 * d); //mutGenLimit 1
 	}
 	

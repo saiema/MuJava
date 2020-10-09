@@ -1,21 +1,5 @@
 package mujava.generations;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-
-import openjava.ptree.ParseTreeException;
 import mujava.OpenJavaException;
 import mujava.api.MutantsInformationHolder;
 import mujava.app.Core;
@@ -23,6 +7,16 @@ import mujava.app.MutantInfo;
 import mujava.app.MutationRequest;
 import mujava.app.Mutator;
 import mujava.util.JustCodeDigest;
+import openjava.ptree.ParseTreeException;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * This class is used to generate several generations of mutants
@@ -35,15 +29,15 @@ import mujava.util.JustCodeDigest;
  * @version 0.3u
  */
 public class Generator {
-	private RequestGenerator reqGen;
-	private GoalTester goalTester;
-	private Mutator mutator;
-	private Set<byte[]> mutantHashes;
-	public static enum VERBOSE_LEVEL {NO_VERBOSE, BASIC_VERBOSE, FULL_VERBOSE, DEBUG}
+	private final RequestGenerator reqGen;
+	private final GoalTester goalTester;
+	private final Mutator mutator;
+	private final Set<byte[]> mutantHashes;
+	public enum VERBOSE_LEVEL {NO_VERBOSE, BASIC_VERBOSE, FULL_VERBOSE, DEBUG}
 	private VERBOSE_LEVEL verboseLevel = VERBOSE_LEVEL.NO_VERBOSE;
 	private Integer currentGeneration = -1;
 	private static boolean useLowMemoryMode = false;
-	private Map<Integer, Map<String, List<String>>> mutantsFoldersPerGeneration;
+	private final Map<Integer, Map<String, List<String>>> mutantsFoldersPerGeneration;
 	
 	
 	public static void useLowMemoryMode(boolean ulmm) {
@@ -77,8 +71,8 @@ public class Generator {
 		this.reqGen = requestGenerator;
 		this.goalTester = tester;
 		this.mutator = new Mutator();
-		this.mutantHashes = new HashSet<byte[]>();
-		this.mutantsFoldersPerGeneration = new TreeMap<Integer, Map<String, List<String>>>();
+		this.mutantHashes = new HashSet<>();
+		this.mutantsFoldersPerGeneration = new TreeMap<>();
 	}
 	
 	/**
@@ -92,7 +86,7 @@ public class Generator {
 	 * @throws ParseTreeException 
 	 */
 	public GenerationsInformation generate(boolean checkOnEveryMutant, boolean throwExceptions) throws ClassNotFoundException, OpenJavaException, ParseTreeException {
-		boolean goalAchieved = false;
+		boolean goalAchieved;
 		GenerationsInformation ginfo = new GenerationsInformation(Generator.useLowMemoryMode);
 		this.currentGeneration = 0;
 		MutationRequest request = this.reqGen.nextRequest();
@@ -100,7 +94,7 @@ public class Generator {
 		try {
 			File originalFile = getFileToMutate(request);
 			byte[] digest = JustCodeDigest.digest(originalFile);
-			MutantInfo original = new MutantInfo(request.clazz.replaceAll(Core.SEPARATOR, "."), null, originalFile.getPath(), /*-1, null, */digest/*dis.getMessageDigest().digest()*/, null);
+			MutantInfo original = new MutantInfo(request.clazz.replaceAll(Core.SEPARATOR, "."), null, originalFile.getPath(), digest, null);
 			ginfo.add(this.currentGeneration, original);
 			this.goalTester.update(ginfo);
 			goalAchieved = this.goalTester.goalAchieved();
@@ -113,12 +107,12 @@ public class Generator {
 			do {
 				this.reqGen.update(ginfo, this.currentGeneration);
 				this.currentGeneration++;
-				List<MutantInfo> lastGeneration = ginfo.getLastGeneration();//ginfo.getGeneration(this.currentGeneration-1);
+				List<MutantInfo> lastGeneration = ginfo.getLastGeneration();
 				request = this.reqGen.nextRequest();
 				int currentMutant = 0;
 				String currentGenerationDir = request.outputDir;
 				for (MutantInfo mut : lastGeneration) {
-					String mutantDir = "mutant-"+Integer.toString(currentMutant);
+					String mutantDir = "mutant-"+ currentMutant;
 					request.outputDir = appendDir(currentGenerationDir, mutantDir);
 					mutFile = new File(mut.getPath());
 					copyMutant(mutFile.getAbsolutePath(), originalFile.getAbsolutePath());
@@ -142,7 +136,7 @@ public class Generator {
 		} catch (ClassNotFoundException e) {
 			if (this.verboseLevel.equals(Generator.VERBOSE_LEVEL.DEBUG) || this.verboseLevel.equals(Generator.VERBOSE_LEVEL.FULL_VERBOSE)) {
 				System.err.println("ClassNotFoundException while generating generation " + this.currentGeneration);
-				System.err.println("Current file: " + (mutFile!=null?(mutFile.getAbsolutePath()):("null")));
+				System.err.println("Current file: " + mutFile.getAbsolutePath());
 			}
 			if (throwExceptions) {
 				throw e;
@@ -152,7 +146,7 @@ public class Generator {
 		} catch (OpenJavaException e) {
 			if (this.verboseLevel.equals(Generator.VERBOSE_LEVEL.DEBUG) || this.verboseLevel.equals(Generator.VERBOSE_LEVEL.FULL_VERBOSE)) {
 				System.err.println("OpenJavaException while generating generation " + this.currentGeneration);
-				System.err.println("Current file: " + (mutFile!=null?(mutFile.getAbsolutePath()):("null")));
+				System.err.println("Current file: " + mutFile.getAbsolutePath());
 			}
 			if (throwExceptions) {
 				throw e;
@@ -162,7 +156,7 @@ public class Generator {
 		} catch (ParseTreeException e) {
 			if (this.verboseLevel.equals(Generator.VERBOSE_LEVEL.DEBUG) || this.verboseLevel.equals(Generator.VERBOSE_LEVEL.FULL_VERBOSE)) {
 				System.err.println("ParseTreeException while generating generation " + this.currentGeneration);
-				System.err.println("Current file: " + (mutFile!=null?(mutFile.getAbsolutePath()):("null")));
+				System.err.println("Current file: " + mutFile.getAbsolutePath());
 			}
 			if (throwExceptions) {
 				throw e;
@@ -183,7 +177,7 @@ public class Generator {
 
 	private void updateFolders(Integer generation, String mutantDir) {
 		Map<String, List<String>> mutantsFolders = this.getMutantsFolderForGeneration(generation);
-		Map<String, List<String>> updatedMutantsFolders = new TreeMap<String, List<String>>();
+		Map<String, List<String>> updatedMutantsFolders = new TreeMap<>();
 		for (Entry<String, List<String>> entry : mutantsFolders.entrySet()) {
 			if (entry.getKey().startsWith("mutant-")) {
 				updatedMutantsFolders.put(entry.getKey(), entry.getValue());
@@ -196,11 +190,11 @@ public class Generator {
 
 
 	public String info(GenerationsInformation generationsInfo) {
-		String status = "Generated generations : " + generationsInfo.getGenerations() + "\n";
+		StringBuilder status = new StringBuilder("Generated generations : " + generationsInfo.getGenerations() + "\n");
 		for (int g = 1; g <= generationsInfo.getGenerations(); g++) {
-			status += "generation " + g + " have " + generationsInfo.getGeneration(g).size() + " mutants";
+			status.append("generation ").append(g).append(" have ").append(generationsInfo.getGeneration(g).size()).append(" mutants");
 		}
-		return status;
+		return status.toString();
 	}
 	
 	public Map<String, List<String>> getMutantsFolderForGeneration(int generation) {
@@ -254,7 +248,7 @@ public class Generator {
 	 * @throws ParseTreeException
 	 */
 	protected List<MutantInfo> generateNewGenerationAtOnce(MutationRequest request) throws ClassNotFoundException, OpenJavaException, ParseTreeException {
-		List<MutantInfo> mutantsInfo = new LinkedList<MutantInfo>();
+		List<MutantInfo> mutantsInfo = new LinkedList<>();
 		mutator.setRequest(request);
 		Map<String, MutantsInformationHolder> mutationsPerMethod = mutator.obtainMutants();
 		for (Entry<String, MutantsInformationHolder> mutations : mutationsPerMethod.entrySet()) {
@@ -277,12 +271,12 @@ public class Generator {
 	 * @return a list of filtered mutants
 	 */
 	private List<MutantInfo> filterRepeatedMutants(List<MutantInfo> newMutants) {
-		List<MutantInfo> filteredMutants = new LinkedList<MutantInfo>();
+		List<MutantInfo> filteredMutants = new LinkedList<>();
 		for (MutantInfo mut : newMutants) {
 			String path = mut.getPath();
 			File mutantFile = new File(path);
 			byte[] digest = JustCodeDigest.digest(mutantFile);
-			if (this.mutantHashes.add(digest)) {//if (!hashExists(digest)) {//
+			if (this.mutantHashes.add(digest)) {
 				filteredMutants.add(mut);
 			} else {
 				delete(path);					//deletes mutant
@@ -291,16 +285,6 @@ public class Generator {
 		}
 		return filteredMutants;
 	}
-	
-//	private boolean hashExists(byte[] hash) {
-//		for (byte[] other : this.mutantHashes) {
-//			if (Arrays.equals(hash, other)) {
-//				return true;
-//			}
-//		}
-//		this.mutantHashes.add(hash);
-//		return false;
-//	}
 
 	/**
 	 * This method generates mutants of the next generation checking the {@code GoalTester} on each new mutant
@@ -312,7 +296,7 @@ public class Generator {
 	 * @throws OpenJavaException
 	 */
 	protected List<MutantInfo> generateNewGenerationOneMutantAtATime(MutationRequest request, GenerationsInformation ginfo) throws ClassNotFoundException, OpenJavaException {
-		List<MutantInfo> mutantsInfo = new LinkedList<MutantInfo>();
+		List<MutantInfo> mutantsInfo = new LinkedList<>();
 		Mutator mut = new Mutator(request, 1);
 		new Thread(mut).start();
 		MutantInfo mi = mut.getNext();
@@ -379,7 +363,6 @@ public class Generator {
 				break;
 			}
 			case DEBUG:
-				break;
 			case FULL_VERBOSE: {
 					System.out.println(ginfo.showGeneration(this.currentGeneration, true));
 					break;
@@ -392,14 +375,13 @@ public class Generator {
 	private File getFileToMutate(MutationRequest request) {
 		String className = request.clazz;
 		String[] paks = className.split(Core.SEPARATOR);
-		String pak = "";
+		StringBuilder pak = new StringBuilder();
 		for (int i = 0; i < paks.length - 1;i++) {
-			pak += paks[i] + Core.SEPARATOR;
+			pak.append(paks[i]).append(Core.SEPARATOR);
 		}
 		className = paks[paks.length-1];
 		String fileToMutateName = className + ".java";
-		File fileToMutate = new File(request.inputDir + pak + fileToMutateName);
-		return fileToMutate;
+		return new File(request.inputDir + pak + fileToMutateName);
 	}
 	
 	private void backupOriginal(File original) {
@@ -408,9 +390,6 @@ public class Generator {
 		try {
 			FileInputStream originalStream = new FileInputStream(original);
 			Files.copy(originalStream, backup.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -422,9 +401,6 @@ public class Generator {
 		try {
 			FileInputStream originalStream = new FileInputStream(backup);
 			Files.copy(originalStream, original.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -433,13 +409,11 @@ public class Generator {
 	}
 	
 	private boolean copyMutant(String mutantPath, String originalPath) {
-		String fixedMutantPath = mutantPath;
-		String fixedOriginalPath = originalPath;
-		File mutant = new File(fixedMutantPath);
+		File mutant = new File(mutantPath);
 		if (!mutant.exists()) {
 			return false;
 		}
-		File original = new File(fixedOriginalPath);
+		File original = new File(originalPath);
 		if (original.getParentFile()==null?!original.exists():!original.getParentFile().exists()) {
 			return false;
 		}
@@ -454,8 +428,7 @@ public class Generator {
 	}
 	
 	private void delete(String path) {
-		String fixedPath = path;
-		File f = new File(fixedPath);
+		File f = new File(path);
 		if (f.exists()) {
 			f.delete();
 		}

@@ -82,7 +82,7 @@ public class Core {
 	}
 	
 	private static String fixBackslash(String orig) {
-		if (orig == "\\") {
+		if (orig.equals("\\")) {
 			return "\\\\";
 		} else {
 			return orig;
@@ -156,10 +156,6 @@ public class Core {
 							break;
 						}
 					}
-//					if (!fileFound) {
-//						this.error = new IOException("No class found in " + mutDir.getAbsolutePath());
-//						return false;
-//					}
 				} else {
 					this.error = new IOException("Unable to access mutant directory " + mutDir.getAbsolutePath() + " (check that the folder exists and have the correct permissions)");
 					return false;
@@ -195,6 +191,11 @@ public class Core {
 			this.mutantsFolders = generator.getMutantsFolderForGeneration(generation);
 			//this.generation = generation;
 			this.lastGeneration = generationsInfo.getLastGeneration();
+			if (this.lastGeneration.size() == 1) {
+				if (this.lastGeneration.get(0).getMutation() == null) {
+					this.lastGeneration = new LinkedList<>();
+				}
+			}
 		} catch (Exception e) {
 			this.error = e;
 		}
@@ -203,7 +204,7 @@ public class Core {
 	
 	public List<Method> getMethods(String className) {
 		Class<?> clazz = loadClass(className);
-		List<Method> methods = new LinkedList<Method>();
+		List<Method> methods = new LinkedList<>();
 		if (clazz != null) {
 			methods.addAll(Arrays.asList(clazz.getDeclaredMethods()));
 		}
@@ -214,21 +215,16 @@ public class Core {
 	private Class<?> loadClass(String className) {
 		File file = new File(this.inputBinDir);
 		Class<?> clazz = null;
-		String classToLoad = className;
 		try {
 		    URL url = file.toURI().toURL();
 		    URL[] urls = new URL[]{url};
 		    
 		    URLClassLoader cl = new URLClassLoader(urls);
 
-		    clazz = cl.loadClass(classToLoad);
+		    clazz = cl.loadClass(className);
 		    cl.close();
 		    
-		} catch (MalformedURLException e) {
-			this.error = e;
-		} catch (ClassNotFoundException e) {
-			this.error = e;
-		} catch (IOException e) {
+		} catch (IOException | ClassNotFoundException e) {
 			this.error = e;
 		}
 		return clazz;
@@ -301,11 +297,6 @@ public class Core {
 				return false;
 		}
 		return true;
-//		if (f.exists() && f.isFile()) {
-//			return f.renameTo(new File(f.getAbsolutePath()+".bak"));
-//		} else {
-//			return false;
-//		}
 	}
 	
 	private boolean reactivateOriginal(String path) {
@@ -405,8 +396,7 @@ public class Core {
 				Future<ExternalJUnitRunnerResult> newTask = es.submit(externalRunner);
 				junitExternalRunnerTasks.add(newTask);
 			}
-			for (int i = 0; i < junitExternalRunnerTasks.size(); i++) {
-				Future<ExternalJUnitRunnerResult> t = junitExternalRunnerTasks.get(i);
+			for (Future<ExternalJUnitRunnerResult> t : junitExternalRunnerTasks) {
 				ExternalJUnitRunnerResult externalJPRResults;
 				try {
 					externalJPRResults = t.get();
@@ -422,7 +412,7 @@ public class Core {
 			for (MutantInfo mut : this.lastGeneration) {
 				String pathToFile = mut.getPath();
 				CompilationResult cresult = ms.compile(pathToFile);
-				ExternalJUnitResult exResult = null;
+				ExternalJUnitResult exResult;
 				if (cresult == null) {
 					exResult = new ExternalJUnitResult(new Exception("Compilation error while compiling mutant "+mut.getPath()));
 				} else if (!cresult.compilationSuccessful()) {
@@ -520,8 +510,7 @@ public class Core {
 			Future<ExternalJUnitRunnerResult> newTask = es.submit(externalRunner);
 			junitExternalRunnerTasks.add(newTask);
 		}
-		for (int i = 0; i < junitExternalRunnerTasks.size(); i++) {
-			Future<ExternalJUnitRunnerResult> t = junitExternalRunnerTasks.get(i);
+		for (Future<ExternalJUnitRunnerResult> t : junitExternalRunnerTasks) {
 			ExternalJUnitRunnerResult externalJPRResults;
 			try {
 				externalJPRResults = t.get();
@@ -529,15 +518,15 @@ public class Core {
 				e.printStackTrace();
 				return -1;
 			}
-			System.out.println("Testing mutant : "+externalJPRResults.getMutant().getPath()+'\n');
-			
+			System.out.println("Testing mutant : " + externalJPRResults.getMutant().getPath() + '\n');
+
 			if (!externalJPRResults.compilationResults().compilationSuccessful()) {
 				System.err.println("File : " + externalJPRResults.getMutant().getPath() + " didn't compile\n");
 				System.err.print("Compilation error:\n" + externalJPRResults.compilationResults().error().getMessage());
 				failedToCompile++;
 				continue;
 			} else if (externalJPRResults.compilationResults().getWarnings() != null) {
-				System.err.println("Warnings\n"+externalJPRResults.compilationResults().getWarnings());
+				System.err.println("Warnings\n" + externalJPRResults.compilationResults().getWarnings());
 			}
 			boolean killed = false;
 			ExternalJUnitResult testResults = externalJPRResults.testResults();
@@ -553,10 +542,11 @@ public class Core {
 			if (!testResults.wasDiscarded()) {
 				int runnedTestsCount = 0;
 				int totalFailures = 0;
-				Map<String, boolean[]> testSimpleResults = dynamicSubsumptionAnalysis()?new TreeMap<String, boolean[]>():null;
+				Map<String, boolean[]> testSimpleResults = dynamicSubsumptionAnalysis() ? new TreeMap<String, boolean[]>() : null;
 				for (TestResult r : testResults.testResults()) {
-					if (dynamicSubsumptionAnalysis()) testSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
-					System.out.println(r.toString()+"\n");
+					if (dynamicSubsumptionAnalysis())
+						testSimpleResults.put(r.getTestClassRunned().getName(), r.testResultsAsArray());
+					System.out.println(r.toString() + "\n");
 					runnedTestsCount += r.getRunnedTestsCount();
 					totalFailures += r.getTotalFailures();
 					if (!r.wasSuccessful()) {
@@ -564,8 +554,10 @@ public class Core {
 						for (Failure f : r.getFailures()) {
 							if (Core.fullVerbose) System.out.println("test : " + f.getTestHeader());
 							if (Core.fullVerbose) System.out.println("failure description: " + f.getDescription());
-							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("exception: " + f.getException());
-							if (Core.fullVerbose && !(f.getException() instanceof java.lang.AssertionError)) System.out.println("trace: " + f.getTrace());
+							if (Core.fullVerbose && !(f.getException() instanceof AssertionError))
+								System.out.println("exception: " + f.getException());
+							if (Core.fullVerbose && !(f.getException() instanceof AssertionError))
+								System.out.println("trace: " + f.getTrace());
 						}
 					}
 					if (!killed && !r.wasSuccessful()) killed = true;
@@ -595,9 +587,9 @@ public class Core {
 	}
 	
 	private static class ExternalJUnitRunnerResult {
-		private CompilationResult cr;
-		private ExternalJUnitResult results;
-		private MutantInfo mut;
+		private final CompilationResult cr;
+		private final ExternalJUnitResult results;
+		private final MutantInfo mut;
 		
 		
 		public ExternalJUnitRunnerResult(CompilationResult cr, ExternalJUnitResult testResults, MutantInfo mut) {
@@ -623,9 +615,9 @@ public class Core {
 	
 	private static class ExternalJUnitParallelRunner implements Callable<ExternalJUnitRunnerResult> {
 		
-		private List<String> testClasses;
-		private MutantInfo mut;
-		private MutationScore ms;
+		private final List<String> testClasses;
+		private final MutantInfo mut;
+		private final MutationScore ms;
 		
 		
 		public ExternalJUnitParallelRunner(List<String> testClasses, MutantInfo mut, MutationScore ms) {
@@ -636,7 +628,7 @@ public class Core {
 		
 		
 		@Override
-		public ExternalJUnitRunnerResult call() throws Exception {
+		public ExternalJUnitRunnerResult call() {
 			String pathToFile = mut.getPath();
 			CompilationResult cresult = ms.compile(pathToFile);
 			ExternalJUnitResult results = null;
